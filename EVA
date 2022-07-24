@@ -1,0 +1,2442 @@
+*ASI********************************************************************
+*                                                                      *
+* Copyright 2022 - Asynchron Systems Inc.                              *
+*                                                                      *
+* THIS PROGRAM IS THE EXCLUSIVE PROPERTY OF ASYNCHRON SYSTEMS INC. IT  *
+* MAY NOT BE USED, SOLD, DISTRIBUTED OR REPRODUCED BY ANY MEANS WITHOUT*
+* THE EXPRESS WRITTEN CONSENT OF ASYNCHRON SYSTEMS INC.                *
+*                                                                      *
+* Create Date  Req#  Who  Description                                  *
+* 10 JUL 2022  N/A   NT   Editor v2                                    *
+*                                                                      *
+************************************************************************
+* Special Instructions                                                 *
+*                                                                      *
+************************************************************************
+* Change History                                                       *
+*                                                                      *
+* Change Date  Req#  Who  Description                                  *
+*                                                                      *
+************************************************************************
+*
+    EQU TRUE TO 1
+    EQU FALSE TO 0
+*
+    EQU KEY.CTRL.A TO CHAR(1)
+    EQU KEY.CTRL.C TO CHAR(3)
+    EQU KEY.CTRL.F TO CHAR(6)
+    EQU KEY.CTRL.R TO CHAR(18)
+    EQU KEY.CTRL.S TO CHAR(19)
+    EQU KEY.CTRL.V TO CHAR(22)
+*
+    EQU KEY.ESCAPE TO CHAR(27)
+    EQU KEY.BACKSPACE TO CHAR(8)
+    EQU KEY.TAB TO CHAR(9)
+    EQU KEY.LINE.FEED TO CHAR(10)
+    EQU KEY.CARRIAGE.RETURN TO CHAR(13)
+    EQU KEY.DELETE TO CHAR(127)
+*
+    EQU KEY.EXCLAIMATION.MARK TO CHAR(33)
+*
+    EQU ESCAPE.CODE TO CHAR(27)
+*
+    BOTTOM = @(0,66)
+    CLEAR.SCREEN = @(-1)
+    CLEAR.REST.OF.SCREEN = @(-3)
+    CLEAR.REST.OF.LINE = @(-4)
+    CLEAR.LINE = @(0) : CLEAR.REST.OF.LINE
+*
+* ANSI 16 COLORS
+*
+    RESET.COLOR = ESCAPE.CODE : '[0m'
+*
+    BLACK = RESET.COLOR : ESCAPE.CODE : '[30m'
+    RAW.BLACK = ESCAPE.CODE : '[30m'
+    RED = RESET.COLOR : ESCAPE.CODE : '[31m'
+    RAW.RED = ESCAPE.CODE : '[31m'
+    GREEN = RESET.COLOR : ESCAPE.CODE : '[32m'
+    YELLOW = RESET.COLOR : ESCAPE.CODE : '[33m'
+    BLUE = RESET.COLOR : ESCAPE.CODE : '[34m'
+    MAGENTA = RESET.COLOR : ESCAPE.CODE : '[35m'
+    CYAN = RESET.COLOR : ESCAPE.CODE : '[36m'
+    WHITE = RESET.COLOR : ESCAPE.CODE : '[37m'
+    RAW.WHITE = ESCAPE.CODE : '[37m'
+*
+    BRIGHTBLACK = RESET.COLOR : ESCAPE.CODE : '[30;1m'
+    BRIGHTRED = RESET.COLOR : ESCAPE.CODE : '[31;1m'
+    BRIGHTGREEN = RESET.COLOR : ESCAPE.CODE : '[32;1m'
+    BRIGHTYELLOW = RESET.COLOR : ESCAPE.CODE : '[33;1m'
+    BRIGHTBLUE = RESET.COLOR : ESCAPE.CODE : '[34;1m'
+    BRIGHTMAGENTA = RESET.COLOR : ESCAPE.CODE : '[35;1m'
+    BRIGHTCYAN = RESET.COLOR : ESCAPE.CODE : '[36;1m'
+    BRIGHTWHITE = RESET.COLOR : ESCAPE.CODE : '[37;1m'
+*
+    BACKGROUND.BLACK = RESET.COLOR : ESCAPE.CODE : '[40m'
+    BACKGROUND.RED = RESET.COLOR : ESCAPE.CODE : '[41m'
+    BACKGROUND.GREEN = RESET.COLOR : ESCAPE.CODE : '[42m'
+    BACKGROUND.YELLOW = RESET.COLOR : ESCAPE.CODE : '[43m'
+    BACKGROUND.BLUE = RESET.COLOR : ESCAPE.CODE : '[44m'
+    BACKGROUND.MAGENTA = RESET.COLOR : ESCAPE.CODE : '[45m'
+    BACKGROUND.CYAN = RESET.COLOR : ESCAPE.CODE : '[46m'
+    BACKGROUND.WHITE = RESET.COLOR : ESCAPE.CODE : '[47m'
+*
+    BACKGROUND.BRIGHTBLACK = RESET.COLOR : ESCAPE.CODE : '[40;1m'
+    BACKGROUND.BRIGHTRED = RESET.COLOR : ESCAPE.CODE : '[41;1m'
+    BACKGROUND.BRIGHTGREEN = RESET.COLOR : ESCAPE.CODE : '[42;1m'
+    BACKGROUND.BRIGHTYELLOW = RESET.COLOR : ESCAPE.CODE : '[43;1m'
+    BACKGROUND.BRIGHTBLUE = RESET.COLOR : ESCAPE.CODE : '[44;1m'
+    BACKGROUND.BRIGHTMAGENTA = RESET.COLOR : ESCAPE.CODE : '[45;1m'
+    BACKGROUND.BRIGHTCYAN = RESET.COLOR : ESCAPE.CODE : '[46;1m'
+    BACKGROUND.BRIGHTWHITE = RESET.COLOR : ESCAPE.CODE : '[47;1m'
+*
+    MESSAGE.COLOR = BRIGHTGREEN
+    EDITOR.COLOR = BRIGHTWHITE
+    HEADER.COLOR = BRIGHTGREEN
+    FOREGROUND.COLOR = WHITE
+*
+    LINE.NUMBER.COLOR = BRIGHTBLACK
+*
+    COMMENT.COLOR = BRIGHTBLACK
+    STMT.COLOR = GREEN
+    FUNCTION.COLOR = MAGENTA
+    OPERATOR.COLOR = CYAN
+    SPECIAL.COLOR = YELLOW
+    NUMBER.COLOR = YELLOW
+*
+    STRING.COLOR = CYAN
+*
+    PAGE.UP = '[5~'
+    PAGE.DOWN = '[6~'
+*
+    @USER1 = 'VIM2'
+    @USER2 = 'VIM2'
+*
+* SETUP SYNTAX
+*
+    GOSUB SYNTAX.INIT
+*
+* TERMINAL INITIALIZATION
+*
+    EQU TERMINAL.TYPE.ATTRIBUTE TO 1
+    EQU TERMINAL.UP.ATTRIBUTE TO 2
+    EQU TERMINAL.DOWN.ATTRIBUTE TO 3
+    EQU TERMINAL.LEFT.ATTRIBUTE TO 4
+    EQU TERMINAL.RIGHT.ATTRIBUTE TO 5
+*
+    TERMINAL.CODES = TERMINFO(0)
+    TERMINAL.TYPE = FIELD(TERMINAL.CODES<1>,'|',1)
+    IF TERMINAL.TYPE = 'vp' THEN
+        PRINT 'NSH: Re-mapped susp to ^B (Ctrl B)'
+        EXECUTE 'SH -c "stty susp ^B"'
+        TERMINAL.TYPE = 'viewpoint'
+    END
+*
+    TERMINAL = ''
+    TERMINAL.POS = 1
+    TERMINAL<TERMINAL.TYPE.ATTRIBUTE,1> = TERMINAL.TYPE
+*
+    EXECUTE 'SH -c "infocmp "' : TERMINAL.TYPE CAPTURING RESULTS
+*
+    ARROW.CODES = ''
+    ARROW.CODES<1,-1> = 'kcuu1='
+    ARROW.CODES<1,-1> = 'kcud1='
+    ARROW.CODES<1,-1> = 'kcub1='
+    ARROW.CODES<1,-1> = 'kcuf1='
+*
+    ARROW.CTR = 0
+    LOOP
+        ARROW.CTR = ARROW.CTR + 1
+        ARROW.CODE = ARROW.CODES<1,ARROW.CTR>
+    UNTIL ARROW.CODE = '' DO
+        STR = ''
+        START.POS = INDEX(RESULTS, ARROW.CODE, 1)
+        IF START.POS # 0 THEN
+            STR = RESULTS[START.POS,999999]
+            START.POS = LEN(ARROW.CODE) + 1
+            END.POS = INDEX(STR, ',', 1) - START.POS
+            STR = STR[START.POS,END.POS]
+            IF INDEX(STR,'^',1) # 0 THEN
+                STR = STR[2,99999]
+            END ELSE IF INDEX(STR,'\E',1) THEN
+                STR = STR[3,99999]
+            END ELSE
+                STR = ''
+            END
+        END
+        TERMINAL<-1> = STR
+    REPEAT
+*
+    UP.ARROW = TERMINAL<TERMINAL.UP.ATTRIBUTE>
+    DOWN.ARROW = TERMINAL<TERMINAL.DOWN.ATTRIBUTE>
+    LEFT.ARROW = TERMINAL<TERMINAL.LEFT.ATTRIBUTE>
+    RIGHT.ARROW = TERMINAL<TERMINAL.RIGHT.ATTRIBUTE>
+*
+    SCREEN.WIDTH = 132
+    SCREEN.HEIGHT = 66
+*
+    MARGIN.TOP = 1
+    MARGIN.BOTTOM = 1
+    MARGIN.LEFT = 3
+    MARGIN.RIGHT = 1
+*
+    COMMAND = @SENTENCE
+*
+    NUMBER.OF.ARGUMENTS = DCOUNT(COMMAND,' ')
+    IF NUMBER.OF.ARGUMENTS = 3 THEN
+        FILENAME = FIELD(COMMAND,' ',2)
+*
+        OPEN '',FILENAME TO FILE ELSE
+            PRINT 'Unable to open file: ' : FILENAME : ' - Press RETURN':
+            INPUT ANYTHING
+            STOP
+        END
+*
+        RECORD.ID = FIELD(COMMAND,' ',3)
+        READU RAW.LINES FROM FILE,RECORD.ID LOCKED
+            PRINT 'Record is locked: ' : RECORD.ID : ' - Press RETURN':
+            INPUT ANYTHING
+            STOP
+        END ELSE RAW.LINES = ''
+*
+    END ELSE IF NUMBER.OF.ARGUMENTS = 4 THEN
+        FILENAME = FIELD(COMMAND,' ',3)
+*
+        OPEN 'DICT',FILENAME TO FILE ELSE
+            PRINT 'Unable to open dict file: ' : FILENAME : ' - Press RETURN':
+            INPUT ANYTHING
+            STOP
+        END
+*
+        RECORD.ID = FIELD(COMMAND,' ',4)
+        READU RAW.LINES FROM FILE,RECORD.ID LOCKED
+            PRINT 'Record is locked: ' : RECORD.ID : ' - Press RETURN':
+            INPUT ANYTHING
+            STOP
+        END ELSE RAW.LINES = ''
+    END ELSE
+        PRINT 'Invalid number of arguments.'
+        STOP
+    END
+*
+    ORIGINAL.RAW.LINES = RAW.LINES
+*
+    NUMBER.OF.RAW.LINES = DCOUNT(RAW.LINES,@AM)
+    IF NUMBER.OF.RAW.LINES = 0 THEN NUMBER.OF.RAW.LINES = 1
+*
+    IF NUMBER.OF.RAW.LINES < 10 THEN
+        PADDING.LEFT = 'R#2 '
+        MARGIN.LEFT = 2 + 1
+    END ELSE
+        PADDING.LEFT = 'R#' : LEN(NUMBER.OF.RAW.LINES) : ' '
+        MARGIN.LEFT = LEN(NUMBER.OF.RAW.LINES) + 1
+    END
+*
+* VIEWPOINT SIZE
+*
+    VIEW.WIDTH = SCREEN.WIDTH - MARGIN.LEFT - MARGIN.RIGHT
+    VIEW.HEIGHT = SCREEN.HEIGHT - MARGIN.TOP - MARGIN.BOTTOM
+*
+    TAB.SIZE = 4
+    ORIGINAL.X.POS = 0
+    ERROR.MESSAGE = ''
+*
+    EDITOR.PROMPT = ':'
+    SEARCH.PROMPT = '/'
+*
+    EDITOR.MARGIN.LEFT = LEN(EDITOR.PROMPT)
+    SEARCH.MARGIN.LEFT = LEN(SEARCH.PROMPT)
+*
+    LINE.START = 1
+    CURRENT.LINE = 1
+    BLOCK.START = 1
+    BLOCK.END = 1
+*
+* STACK INITIALIZATION
+*
+    ORIGINAL.RAW.LINES.STACK = ''
+    RAW.LINES.STACK = ''
+    REAL.LINE.NUMBER.STACK = ''
+    HISTORY.STACK = ''
+    HISTORY.X.Y.STACK = ''
+    HISTORY.POS.STACK = ''
+    LINE.START.STACK = ''
+*
+    NEST.LEVEL = 0
+*
+    QUIT.FLAG = FALSE
+*
+    PAGE.HEIGHT = VIEW.HEIGHT
+*
+    GOSUB PUT.CURSOR.TOP.LEFT
+*
+    GOSUB CONVERT.RAW.LINES
+    GOSUB DISPLAY.LINES
+    GOSUB PUT.CURSOR.TOP.LEFT
+*
+    ORIGINAL.SEARCH.STRING = ''
+    SEARCH.STRING = ''
+    SEARCH.OCCURANCE = 1
+*
+    INPUT.AVAILABLE = FALSE
+    PROCESS.CHAR = ''
+*
+    EDITOR.COMMAND.AVAILABLE = FALSE
+    EDITOR.COMMAND = ''
+*
+    HISTORY = ''
+    HISTORY.X.Y = ''
+    HISTORY.POS = 1
+*
+    PASTE.NEWLINE = FALSE
+    YANKED.LINES = ''
+*
+    SEARCH.RESULTS = ''
+    SEARCH.POSITION = 0
+*
+* CC.LIST INIT
+*
+    CC.BREAK.CHARACTERS = '( ) , : + - / ; * < > = [ ]' : ' "' : " '"
+    CONVERT ' ' TO @AM IN CC.BREAK.CHARACTERS
+*
+    CC.LIST.OPEN = FALSE
+    SNIPPETS = ''
+    SNIPPET.HEADERS = ''
+*
+    PATH = '/home/usr/nivethan/.vim/UltiSnips/unibasic.snippets'
+    GOSUB ADD.SNIPPETS
+*
+    PATH = '/home/usr/nivethan/.vim/UltiSnips/all.snippets'
+    GOSUB ADD.SNIPPETS
+*
+    GOSUB ADD.AUTO.COMPLETE
+*
+    LOOP WHILE TRUE DO
+        IF INPUT.AVAILABLE THEN
+            CHR = PROCESS.CHAR
+            INPUT.AVAILABLE = FALSE
+        END ELSE
+            CHR = KEYIN()
+        END
+*
+        ASCII.CODE = SEQ(CHR)
+*
+        IF ASCII.CODE = SEQ(KEY.ESCAPE) THEN
+            GOSUB PROCESS.ESCAPE.KEY
+            GOSUB PROCESS.BASE.ESCAPE.KEY
+*
+        END ELSE IF ASCII.CODE = SEQ(KEY.BACKSPACE) THEN
+            IF X.POS > MARGIN.LEFT THEN
+                ORIGINAL.X.POS = 0
+                X.POS = X.POS - 1
+                GOSUB DISPLAY.HEADER
+                PRINT @(X.POS, Y.POS) :
+            END
+*
+        END ELSE IF ASCII.CODE = SEQ(KEY.CARRIAGE.RETURN) THEN
+            GOSUB SCROLL.DOWN
+*
+        END ELSE IF CHR = ':' THEN
+            GOSUB PROCESS.EDITOR.COMMAND
+*
+        END ELSE IF CHR = '/' THEN
+            GOSUB PROCESS.SEARCH
+*
+        END ELSE IF CHR = 'c' THEN
+            REAL.LINE.NUMBER = LINE.NUMBERS<CURRENT.LINE>
+            RAW.LINE = RAW.LINES<REAL.LINE.NUMBER>
+*
+            IF RAW.LINE[1,6] = '*TEMP ' THEN
+                RAW.LINE = CHANGE(RAW.LINE,'*TEMP ','',1)
+            END ELSE
+                RAW.LINE = '*TEMP ' : RAW.LINE
+            END
+            RAW.LINES<REAL.LINE.NUMBER> = RAW.LINE
+*
+            GOSUB UPDATE.LINE
+            GOSUB DISPLAY.LINES
+*
+            PRINT @(X.POS,Y.POS) :
+*
+        END ELSE IF CHR = 'd' THEN
+            GOSUB PROCESS.DELETE.LINE
+*
+        END ELSE IF CHR = 'o' THEN
+            INSERT.LINE = ''
+            GOSUB PROCESS.INSERT.LINE
+*
+        END ELSE IF CHR = 'x' THEN
+            GOSUB PROCESS.DELETE.CHARACTER
+*
+        END ELSE IF CHR = 'r' THEN
+            GOSUB PROCESS.REPLACE.CHARACTER
+*
+        END ELSE IF CHR = 'u' THEN
+            GOSUB UNDO.HISTORY
+*
+        END ELSE IF ASCII.CODE = SEQ(KEY.CTRL.R) THEN
+            GOSUB REDO.HISTORY
+*
+        END ELSE IF CHR = 'v' THEN
+            ORIGINAL.X.POS = X.POS
+            START.COPY.POS = X.POS - MARGIN.LEFT
+            HIGHLIGHTED.CHARS = 1
+*
+            LINE = LINES<CURRENT.LINE>
+            LINE.LEN = LEN(LINE)
+*
+            LINE = LINE[1,START.COPY.POS] : BACKGROUND.CYAN : LINE[START.COPY.POS+1,HIGHLIGHTED.CHARS] : RESET.COLOR : LINE[START.COPY.POS+HIGHLIGHTED.CHARS+1,9999]
+            PRINT @(MARGIN.LEFT,Y.POS) : LINE
+            PRINT @(X.POS,Y.POS) :
+*
+            LOOP WHILE TRUE DO
+                CHR = KEYIN()
+                ASCII.CODE = SEQ(CHR)
+*
+                IF ASCII.CODE = SEQ(KEY.ESCAPE) THEN
+                    GOSUB PROCESS.ESCAPE.KEY
+                    IF ESCAPE.SEQUENCE = LEFT.ARROW THEN
+                        IF X.POS > ORIGINAL.X.POS THEN
+                            X.POS = X.POS - 1
+                            HIGHLIGHTED.CHARS = HIGHLIGHTED.CHARS - 1
+                        END
+                    END ELSE IF ESCAPE.SEQUENCE = RIGHT.ARROW THEN
+                        IF X.POS < LINE.LEN + MARGIN.LEFT - 1 THEN
+                            X.POS = X.POS + 1
+                            HIGHLIGHTED.CHARS = HIGHLIGHTED.CHARS + 1
+                        END
+                    END
+*
+                    LINE = LINES<CURRENT.LINE>
+                    LINE = LINE[1,START.COPY.POS] : BACKGROUND.CYAN : LINE[START.COPY.POS+1,HIGHLIGHTED.CHARS] : RESET.COLOR : LINE[START.COPY.POS+HIGHLIGHTED.CHARS+1,9999]
+                    PRINT @(MARGIN.LEFT,Y.POS) : LINE
+                    PRINT @(X.POS,Y.POS) :
+*
+                END ELSE
+                    EXIT
+                END
+            REPEAT
+*
+            PASTE.NEWLINE = FALSE
+            YANKED.LINES = LINES<CURRENT.LINE>[START.COPY.POS+1,HIGHLIGHTED.CHARS]
+*
+            GOSUB DISPLAY.LINE
+            PRINT @(X.POS,Y.POS) :
+*
+            X.POS = ORIGINAL.X.POS
+            PRINT @(X.POS,Y.POS) :
+*
+        END ELSE IF CHR = 'y' THEN
+            CHR = KEYIN()
+*
+            IF CHR = 'y' THEN
+                PASTE.NEWLINE = TRUE
+                REAL.LINE.NUMBER = LINE.NUMBERS<CURRENT.LINE>
+                YANKED.LINES = RAW.LINES<REAL.LINE.NUMBER>
+            END
+*
+        END ELSE IF CHR = 'p' THEN
+            GOSUB PUSH.HISTORY
+*
+            IF PASTE.NEWLINE THEN
+                FOR PASTE.CTR = 1 TO DCOUNT(YANKED.LINES,@AM)
+                    INSERT.LINE = YANKED.LINES<PASTE.CTR>
+                    GOSUB PROCESS.INSERT.LINE
+                NEXT PASTE.CTR
+*
+            END ELSE
+                REAL.LINE.NUMBER = LINE.NUMBERS<CURRENT.LINE>
+                GOSUB GET.INSERT.CHAR.POS
+*
+                RAW.LINE = RAW.LINES<REAL.LINE.NUMBER>
+                RAW.LINE = RAW.LINE[1,INSERT.CHAR.POSITION+1] : YANKED.LINES : RAW.LINE[INSERT.CHAR.POSITION+2,9999]
+                RAW.LINES<REAL.LINE.NUMBER> = RAW.LINE
+*
+                GOSUB UPDATE.LINE
+                GOSUB DISPLAY.LINES
+*
+                PRINT @(X.POS,Y.POS) :
+            END
+*
+        END ELSE IF CHR = 'n' THEN
+            IF SEARCH.RESULTS # '' THEN
+                IF SEARCH.POSITION = DCOUNT(SEARCH.RESULTS,@AM) THEN
+                    SEARCH.POSITION = 0
+                    PRINT BOTTOM : CLEAR.REST.OF.LINE : MESSAGE.COLOR :
+                    PRINT 'Search hit the bottom, starting from top.' :
+                END
+                SEARCH.POSITION = SEARCH.POSITION + 1
+                GOSUB GOTO.SEARCH.RESULT
+            END
+*
+        END ELSE IF CHR = 'N' THEN
+            IF SEARCH.RESULTS # '' THEN
+                IF SEARCH.POSITION = 1 THEN
+                    SEARCH.POSITION = DCOUNT(SEARCH.RESULTS,@AM) + 1
+                    PRINT BOTTOM : CLEAR.REST.OF.LINE : MESSAGE.COLOR :
+                    PRINT 'Search hit the top, starting from bottom.' :
+                END
+                SEARCH.POSITION = SEARCH.POSITION - 1
+                GOSUB GOTO.SEARCH.RESULT
+            END
+*
+        END ELSE IF CHR = '$' THEN
+            LINE.LEN = LEN(LINES<CURRENT.LINE>)
+            X.POS = MARGIN.LEFT + LINE.LEN - 1
+            PRINT @(X.POS,Y.POS) :
+*
+        END ELSE IF CHR = '0' THEN
+            X.POS = MARGIN.LEFT
+            PRINT @(X.POS,Y.POS) :
+*
+        END ELSE IF CHR = '<' THEN
+            BLOCK.START = LINE.NUMBERS<CURRENT.LINE>
+            PRINT BOTTOM : CLEAR.REST.OF.LINE : MESSAGE.COLOR :
+            PRINT 'Block started from line ' : BLOCK.START : '.' :
+            PRINT @(X.POS,Y.POS) :
+*
+        END ELSE IF CHR = '>' THEN
+            BLOCK.END = LINE.NUMBERS<CURRENT.LINE>
+*
+            IF BLOCK.END < BLOCK.START THEN
+                PRINT BOTTOM : CLEAR.REST.OF.LINE : MESSAGE.COLOR :
+                PRINT 'Cannot copy from ' : BLOCK.START : ' to ' : BLOCK.END : '.' :
+                PRINT @(X.POS,Y.POS) :
+                CONTINUE
+            END
+*
+            IF BLOCK.END > DCOUNT(RAW.LINES,@AM) THEN
+                BLOCK.END = DCOUNT(RAW.LINES,@AM)
+            END
+*
+            PASTE.NEWLINE = TRUE
+            YANKED.LINES = ''
+            FOR BLOCK.CTR = BLOCK.START TO BLOCK.END
+                YANKED.LINES<-1> = RAW.LINES<BLOCK.CTR>
+            NEXT BLOCK.CTR
+*
+            PRINT BOTTOM : CLEAR.REST.OF.LINE : MESSAGE.COLOR :
+            PRINT 'Copied ' : BLOCK.END - BLOCK.START : ' lines from ' : BLOCK.START : ' to ' : BLOCK.END : '.' :
+            PRINT @(X.POS,Y.POS) :
+*
+        END ELSE IF CHR = 'i' THEN
+            GOSUB PROCESS.INSERT
+*
+        END ELSE IF CHR = 'G' THEN
+            GOTO.LINE = DCOUNT(RAW.LINES,@AM)
+            GOSUB GOTO.LINE.POSITION
+*
+            X.POS = MARGIN.LEFT
+            PRINT @(X.POS,Y.POS) :
+        END
+*
+        IF QUIT.FLAG THEN
+            EXIT
+        END
+    REPEAT
+*
+    STOP
+*
+*********************  s u b r o u t i n e  *********************
+*
+    SYNTAX.INIT:NULL
+*
+    STATEMENTS = ''
+    STATEMENTS = STATEMENTS : ' ' : 'ABORT ACTIVATEKEY AUTHORIZATION AUXMAP'
+    STATEMENTS = STATEMENTS : ' ' : 'BEGIN BREAK BSCAN'
+    STATEMENTS = STATEMENTS : ' ' : 'CALL CALLING CAPTURING CASE CHAIN CLEAR CLEARDATA CLEARFILE CLEARPROMPTS CLEARSELECT CLOSE'
+    STATEMENTS = STATEMENTS : ' ' : 'CLOSESEQ COMMIT COMMON CONTINUE CREATE CRT'
+    STATEMENTS = STATEMENTS : ' ' : 'DATA DEACTIVATEKEY DEBUG DEFFUN DELETE DELETELIST DELETEU DIM DIMENSION DISABLEDEC DISPLAY'
+    STATEMENTS = STATEMENTS : ' ' : 'EQU ECHO ELSE ENABLEDEC END ENTER EOF EQUATE ERRMSG ERROR EXECUTE EXIT'
+    STATEMENTS = STATEMENTS : ' ' : 'FILELOCK FILEUNLOCK FIND FINDSTR FLUSH FOOTING FOR FROM FUNCTION'
+    STATEMENTS = STATEMENTS : ' ' : 'GET GETLIST GETX GOSUB GOTO GROUPSTORE'
+    STATEMENTS = STATEMENTS : ' ' : 'HEADING HUSH'
+    STATEMENTS = STATEMENTS : ' ' : 'IF INCLUDE INPUT INPUTCLEAR INPUTDISP INPUTDP INPUTERR INPUTNULL INPUTTRAP INS ISOLATION'
+    STATEMENTS = STATEMENTS : ' ' : 'KEYEDIT KEYEXIT KEYTRAP'
+    STATEMENTS = STATEMENTS : ' ' : 'LET LEVEL LOCATE LOCK LOOP'
+    STATEMENTS = STATEMENTS : ' ' : 'MAT MATBUILD MATPARSE MATREAD MATREADL MATREADU MATWRITE MATWRITEU'
+    STATEMENTS = STATEMENTS : ' ' : 'NAP NEXT NOBUF'
+    STATEMENTS = STATEMENTS : ' ' : 'OFF ON OPEN OPENDEV OPENPATH OPENSEQ'
+    STATEMENTS = STATEMENTS : ' ' : 'PAGE PERFORM PRECISION PRINT PRINTER PRINTERR PROCREAD PROCWRITE PROGRAM PROMPT '
+    STATEMENTS = STATEMENTS : ' ' : 'RANDOMIZE READ READBLK READL READLIST READNEXT READSEQ READT READU READV READVL READVU RELEASE'
+    STATEMENTS = STATEMENTS : ' ' : 'REPEAT RESET RETURN RETURNING REVREMOVE REWIND ROLLBACK'
+    STATEMENTS = STATEMENTS : ' ' : 'SELECT SELECTE SELECTINDEX SELECTINFO SEND SET SETREM SLEEP SSELECT START STOP SUBROUTINE'
+    STATEMENTS = STATEMENTS : ' ' : 'TABSTOP THEN TIMEOUT TO TPRINT TRANSACTION TTYCTL TTYGET TTYSET'
+    STATEMENTS = STATEMENTS : ' ' : 'UNLOCK UNTIL UPRINT'
+    STATEMENTS = STATEMENTS : ' ' : 'WEOF WEOFSEQ WHILE WRITE WRITEBLK WRITELIST WRITESEQ WRITESEQF WRITET WRITEU WRITEV WRITEVU'
+*
+    CONVERT ' ' TO @AM IN STATEMENTS
+*
+    FUNCTIONS = ''
+    FUNCTIONS = FUNCTIONS : ' ' : 'ABS ABSS ACOS ADDS ALPHA ANDS ASCII ASIN ASSIGNED ATAN'
+    FUNCTIONS = FUNCTIONS : ' ' : 'BITAND BITNOT BITOR BITRESET BITSET BITTEST BITXOR BYTE BYTELEN BYTETYPE BYTEVAL'
+    FUNCTIONS = FUNCTIONS : ' ' : 'CATS CHANGE CHAR CHARS CHECKSUM COL1 COL2 COMPARE CONVERT COS COSH COUNT COUNTS'
+    FUNCTIONS = FUNCTIONS : ' ' : 'DATE DCOUNT DEL DIV DIVS DOWNCASE DQUOTE DTX'
+    FUNCTIONS = FUNCTIONS : ' ' : 'EBCDIC EQS EREPLACE EXCHANGE EXP EXTRACT'
+    FUNCTIONS = FUNCTIONS : ' ' : 'FADD FDIV FFIX FFLT FIELD FIELDS FIELDSTORE FILEINFO FIX FMT FMTDP FMTS FMTSDP FMUL FOLD FOLDDP FSUB'
+    FUNCTIONS = FUNCTIONS : ' ' : 'GES GETLOCALE GETREM GROUP GTS'
+    FUNCTIONS = FUNCTIONS : ' ' : 'ICONV ICONVS IFS ILPROMPT INDEX INDEXS INDICES INMAT INSERT INT ISNULL ISNULLS ITYPE'
+    FUNCTIONS = FUNCTIONS : ' ' : 'KEYIN'
+    FUNCTIONS = FUNCTIONS : ' ' : 'LEFT LEN LENDP LENS LENSDP LES LEVEL LN LOCALEINFO LOWER LTS'
+    FUNCTIONS = FUNCTIONS : ' ' : 'MATCHFIELD MAXIMUM MINIMUM MOD MODS MULS'
+    FUNCTIONS = FUNCTIONS : ' ' : 'NEG NEGS NES NOT NOTS NUM NUMS'
+    FUNCTIONS = FUNCTIONS : ' ' : 'OCONV OCONVS ORS'
+    FUNCTIONS = FUNCTIONS : ' ' : 'PWR'
+    FUNCTIONS = FUNCTIONS : ' ' : 'QUOTE'
+    FUNCTIONS = FUNCTIONS : ' ' : 'RAISE REAL RECORDLOCKED RECORDLOCKL RECORDLOCKU REMOVE REPLACE REUSE '
+    FUNCTIONS = FUNCTIONS : ' ' : 'RIGHT RND RPC.CALL RPC.CONNECT RPC.DISCONNECT'
+    FUNCTIONS = FUNCTIONS : ' ' : 'SADD SCMP SDIV SEEK SENTENCE SEQ SEQS SETLOCALE SIN SINH SMUL SOUNDEX SPACE SPACES SPLICE SQRT'
+    FUNCTIONS = FUNCTIONS : ' ' : 'SQUOTE SSUB START STR STRS SUBR SUBS SUBSTRINGS SUM SUMMATION SYSTEM'
+    FUNCTIONS = FUNCTIONS : ' ' : 'TAN TANH TERMINFO TIME TIMEDATE TPARM TRANS TRIM TRIMB TRIMBS TRIMF TRIMFS TRIMS'
+    FUNCTIONS = FUNCTIONS : ' ' : 'UNASSIGNED UNICHAR UNICHARS UNISEQ UNISEQS UPCASE'
+    FUNCTIONS = FUNCTIONS : ' ' : 'XLATE XTD'
+    FUNCTIONS = FUNCTIONS : ' ' : 'amInitialize amReceiveMsg amReceiveRequest amSendMsg amSendRequest amSendResponse amTerminate'
+*
+    CONVERT ' ' TO @AM IN FUNCTIONS
+*
+    OPERATORS = ''
+    OPERATORS = OPERATORS : ' ' : '+'
+    OPERATORS = OPERATORS : ' ' : '*'
+    OPERATORS = OPERATORS : ' ' : '/'
+    OPERATORS = OPERATORS : ' ' : '-'
+    OPERATORS = OPERATORS : ' ' : '='
+    OPERATORS = OPERATORS : ' ' : ':'
+    OPERATORS = OPERATORS : ' ' : '<>'
+    OPERATORS = OPERATORS : ' ' : '#'
+    OPERATORS = OPERATORS : ' ' : '<'
+    OPERATORS = OPERATORS : ' ' : '>'
+    OPERATORS = OPERATORS : ' ' : '>='
+    OPERATORS = OPERATORS : ' ' : '<='
+    OPERATORS = OPERATORS : ' ' : ':='
+    OPERATORS = OPERATORS : ' ' : '+='
+    OPERATORS = OPERATORS : ' ' : 'AND OR'
+*
+    CONVERT ' ' TO @AM IN OPERATORS
+*
+    SPECIALS = ''
+    SPECIALS = SPECIALS : ' ' : '@DATE'
+    SPECIALS = SPECIALS : ' ' : '@FM'
+    SPECIALS = SPECIALS : ' ' : '@VM'
+    SPECIALS = SPECIALS : ' ' : '@SVM'
+    SPECIALS = SPECIALS : ' ' : '@TM'
+    SPECIALS = SPECIALS : ' ' : '@STM'
+    SPECIALS = SPECIALS : ' ' : '@AM'
+    SPECIALS = SPECIALS : ' ' : '@NULL'
+    SPECIALS = SPECIALS : ' ' : '@COMMAND'
+    SPECIALS = SPECIALS : ' ' : '@ID'
+    SPECIALS = SPECIALS : ' ' : '@OPTION'
+    SPECIALS = SPECIALS : ' ' : '@RECORD'
+    SPECIALS = SPECIALS : ' ' : '@SENTENCE'
+    SPECIALS = SPECIALS : ' ' : '@SELECTED'
+    SPECIALS = SPECIALS : ' ' : '@TTY'
+*
+    CONVERT ' ' TO @AM IN SPECIALS
+*
+    BREAK.CHARACTERS = '( ) , : + - / ; * < >'
+    CONVERT ' ' TO @AM IN BREAK.CHARACTERS
+*
+    RETURN
+*
+*********************  s u b r o u t i n e  *********************
+*
+    PUSH.HISTORY:NULL
+*
+    FOR HIST.CTR = HISTORY.POS TO DCOUNT(HISTORY,@AM)
+        HISTORY = DELETE(HISTORY,HIST.CTR)
+        HISTORY.X.Y = DELETE(HISTORY.X.Y,HIST.CTR)
+    NEXT HIST.CTR
+*
+    HISTORY<HISTORY.POS> = LOWER(RAW.LINES)
+*
+    HISTORY.X.Y<HISTORY.POS,1> = X.POS
+    HISTORY.X.Y<HISTORY.POS,2> = Y.POS
+    HISTORY.X.Y<HISTORY.POS,3> = CURRENT.LINE
+*
+    HISTORY.POS = HISTORY.POS + 1
+*
+    RETURN
+*
+*********************  s u b r o u t i n e  *********************
+*
+    UNDO.HISTORY:NULL
+*
+    IF HISTORY.POS = 1 THEN
+        PRINT BOTTOM : CLEAR.REST.OF.LINE : MESSAGE.COLOR :
+        PRINT 'Already at the earliest change.' :
+*
+    END ELSE
+        IF HISTORY.POS-1 >= DCOUNT(HISTORY,@AM) THEN
+            HISTORY<HISTORY.POS> = LOWER(RAW.LINES)
+            HISTORY.X.Y<HISTORY.POS,1> = X.POS
+            HISTORY.X.Y<HISTORY.POS,2> = Y.POS
+        END
+*
+        HISTORY.POS = HISTORY.POS - 1
+*
+        RAW.LINES = RAISE(HISTORY<HISTORY.POS>)
+        X.POS = HISTORY.X.Y<HISTORY.POS,1>
+        Y.POS = HISTORY.X.Y<HISTORY.POS,2>
+        CURRENT.LINE = HISTORY.X.Y<HISTORY.POS,3>
+*
+        GOSUB CONVERT.RAW.LINES
+        GOSUB DISPLAY.LINES
+*
+        PRINT BOTTOM : CLEAR.REST.OF.LINE : MESSAGE.COLOR :
+        PRINT 'Rolled back 1 change. (' : HISTORY.POS : '/' : DCOUNT(HISTORY,@AM) : ')' :
+    END
+*
+    PRINT @(X.POS,Y.POS) :
+    RETURN
+*
+*********************  s u b r o u t i n e  *********************
+*
+    REDO.HISTORY:NULL
+*
+    IF HISTORY.POS >= DCOUNT(HISTORY,@AM) THEN
+        PRINT BOTTOM : CLEAR.REST.OF.LINE : MESSAGE.COLOR :
+        PRINT 'Already at the latest change.' :
+*
+    END ELSE
+        HISTORY.POS = HISTORY.POS + 1
+*
+        RAW.LINES = RAISE(HISTORY<HISTORY.POS>)
+        X.POS = HISTORY.X.Y<HISTORY.POS,1>
+        Y.POS = HISTORY.X.Y<HISTORY.POS,2>
+*
+        GOSUB CONVERT.RAW.LINES
+        GOSUB DISPLAY.LINES
+*
+        PRINT BOTTOM : CLEAR.REST.OF.LINE : MESSAGE.COLOR :
+        PRINT 'Rolled forward 1 change. (' : HISTORY.POS : '/' : DCOUNT(HISTORY,@AM) : ')' :
+    END
+*
+    PRINT @(X.POS,Y.POS) :
+    RETURN
+*
+*********************  s u b r o u t i n e  *********************
+*
+    POP.EXPLODE:NULL
+*
+    ROW = LOWER(RAW.LINES)
+    RAW.LINES = RAISE(RAW.LINES.STACK<NEST.LEVEL>)
+*
+    REAL.LINE.NUMBER = REAL.LINE.NUMBER.STACK<NEST.LEVEL>
+*
+    IF SAVE.ROW THEN
+        RAW.LINES<REAL.LINE.NUMBER> = ROW
+    END
+*
+    ORIGINAL.RAW.LINES = RAISE(ORIGINAL.RAW.LINES.STACK<NEST.LEVEL>)
+*
+    HISTORY = RAISE(HISTORY.STACK<NEST.LEVEL>)
+    HISTORY.X.Y = RAISE(HISTORY.X.Y.STACK<NEST.LEVEL>)
+    HISTORY.POS = HISTORY.POS.STACK<NEST.LEVEL>
+    LINE.START = LINE.START.STACK<NEST.LEVEL>
+*
+    RAW.LINES.STACK<NEST.LEVEL> = ''
+    REAL.LINE.NUMBER.STACK<NEST.LEVEL> = ''
+    ORIGINAL.RAW.LINES.STACK<NEST.LEVEL> = ''
+    HISTORY.STACK<NEST.LEVEL> = ''
+    HISTORY.X.Y.STACK<NEST.LEVEL> = ''
+    HISTORY.POS.STACK<NEST.LEVEL> = ''
+    LINE.START.STACK<NEST.LEVEL> = ''
+*
+    GOSUB CONVERT.RAW.LINES
+    GOSUB DISPLAY.LINES
+    GOSUB PUT.CURSOR.TOP.LEFT
+*
+    GOTO.LINE = REAL.LINE.NUMBER
+    GOSUB GOTO.LINE.POSITION
+*
+    NEST.LEVEL = NEST.LEVEL - 1
+*
+    PRINT @(X.POS,Y.POS) :
+*
+    RETURN
+*
+*********************  S U B R O U T I N E  *********************
+*
+    PRINT.ERROR.MESSAGE:NULL
+*
+    PRINT BOTTOM : CLEAR.REST.OF.LINE :
+    PRINT BRIGHTRED : 'E -> ' :
+    PRINT ERROR.MESSAGE :
+    PRINT @(X.POS, Y.POS) :
+    INPUT ANYTHING :
+    RETURN
+*
+*********************  S U B R O U T I N E  *********************
+*
+    PUT.CURSOR.TOP.LEFT:NULL
+*
+* PLACE CURSOR IN TOP LEFT
+*
+    X.POS = MARGIN.LEFT
+    Y.POS = MARGIN.TOP
+    PRINT @(X.POS, Y.POS) :
+    RETURN
+*
+*********************  S U B R O U T I N E  *********************
+*
+    SET.X.POS:NULL
+*
+    IF ORIGINAL.X.POS # 0 THEN
+        X.POS = ORIGINAL.X.POS
+        ORIGINAL.X.POS = 0
+    END
+*
+    LINE.LEN = LEN(LINES<CURRENT.LINE>)
+    IF LINE.LEN = 0 THEN LINE.LEN = 1
+*
+    IF X.POS >= LINE.LEN + MARGIN.LEFT THEN
+        ORIGINAL.X.POS = X.POS
+        X.POS = LINE.LEN + MARGIN.LEFT - 1
+    END
+*
+    RETURN
+*
+*********************  S U B R O U T I N E  *********************
+*
+    GOTO.LINE.POSITION:NULL
+*
+    LOCATE(GOTO.LINE,LINE.NUMBERS;CURRENT.LINE) ELSE CURRENT.LINE = NUMBER.OF.LINES
+*
+    IF CURRENT.LINE > LINE.END OR CURRENT.LINE < LINE.START THEN
+        LINE.START = CURRENT.LINE - 15
+        IF LINE.START < 1 THEN LINE.START = 1
+        GOSUB DISPLAY.LINES
+    END
+*
+    Y.POS = CURRENT.LINE - LINE.START + MARGIN.TOP
+*
+    GOSUB DISPLAY.HEADER
+*
+    RETURN
+*
+*********************  S U B R O U T I N E  *********************
+*
+    GOTO.VISIBLE.LINE.POSITION:NULL
+*
+    IF CURRENT.LINE > LINE.END OR CURRENT.LINE < LINE.START THEN
+        LINE.START = CURRENT.LINE - 15
+        IF LINE.START < 1 THEN LINE.START = 1
+        GOSUB DISPLAY.LINES
+    END
+*
+    Y.POS = CURRENT.LINE - LINE.START + MARGIN.TOP
+*
+    GOSUB DISPLAY.HEADER
+*
+    RETURN
+*
+*********************  S U B R O U T I N E  *********************
+*
+    DISPLAY.HEADER:NULL
+*
+    PRINT @(0,0) : CLEAR.REST.OF.LINE
+    PRINT @(MARGIN.LEFT,0) :
+    PRINT CLEAR.REST.OF.LINE :
+    PRINT HEADER.COLOR :
+    PRINT FILENAME : ' ' : RECORD.ID :
+    PRINT ' C: ' : CURRENT.LINE :
+    PRINT ' L: ' : LINE.NUMBERS<CURRENT.LINE> :
+    PRINT ' X: ' : X.POS :
+    PRINT ' Y: ' : Y.POS :
+    PRINT ' LS: ' : LINE.START :
+    PRINT ' LE: ' : LINE.END :
+    PRINT ' CH: ' : X.POS - MARGIN.LEFT + 1 :
+    RETURN
+*
+*********************  S U B R O U T I N E  *********************
+*
+    DISPLAY.FOOTER:NULL
+*
+    PRINT BOTTOM : CLEAR.REST.OF.LINE :
+    RETURN
+*********************  S U B R O U T I N E  *********************
+*
+    SETUP.DISPLAY:NULL
+*
+    PRINT CLEAR.SCREEN :
+    GOSUB DISPLAY.HEADER
+    PRINT @(0,MARGIN.TOP) : WHITE :
+    RETURN
+*
+*********************  S U B R O U T I N E  *********************
+*
+    CONVERT.RAW.LINES:NULL
+*
+    LINES = ''
+    LINE.NUMBERS = ''
+*
+    CTR = 0
+    RAW.LINE.CTR = 0
+*
+    NUMBER.OF.RAW.LINES = DCOUNT(RAW.LINES,@AM)
+    IF NUMBER.OF.RAW.LINES = 0 THEN NUMBER.OF.RAW.LINES = 1
+*
+    LOOP
+        CTR = CTR + 1
+        RAW.LINE.CTR = RAW.LINE.CTR + 1
+*
+        RAW.LINE.LEN = LEN(RAW.LINES<RAW.LINE.CTR>)
+*
+        IF RAW.LINE.LEN < VIEW.WIDTH THEN
+            LINES<CTR> = RAW.LINES<RAW.LINE.CTR>
+            LINE.NUMBERS<CTR> = RAW.LINE.CTR
+        END ELSE
+            FOR J = 1 TO RAW.LINE.LEN STEP VIEW.WIDTH
+                LINES<CTR> = RAW.LINES<RAW.LINE.CTR>[J,VIEW.WIDTH]
+                LINE.NUMBERS<CTR> = RAW.LINE.CTR
+                CTR = CTR + 1
+            NEXT J
+* CTR WILL GET INCREMENTED IN THE NEXT ITERATION
+            CTR = CTR - 1
+        END
+    UNTIL RAW.LINE.CTR = NUMBER.OF.RAW.LINES DO REPEAT
+*
+    RETURN
+*
+*********************  S U B R O U T I N E  *********************
+*
+    COLORIZE.TOKEN:NULL
+*
+    LOCATE(TOKEN,STATEMENTS;ANY.POS) THEN
+        TOKEN = STMT.COLOR : TOKEN : FOREGROUND.COLOR
+        RETURN
+    END
+*
+    LOCATE(TOKEN,FUNCTIONS;ANY.POS) THEN
+        TOKEN = FUNCTION.COLOR : TOKEN : FOREGROUND.COLOR
+        RETURN
+    END
+*
+    LOCATE(TOKEN,OPERATORS;ANY.POS) THEN
+        TOKEN = OPERATOR.COLOR : TOKEN : FOREGROUND.COLOR
+        RETURN
+    END
+*
+    LOCATE(TOKEN,SPECIALS;ANY.POS) THEN
+        TOKEN = SPECIAL.COLOR : TOKEN : FOREGROUND.COLOR
+        RETURN
+    END
+*
+    IF TOKEN # '' AND NUM(TOKEN) THEN
+        TOKEN = NUMBER.COLOR : TOKEN : FOREGROUND.COLOR
+        RETURN
+    END
+*
+    RETURN
+*
+*********************  S U B R O U T I N E  *********************
+*
+    TOKENIZE.LINE:NULL
+*
+    TOKEN = ''
+    TOKENS = ''
+*
+    CREATED.FIRST.TOKEN = FALSE
+    HIT.SEMICOLON = FALSE
+*
+    FOR LETTER.CTR = 1 TO LEN(LINE)
+        CHARACTER = LINE[LETTER.CTR,1]
+*
+        IF DQ.STACK.CTR # 0 OR CHARACTER = '"' THEN
+            STRING = CHARACTER
+            LETTER.CTR = LETTER.CTR + 1
+*
+            IF DQ.STACK.CTR = 0 THEN
+                DQ.STACK.CTR = 1
+            END
+*
+            LOOP UNTIL DQ.STACK.CTR = 0 OR LETTER.CTR > LEN(LINE) DO
+                CHARACTER = LINE[LETTER.CTR,1]
+                LETTER.CTR = LETTER.CTR + 1
+                IF CHARACTER = '"' THEN
+                    DQ.STACK.CTR = DQ.STACK.CTR - 1
+                END
+                STRING = STRING : CHARACTER
+            REPEAT
+*
+            CREATED.FIRST.TOKEN = TRUE
+            TOKENS<-1> = STRING.COLOR : STRING : FOREGROUND.COLOR
+            TOKEN = ''
+            LETTER.CTR = LETTER.CTR - 1
+*
+        END ELSE IF SQ.STACK.CTR # 0 OR CHARACTER = "'" THEN
+            STRING = CHARACTER
+            LETTER.CTR = LETTER.CTR + 1
+*
+            IF SQ.STACK.CTR = 0 THEN
+                SQ.STACK.CTR = 1
+            END
+*
+            LOOP UNTIL SQ.STACK.CTR = 0 OR LETTER.CTR > LEN(LINE) DO
+                CHARACTER = LINE[LETTER.CTR,1]
+                LETTER.CTR = LETTER.CTR + 1
+                IF CHARACTER = "'" THEN
+                    SQ.STACK.CTR = SQ.STACK.CTR - 1
+                END
+                STRING = STRING : CHARACTER
+            REPEAT
+*
+            CREATED.FIRST.TOKEN = TRUE
+            TOKENS<-1> = STRING.COLOR : STRING : FOREGROUND.COLOR
+            TOKEN = ''
+            LETTER.CTR = LETTER.CTR - 1
+*
+        END ELSE IF CHARACTER = ';' THEN
+            TOKENS<-1> = TOKEN
+            HIT.SEMICOLON = TRUE
+            GOSUB COLORIZE.TOKEN
+            TOKENS<-1> = ';'
+            TOKEN = ''
+*
+        END ELSE IF CHARACTER = '*' THEN
+            IF TOKEN # '' THEN CREATED.FIRST.TOKEN = TRUE
+            GOSUB COLORIZE.TOKEN
+            TOKENS<-1> = TOKEN
+*
+            IF CREATED.FIRST.TOKEN AND HIT.SEMICOLON = FALSE THEN
+                TOKEN = '*'
+                GOSUB COLORIZE.TOKEN
+                TOKENS<-1> = TOKEN
+                TOKEN = ''
+*
+            END ELSE
+                TOKENS<-1> = COMMENT.COLOR : LINE[LETTER.CTR,999]
+                TOKEN = ''
+                LETTER.CTR = LEN(LINE)
+            END
+*
+        END ELSE IF CHARACTER = ' ' THEN
+            IF TOKEN # '' THEN CREATED.FIRST.TOKEN = TRUE
+            GOSUB COLORIZE.TOKEN
+            TOKENS<-1> = TOKEN
+            TOKENS<-1> = ' '
+            TOKEN = ''
+*
+        END ELSE IF ASCII(CHARACTER) = CHAR(253) THEN
+            IF TOKEN # '' THEN CREATED.FIRST.TOKEN = TRUE
+            GOSUB COLORIZE.TOKEN
+            TOKENS<-1> = TOKEN
+            TOKENS<-1> = STMT.COLOR : CHARACTER : FOREGROUND.COLOR
+            TOKEN = ''
+*
+        END ELSE IF ASCII(CHARACTER) = CHAR(252) THEN
+            IF TOKEN # '' THEN CREATED.FIRST.TOKEN = TRUE
+            GOSUB COLORIZE.TOKEN
+            TOKENS<-1> = TOKEN
+            TOKENS<-1> = FUNCTION.COLOR : CHARACTER : FOREGROUND.COLOR
+            TOKEN = ''
+*
+        END ELSE IF ASCII(CHARACTER) = CHAR(251) THEN
+            IF TOKEN # '' THEN CREATED.FIRST.TOKEN = TRUE
+            GOSUB COLORIZE.TOKEN
+            TOKENS<-1> = TOKEN
+            TOKENS<-1> = SPECIAL.COLOR : CHARACTER : FOREGROUND.COLOR
+            TOKEN = ''
+*
+        END ELSE
+            LOCATE(CHARACTER,BREAK.CHARACTERS;BREAK.POS) THEN
+                IF TOKEN # '' THEN CREATED.FIRST.TOKEN = TRUE
+                GOSUB COLORIZE.TOKEN
+                TOKENS<-1> = TOKEN
+                TOKEN = BREAK.CHARACTERS<BREAK.POS>
+                GOSUB COLORIZE.TOKEN
+                TOKENS<-1> = TOKEN
+                TOKEN = ''
+            END ELSE
+                TOKEN = TOKEN : CHARACTER
+            END
+        END
+    NEXT LETTER.CTR
+*
+    GOSUB COLORIZE.TOKEN
+    TOKENS<-1> = TOKEN
+*
+    LINE = TOKENS
+    CONVERT @AM TO '' IN LINE
+*
+    RETURN
+    
+*********************  S U B R O U T I N E  *********************
+*
+    DISPLAY.LINES:NULL
+*
+    NUMBER.OF.LINES = DCOUNT(LINES,@AM)
+    IF NUMBER.OF.LINES = 0 THEN NUMBER.OF.LINES = 1
+*
+    IF LINE.START < 1 THEN LINE.START = 1
+*
+    LINE.END = LINE.START + VIEW.HEIGHT - 1
+    IF LINE.END > NUMBER.OF.LINES THEN LINE.END = NUMBER.OF.LINES
+*
+    GOSUB SETUP.DISPLAY
+*
+    DQ.STACK.CTR = 0
+    SQ.STACK.CTR = 0
+*
+    PREV.LINE.NUMBER = 0
+*
+    FOR I = LINE.START TO LINE.END
+        LINE = LINES<I>
+        LINE.NUMBER = LINE.NUMBERS<I>
+        IF PREV.LINE.NUMBER # LINE.NUMBER THEN
+            DQ.STACK.CTR = 0
+            SQ.STACK.CTR = 0
+        END
+*
+        PRINT LINE.NUMBER.COLOR : LINE.NUMBER PADDING.LEFT :
+*
+        GOSUB TOKENIZE.LINE
+*
+        PRINT FOREGROUND.COLOR : LINE
+        PREV.LINE.NUMBER = LINE.NUMBER
+*
+    NEXT I
+*
+    RETURN
+*
+*********************  S U B R O U T I N E  *********************
+*
+    DISPLAY.LINE:NULL
+*
+    LINE.NUMBER = LINE.NUMBERS<CURRENT.LINE>
+    PREVIOUS.LINE = LINE.NUMBERS<CURRENT.LINE - 1>
+    NEXT.LINE = LINE.NUMBERS<CURRENT.LINE + 1>
+*
+    IF PREVIOUS.LINE = LINE.NUMBER OR NEXT.LINE = LINE.NUMBER THEN
+        GOSUB DISPLAY.LINES
+        RETURN
+    END
+*
+    LINE = LINES<CURRENT.LINE>
+*
+    PRINT @(0,Y.POS) : CLEAR.REST.OF.LINE :
+    PRINT LINE.NUMBER.COLOR : LINE.NUMBER PADDING.LEFT :
+*
+    GOSUB TOKENIZE.LINE
+*
+    PRINT FOREGROUND.COLOR : LINE
+*
+    RETURN
+*
+*********************  S U B R O U T I N E  *********************
+*
+    PROCESS.ESCAPE.KEY:NULL
+*
+    ESCAPE.SEQUENCE = ''
+    CHR = KEYIN()
+    ESCAPE.SEQUENCE = CHR
+*
+    IF CHR = 'O' THEN
+        CHR = KEYIN()
+        ESCAPE.SEQUENCE = ESCAPE.SEQUENCE : CHR
+    END ELSE IF CHR = '[' THEN
+        LOOP
+            CHR = KEYIN()
+            ESCAPE.SEQUENCE = ESCAPE.SEQUENCE : CHR
+        UNTIL NOT(NUM(CHR)) DO REPEAT
+    END ELSE
+        INPUT.AVAILABLE = TRUE
+        PROCESS.CHAR = CHR
+    END
+*
+    RETURN
+*
+*********************  S U B R O U T I N E  *********************
+*
+    PROCESS.BASE.ESCAPE.KEY:NULL
+*
+    IF ESCAPE.SEQUENCE = PAGE.UP THEN
+        OLD.LINE.START = LINE.START
+*
+        LINE.START = LINE.START - PAGE.HEIGHT
+        IF LINE.START - PAGE.HEIGHT < 1 THEN
+            LINE.START = 1
+        END
+*
+        IF OLD.LINE.START = LINE.START THEN
+            RETURN
+        END
+*
+        CURRENT.LINE = CURRENT.LINE - PAGE.HEIGHT
+*
+        IF CURRENT.LINE < 1 THEN
+            CURRENT.LINE = 1
+            Y.POS = MARGIN.TOP
+        END
+*
+        GOSUB SET.X.POS
+        GOSUB DISPLAY.HEADER
+        GOSUB DISPLAY.LINES
+        PRINT @(X.POS, Y.POS) :
+*
+    END ELSE IF ESCAPE.SEQUENCE = PAGE.DOWN THEN
+        NUMBER.OF.LINES = DCOUNT(LINES,@AM)
+        IF LINE.START + PAGE.HEIGHT > NUMBER.OF.LINES THEN
+            RETURN
+        END
+*
+        LINE.START = LINE.START + PAGE.HEIGHT
+*
+        CURRENT.LINE = CURRENT.LINE + PAGE.HEIGHT
+        IF CURRENT.LINE > NUMBER.OF.LINES THEN
+            CURRENT.LINE = NUMBER.OF.LINES
+            Y.POS = CURRENT.LINE - LINE.START + MARGIN.TOP
+        END
+*
+        GOSUB SET.X.POS
+        GOSUB DISPLAY.HEADER
+        GOSUB DISPLAY.LINES
+        PRINT @(X.POS, Y.POS) :
+*
+    END ELSE IF ESCAPE.SEQUENCE = UP.ARROW THEN
+        GOSUB SCROLL.UP
+*
+    END ELSE IF ESCAPE.SEQUENCE = DOWN.ARROW THEN
+        GOSUB SCROLL.DOWN
+*
+    END ELSE IF ESCAPE.SEQUENCE = LEFT.ARROW THEN
+        IF X.POS - 1 < MARGIN.LEFT THEN
+            RETURN
+        END
+*
+        ORIGINAL.X.POS = 0
+        X.POS = X.POS - 1
+        GOSUB DISPLAY.HEADER
+        PRINT @(X.POS, Y.POS) :
+*
+    END ELSE IF ESCAPE.SEQUENCE = RIGHT.ARROW THEN
+        LINE.LEN = LEN(LINES<CURRENT.LINE>)
+        IF X.POS + 1 >= LINE.LEN + MARGIN.LEFT THEN
+            RETURN
+        END
+*
+        IF X.POS > SCREEN.WIDTH - MARGIN.RIGHT THEN
+            RETURN
+        END
+*
+        ORIGINAL.X.POS = 0
+        X.POS = X.POS + 1
+        GOSUB DISPLAY.HEADER
+        PRINT @(X.POS, Y.POS) :
+    END
+*
+    RETURN
+*
+*********************  S U B R O U T I N E  *********************
+*
+    PROCESS.EDITOR.COMMAND:NULL
+*
+    PRINT BOTTOM : CLEAR.REST.OF.LINE :
+    PRINT EDITOR.COLOR : EDITOR.PROMPT : EDITOR.COMMAND :
+*
+    INPUT.PROMPT = EDITOR.PROMPT
+    INPUT.STRING = ''
+    INPUT.X.POS = 0
+    INPUT.MARGIN.LEFT = EDITOR.MARGIN.LEFT
+*
+    IF EDITOR.COMMAND.AVAILABLE THEN
+        EDITOR.COMMAND.AVAILABLE = FALSE
+    END ELSE
+        GOSUB PROCESS.INPUT
+        EDITOR.COMMAND = INPUT.STRING
+    END
+*
+    IF EDITOR.COMMAND # '' AND NUM(EDITOR.COMMAND) THEN
+        GOTO.LINE = EDITOR.COMMAND
+        GOSUB GOTO.LINE.POSITION
+        X.POS = MARGIN.LEFT
+        PRINT @(X.POS,Y.POS) :
+*
+    END ELSE IF EDITOR.COMMAND = 'c' THEN
+        GOSUB SAVE.FILE
+        EXECUTE 'BASIC ' : FILENAME : ' ' : RECORD.ID CAPTURING RESULTS
+*
+        IF RESULTS<3> = '' THEN
+            PRINT BOTTOM : MESSAGE.COLOR : CLEAR.REST.OF.LINE :
+            PRINT OCONV(TIME(),'MTS') : ': ' : RESULTS<1> :
+            PRINT @(X.POS,Y.POS) :
+*
+        END ELSE
+            PRINT CLEAR.SCREEN :
+            PRINT @(0,MARGIN.TOP) :
+            PRINT OCONV(TIME(),'MTS') : ': ' :
+            PRINT 'Error -----------------'
+            PRINT
+*
+            FOR J = 1 TO DCOUNT(RESULTS,@AM)
+                PRINT RESULTS<J>
+            NEXT J
+            INPUT ANYTHING :
+*
+            GOSUB DISPLAY.LINES
+            PRINT @(X.POS,Y.POS) :
+        END
+*
+    END ELSE IF EDITOR.COMMAND = 'f' THEN
+        GOSUB FORMAT.FILE
+*
+        PRINT BOTTOM : MESSAGE.COLOR : CLEAR.REST.OF.LINE :
+        PRINT 'Formatted file.' :
+        PRINT @(X.POS,Y.POS) :
+*
+    END ELSE IF EDITOR.COMMAND[1,1] = 'a' THEN
+        EDITOR.COMMAND = EDITOR.COMMAND[2,9999]
+        REAL.LINE.NUMBER = LINE.NUMBERS<CURRENT.LINE>
+*
+        NUMBER.OF.ARGUMENTS = DCOUNT(EDITOR.COMMAND,' ')
+*
+        APPEND.LINES = FIELD(EDITOR.COMMAND,' ',1)
+        APPEND.STRING = FIELD(EDITOR.COMMAND,' ',2)
+*
+        IF APPEND.LINES = '' THEN APPEND.LINES = 1
+*
+        IF APPEND.STRING # '' THEN
+            GOSUB PUSH.HISTORY
+*
+            LINES.LEFT = DCOUNT(RAW.LINES,@AM) - REAL.LINE.NUMBER
+            IF APPEND.LINES > LINES.LEFT THEN
+                APPEND.LINES = LINES.LEFT + 1
+            END
+*
+            LINES.TO.APPEND.TO = REAL.LINE.NUMBER + APPEND.LINES - 1
+*
+            FOR APPEND.CTR = REAL.LINE.NUMBER TO LINES.TO.APPEND.TO
+                RAW.LINES<APPEND.CTR> = RAW.LINES<APPEND.CTR> : APPEND.STRING
+            NEXT I
+*
+            GOSUB CONVERT.RAW.LINES
+            GOSUB DISPLAY.LINES
+*
+            PRINT @(X.POS,Y.POS) :
+        END
+*
+    END ELSE IF EDITOR.COMMAND[1,1] = 'd' THEN
+        POSSIBLE.NUMBER = EDITOR.COMMAND[2,999]
+        IF POSSIBLE.NUMBER = '' THEN
+            POSSIBLE.NUMBER = 1
+        END
+*
+        IF NOT(NUM(POSSIBLE.NUMBER)) THEN
+            EDITOR.COMMAND = ''
+            PRINT BOTTOM : CLEAR.REST.OF.LINE :
+            PRINT @(X.POS,Y.POS) :
+            RETURN
+        END
+*
+        REAL.LINE.NUMBER = LINE.NUMBERS<CURRENT.LINE>
+        IF POSSIBLE.NUMBER > DCOUNT(RAW.LINES,@AM) - REAL.LINE.NUMBER + 1 THEN
+            POSSIBLE.NUMBER = DCOUNT(RAW.LINES,@AM) - REAL.LINE.NUMBER + 1
+            IF POSSIBLE.NUMBER = 0 THEN POSSIBLE.NUMBER = 1
+        END
+*
+        FOR EDITOR.CTR = 1 TO POSSIBLE.NUMBER
+            IF DCOUNT(RAW.LINES,@AM) = 0 THEN
+                PRINT BOTTOM : CLEAR.REST.OF.LINE :
+                PRINT @(X.POS,Y.POS) :
+*
+            END ELSE
+                REAL.LINE.NUMBER = LINE.NUMBERS<CURRENT.LINE>
+                RAW.LINE.LEN = LEN(RAW.LINES<REAL.LINE.NUMBER>)
+                RAW.LINES = DELETE(RAW.LINES,REAL.LINE.NUMBER)
+*
+                IF CURRENT.LINE = DCOUNT(LINES,@AM) AND CURRENT.LINE # 1 THEN
+                    Y.POS = Y.POS - 1
+                    CURRENT.LINE = CURRENT.LINE - 1
+                END
+*
+                GOSUB CONVERT.RAW.LINES
+                GOSUB DISPLAY.LINES
+*
+                X.POS = MARGIN.LEFT
+                PRINT @(X.POS,Y.POS) :
+            END
+        NEXT EDITOR.CTR
+*
+        EDITOR.COMMAND = ''
+*
+    END ELSE IF EDITOR.COMMAND[1,1] = 'r' THEN
+        GOSUB PUSH.HISTORY
+*
+        VALUE = EDITOR.COMMAND[2,999]
+*
+        DELIMITER = VALUE[1,1]
+        NEEDLE = FIELD(VALUE,DELIMITER,2)
+        NEW.VALUE = FIELD(VALUE,DELIMITER,3)
+        OCCURANCES = FIELD(VALUE,DELIMITER,4)
+*
+        REAL.LINE.NUMBER = LINE.NUMBERS<CURRENT.LINE>
+        REPLACE.TO = REAL.LINE.NUMBER
+*
+        IF OCCURANCES # '' AND NUM(OCCURANCES) THEN
+            NULL
+*
+        END ELSE IF OCONV(OCCURANCES[1,1],'MCU') = 'G' THEN
+            NUMBER.OF.LINES = OCCURANCES[2,999]
+            IF NUMBER.OF.LINES # '' AND NUM(NUMBER.OF.LINES) AND NUMBER.OF.LINES > 0 THEN
+                NUMBER.OF.LINES = NUMBER.OF.LINES - 1
+            END ELSE
+                NUMBER.OF.LINES = 0
+            END
+*
+            REPLACE.TO = REAL.LINE.NUMBER + NUMBER.OF.LINES
+*
+            IF NOT(NUM(REPLACE.TO)) THEN
+                REPLACE.TO = REAL.LINE.NUMBER
+            END
+*
+            IF REPLACE.TO > DCOUNT(RAW.LINES,@AM) THEN
+                REPLACE.TO = DCOUNT(RAW.LINES,@AM)
+            END
+*
+            OCCURANCES = 0
+*
+        END ELSE
+            OCCURANCES = 1
+        END
+*
+        START.POS = REAL.LINE.NUMBER
+        FOR REPLACE.LINE.CTR = START.POS TO REPLACE.TO
+            REAL.LINE.NUMBER = REPLACE.LINE.CTR
+*
+            RAW.LINE = RAW.LINES<REAL.LINE.NUMBER>
+*
+            IF NEEDLE = '' THEN
+                RAW.LINE = NEW.VALUE : RAW.LINE
+            END ELSE
+                RAW.LINE = CHANGE(RAW.LINE,NEEDLE,NEW.VALUE,OCCURANCES)
+            END
+*
+            RAW.LINES<REAL.LINE.NUMBER> = RAW.LINE
+            GOSUB UPDATE.LINE
+        NEXT REPLACE.LINE.CTR
+*
+        GOSUB DISPLAY.LINES
+        PRINT @(X.POS,Y.POS) :
+*
+    END ELSE IF EDITOR.COMMAND = 'ev' THEN
+        NEST.LEVEL = NEST.LEVEL + 1
+*
+        ORIGINAL.RAW.LINES.STACK<NEST.LEVEL> = LOWER(ORIGINAL.RAW.LINES)
+        RAW.LINES.STACK<NEST.LEVEL> = LOWER(RAW.LINES)
+*
+        REAL.LINE.NUMBER = LINE.NUMBERS<CURRENT.LINE>
+        REAL.LINE.NUMBER.STACK<NEST.LEVEL> = REAL.LINE.NUMBER
+*
+        RAW.LINES = RAISE(RAW.LINES<REAL.LINE.NUMBER>)
+        ORIGINAL.RAW.LINES = RAW.LINES
+*
+        HISTORY.STACK<NEST.LEVEL> = LOWER(HISTORY)
+        HISTORY.X.Y.STACK<NEST.LEVEL> = LOWER(HISTORY.X.Y)
+        HISTORY.POS.STACK<NEST.LEVEL> = HISTORY.POS
+*
+        LINE.START.STACK<NEST.LEVEL> = LINE.START
+*
+        HISTORY = ''
+        HISTORY.X.Y = ''
+        HISTORY.POS = 1
+*
+        CURRENT.LINE = 1
+        LINE.START = 1
+*
+        GOSUB PUT.CURSOR.TOP.LEFT
+        GOSUB CONVERT.RAW.LINES
+        GOSUB DISPLAY.LINES
+*
+        PRINT BOTTOM : MESSAGE.COLOR : CLEAR.REST.OF.LINE :
+        PRINT 'Exploded line ' : CURRENT.LINE : '.' :
+*
+        GOSUB PUT.CURSOR.TOP.LEFT
+*
+    END ELSE IF EDITOR.COMMAND[1,1] = 'q' THEN
+        IF NEST.LEVEL # 0 THEN
+            IF ORIGINAL.RAW.LINES = RAW.LINES THEN
+                SAVE.ROW = FALSE
+                GOSUB POP.EXPLODE
+*
+            END ELSE
+                PRINT BOTTOM : MESSAGE.COLOR : CLEAR.REST.OF.LINE :
+                PRINT 'There are unsaved changes. Are you sure you want to exit? (y/n) ' :
+                INPUT ANSWER :
+*
+                IF OCONV(ANSWER,'MCL') = 'y' THEN
+                    SAVE.ROW = FALSE
+                    GOSUB POP.EXPLODE
+                END
+*
+                PRINT BOTTOM : MESSAGE.COLOR : CLEAR.REST.OF.LINE :
+                PRINT @(X.POS,Y.POS) :
+            END
+*
+        END ELSE
+            IF ORIGINAL.RAW.LINES = RAW.LINES OR EDITOR.COMMAND[2,1] = '!' THEN
+                QUIT.FLAG = TRUE
+*
+            END ELSE
+                PRINT BOTTOM : MESSAGE.COLOR : CLEAR.REST.OF.LINE :
+                PRINT 'There are unsaved changes. Are you sure you want to exit? (y/n) ' :
+                INPUT ANSWER :
+*
+                IF OCONV(ANSWER,'MCL') = 'y' THEN
+                    QUIT.FLAG = TRUE
+                END
+*
+                PRINT BOTTOM : MESSAGE.COLOR : CLEAR.REST.OF.LINE :
+                PRINT @(X.POS,Y.POS) :
+            END
+        END
+*
+    END ELSE IF EDITOR.COMMAND = 'w' THEN
+        GOSUB SAVE.FILE
+*
+    END ELSE IF EDITOR.COMMAND = 'fd' THEN
+        PRINT BOTTOM : CLEAR.REST.OF.LINE : MESSAGE.COLOR :
+        PRINT 'You are trying to delete the entire record. Are you sure? (y/n) ' :
+*
+        INPUT ANS :
+        IF ANS = 'Y' THEN
+            DELETE FILE,RECORD.ID
+            QUIT.FLAG = TRUE
+        END
+*
+        PRINT BOTTOM : CLEAR.REST.OF.LINE :
+        PRINT @(X.POS,Y.POS) :
+*
+    END ELSE IF EDITOR.COMMAND[1,4] = 'load' THEN
+        NUMBER.OF.ARGUMENTS = DCOUNT(EDITOR.COMMAND,' ')
+*
+        IF NUMBER.OF.ARGUMENTS = 2 THEN
+            DICT = ''
+            LOAD.FILENAME = FILENAME
+            LOAD.ITEM.ID = FIELD(EDITOR.COMMAND,' ',2)
+*
+        END ELSE IF NUMBER.OF.ARGUMENTS = 3 THEN
+            DICT = ''
+            LOAD.FILENAME = FIELD(EDITOR.COMMAND,' ',2)
+            LOAD.ITEM.ID = FIELD(EDITOR.COMMAND,' ',3)
+*
+        END ELSE IF NUMBER.OF.ARGUMENTS = 4 THEN
+            DICT = 'DICT'
+            LOAD.FILENAME = FIELD(EDITOR.COMMAND,' ',3)
+            LOAD.ITEM.ID = FIELD(EDITOR.COMMAND,' ',4)
+        END
+*
+        OPEN DICT,LOAD.FILENAME TO LOAD.FILE THEN
+            READ LOAD.ITEM FROM LOAD.FILE,LOAD.ITEM.ID THEN
+                GOSUB PUSH.HISTORY
+*
+                PRINT BOTTOM : CLEAR.REST.OF.LINE : MESSAGE.COLOR :
+                PRINT 'Starting line/field number: ' :
+                INPUT LOAD.START :
+*
+                PRINT BOTTOM : CLEAR.REST.OF.LINE : MESSAGE.COLOR :
+                PRINT 'Ending line/field number: ' :
+                INPUT LOAD.END :
+*
+                LOAD.LENGTH = DCOUNT(LOAD.ITEM,@AM)
+                IF LOAD.END > LOAD.LENGTH THEN
+                    LOAD.END = LOAD.LENGTH
+                END
+                IF LOAD.END < LOAD.START THEN
+                    LOAD.END = LOAD.START
+                END
+*
+                IF DCOUNT(RAW.LINES,@AM) = 0 THEN
+                    INSERT.AT.LINE = 1
+                END ELSE
+                    REAL.LINE.NUMBER = LINE.NUMBERS<CURRENT.LINE>
+                    INSERT.AT.LINE = REAL.LINE.NUMBER + 1
+                END
+*
+                LINE.COUNTER = 0
+                FOR I = LOAD.START TO LOAD.END
+                    RAW.LINES = INSERT(RAW.LINES,INSERT.AT.LINE;LOAD.ITEM<I>)
+                    INSERT.AT.LINE = INSERT.AT.LINE + 1
+                    LINE.COUNTER = LINE.COUNTER + 1
+                NEXT I
+*
+                GOSUB CONVERT.RAW.LINES
+                GOSUB DISPLAY.LINES
+*
+                PRINT BOTTOM : CLEAR.REST.OF.LINE : MESSAGE.COLOR :
+                PRINT LINE.COUNTER : ' lines/fields loaded.' :
+*
+            END ELSE
+                PRINT BOTTOM : CLEAR.REST.OF.LINE : MESSAGE.COLOR :
+                PRINT 'Unable to open record: ' : LOAD.ITEM.ID :
+            END
+        END ELSE
+            PRINT BOTTOM : CLEAR.REST.OF.LINE : MESSAGE.COLOR :
+            PRINT 'Unable to open file: ' : LOAD.FILENAME :
+        END
+*
+        PRINT @(X.POS,Y.POS) :
+*
+    END ELSE
+        PRINT BOTTOM : CLEAR.REST.OF.LINE :
+        PRINT @(X.POS,Y.POS) :
+    END
+*
+    EDITOR.COMMAND = ''
+*
+    RETURN
+*
+*********************  S U B R O U T I N E  *********************
+*
+    PROCESS.SEARCH:NULL
+*
+    PRINT BOTTOM : EDITOR.COLOR : CLEAR.REST.OF.LINE :
+    PRINT SEARCH.PROMPT :
+*
+    INPUT.PROMPT = SEARCH.PROMPT
+    INPUT.STRING = ''
+    INPUT.X.POS = 0
+    INPUT.MARGIN.LEFT = SEARCH.MARGIN.LEFT
+*
+    GOSUB PROCESS.INPUT
+    
+    SEARCH.STRING = INPUT.STRING
+*
+    IF SEARCH.STRING = '' THEN
+        SEARCH.STRING = ORIGINAL.SEARCH.STRING
+        IF SEARCH.STRING = '' THEN
+            PRINT BOTTOM : CLEAR.REST.OF.LINE :
+            PRINT @(X.POS,Y.POS) :
+            RETURN
+        END
+    END
+*
+    ORIGINAL.SEARCH.STRING = SEARCH.STRING
+    SEARCH.FOUND = FALSE
+    SEARCH.RESULTS = ''
+*
+    SEARCH.CTR = 0
+*
+    FOR REAL.LINE.NUMBER = 1 TO DCOUNT(RAW.LINES,@AM)
+        RAW.LINE = RAW.LINES<REAL.LINE.NUMBER>
+*
+        SEARCH.OCCURANCE = 0
+*
+        LOOP
+            SEARCH.OCCURANCE = SEARCH.OCCURANCE + 1
+            FOUND.POS = INDEX(OCONV(RAW.LINE,'MCU'),OCONV(SEARCH.STRING,'MCU'),SEARCH.OCCURANCE)
+*
+        UNTIL FOUND.POS = 0 DO
+            SEARCH.CTR = SEARCH.CTR + 1
+            SEARCH.RESULTS<SEARCH.CTR,1> = REAL.LINE.NUMBER
+            SEARCH.RESULTS<SEARCH.CTR,2> = FOUND.POS
+        REPEAT
+    NEXT SEARCH.CTR
+*
+    IF SEARCH.RESULTS = '' THEN
+        SEARCH.POSITION = 0
+        ERROR.MESSAGE = 'No results for: "' : SEARCH.STRING : '"'
+        PRINT BOTTOM : CLEAR.REST.OF.LINE :
+        PRINT ERROR.MESSAGE :
+        PRINT @(X.POS,Y.POS) :
+*
+    END ELSE
+        SEARCH.POSITION = 1
+        GOSUB GOTO.SEARCH.RESULT
+    END
+*
+    RETURN
+*
+*********************  S U B R O U T I N E  *********************
+*
+    GOTO.SEARCH.RESULT:NULL
+*
+    GOTO.LINE = SEARCH.RESULTS<SEARCH.POSITION,1>
+    FOUND.POS = SEARCH.RESULTS<SEARCH.POSITION,2>
+*
+    GOSUB GOTO.LINE.POSITION
+*
+    IF FOUND.POS <= VIEW.WIDTH THEN
+        X.POS = FOUND.POS + MARGIN.LEFT - 1
+*
+    END ELSE
+        NUMBER.OF.LINES = INT(LEN(RAW.LINES<GOTO.LINE>) / VIEW.WIDTH)
+        X.POS = FOUND.POS - ((NUMBER.OF.LINES) * VIEW.WIDTH) + MARGIN.LEFT - 1
+        Y.POS = Y.POS + NUMBER.OF.LINES
+        CURRENT.LINE = CURRENT.LINE + NUMBER.OF.LINES
+    END
+*
+    PRINT @(X.POS,Y.POS) :
+*
+    RETURN
+*
+*********************  S U B R O U T I N E  *********************
+*
+    PROCESS.INPUT:NULL
+*
+    LOOP WHILE TRUE DO
+        CHR = KEYIN()
+        ASCII.CODE = SEQ(CHR)
+*
+        IF ASCII.CODE = SEQ(KEY.ESCAPE) THEN
+            GOSUB PROCESS.ESCAPE.KEY
+            IF ESCAPE.SEQUENCE = LEFT.ARROW THEN
+                IF INPUT.X.POS > 0 THEN
+                    INPUT.X.POS = INPUT.X.POS - 1
+                END
+            END ELSE IF ESCAPE.SEQUENCE = RIGHT.ARROW THEN
+                IF INPUT.X.POS < LEN(INPUT.STRING) THEN
+                    INPUT.X.POS = INPUT.X.POS + 1
+                END
+            END
+*
+        END ELSE IF ASCII.CODE = SEQ(KEY.CARRIAGE.RETURN) THEN
+            EXIT
+*
+        END ELSE IF ASCII.CODE = SEQ(KEY.BACKSPACE) THEN
+            IF INPUT.X.POS <= 0 THEN
+                EXIT
+*
+            END ELSE
+                INPUT.STRING = INPUT.STRING[1,INPUT.X.POS-1] : INPUT.STRING[INPUT.X.POS+1,9999]
+                INPUT.X.POS = INPUT.X.POS - 1
+            END
+*
+        END ELSE
+            INPUT.STRING = INPUT.STRING[1,INPUT.X.POS] : CHR : INPUT.STRING[INPUT.X.POS+1,9999]
+            INPUT.X.POS = INPUT.X.POS + 1
+        END
+*
+        PRINT BOTTOM : EDITOR.COLOR : INPUT.PROMPT : INPUT.STRING : CLEAR.REST.OF.LINE :
+        PRINT @(INPUT.X.POS + INPUT.MARGIN.LEFT) :
+    REPEAT
+*
+    RETURN
+*
+*********************  S U B R O U T I N E  *********************
+*
+    GET.INSERT.CHAR.POS:NULL
+*
+    REAL.LINE.NUMBER = LINE.NUMBERS<CURRENT.LINE>
+    LOCATE(REAL.LINE.NUMBER,LINE.NUMBERS;LINE.START.POS) ELSE LINE.START.POS = CURRENT.LINE
+*
+    PREV.CTR = CURRENT.LINE - LINE.START.POS
+    INSERT.CHAR.POSITION = (PREV.CTR * VIEW.WIDTH) + X.POS - MARGIN.LEFT
+*
+    RETURN
+*
+*********************  S U B R O U T I N E  *********************
+*
+* UPDATE LINE GIVEN A REAL.LINE.NUMBER
+*
+* 1. GET ALL LINES THAT BELONG TO REAL.LINE.NUMBER
+* 2. DELETE THEM
+* 3. CHUNK THE RAW.LINE
+* 4. INSERT THEM BACK INTO LINES
+*
+    UPDATE.LINE:NULL
+*
+    LOCATE(REAL.LINE.NUMBER,LINE.NUMBERS;LINE.START.POS) ELSE LINE.START.POS = CURRENT.LINE
+*
+    DONE = FALSE
+    LINE.POS = LINE.START.POS
+*
+    LOOP UNTIL DONE DO
+        IF LINE.NUMBERS<LINE.POS> = REAL.LINE.NUMBER THEN
+            LINES = DELETE(LINES,LINE.POS)
+            LINE.NUMBERS = DELETE(LINE.NUMBERS,LINE.POS)
+        END ELSE
+            DONE = TRUE
+        END
+    REPEAT
+*
+    RAW.LINE = RAW.LINES<REAL.LINE.NUMBER>
+    RAW.LINE.LEN = LEN(RAW.LINE)
+    IF RAW.LINE.LEN = 0 THEN RAW.LINE.LEN = 1
+*
+    INSERT.LINE.POS = LINE.START.POS
+    FOR J = 1 TO RAW.LINE.LEN STEP VIEW.WIDTH
+        LINES = INSERT(LINES,INSERT.LINE.POS;RAW.LINE[J,VIEW.WIDTH])
+        LINE.NUMBERS = INSERT(LINE.NUMBERS,INSERT.LINE.POS;REAL.LINE.NUMBER)
+        INSERT.LINE.POS = INSERT.LINE.POS + 1
+    NEXT J
+*
+    RETURN
+*
+*********************  S U B R O U T I N E  *********************
+*
+    PROCESS.INSERT.LINE:NULL
+*
+    GOSUB PUSH.HISTORY
+*
+    REAL.LINE.NUMBER = LINE.NUMBERS<CURRENT.LINE>
+*
+    IF INSERT.LINE = '' THEN
+        RAW.LINE = RAW.LINES<REAL.LINE.NUMBER>
+        NUMBER.OF.SPACES = INDEX(RAW.LINE,TRIMF(RAW.LINE),1) - 1
+        INSERT.LINE = SPACE(NUMBER.OF.SPACES)
+        X.POS = NUMBER.OF.SPACES + MARGIN.LEFT
+    END ELSE
+        X.POS = MARGIN.LEFT
+    END
+*
+    RAW.LINES = INSERT(RAW.LINES,REAL.LINE.NUMBER+1;INSERT.LINE)
+    NEXT.LINE.NUMBER = REAL.LINE.NUMBER + 1
+*
+    GOSUB CONVERT.RAW.LINES
+    GOSUB DISPLAY.LINES
+*
+    LOCATE(NEXT.LINE.NUMBER,LINE.NUMBERS;CURRENT.LINE) ELSE CURRENT.LINE = 1
+*
+    Y.POS = Y.POS + 1
+    PRINT @(X.POS,Y.POS) :
+*
+    PROCESS.CHAR = 'i'
+    INPUT.AVAILABLE = TRUE
+*
+    RETURN
+*
+*********************  S U B R O U T I N E  *********************
+*
+    PROCESS.DELETE.LINE:NULL
+*
+    GOSUB PUSH.HISTORY
+*
+    EDITOR.COMMAND = 'd'
+    LOOP
+        CHR = KEYIN()
+        ASCII.CODE = SEQ(CHR)
+    UNTIL ASCII.CODE = SEQ(KEY.CARRIAGE.RETURN) OR NOT(NUM(CHR)) DO
+        EDITOR.COMMAND = EDITOR.COMMAND : CHR
+    REPEAT
+*
+    IF ASCII.CODE = SEQ(KEY.CARRIAGE.RETURN) OR EDITOR.COMMAND = 'd' THEN
+        EDITOR.COMMAND.AVAILABLE = TRUE
+        GOSUB PROCESS.EDITOR.COMMAND
+    END
+*
+    EDITOR.COMMAND = ''
+*
+    RETURN
+*
+*********************  S U B R O U T I N E  *********************
+*
+    PROCESS.INSERT:NULL
+*
+    PRINT BOTTOM : MESSAGE.COLOR : CLEAR.REST.OF.LINE : '-- INSERT --' :
+    PRINT @(X.POS,Y.POS) :
+*
+    LOOP WHILE TRUE DO
+        CHR = KEYIN()
+        ASCII.CODE = SEQ(CHR)
+*
+        IF CHR = '`' THEN
+            IF CC.LIST.OPEN THEN
+                CC.LIST.OPEN = FALSE
+                GOSUB DISPLAY.LINES
+            END
+*
+            INPUT.AVAILABLE = FALSE
+            PROCESS.CHAR = ''
+            PRINT BOTTOM : CLEAR.REST.OF.LINE :
+            PRINT @(X.POS,Y.POS) :
+            EXIT
+*
+        END ELSE IF ASCII.CODE = SEQ(KEY.CTRL.S) THEN
+            GOSUB SAVE.FILE
+*
+        END ELSE IF ASCII.CODE = SEQ(KEY.ESCAPE) THEN
+            GOSUB PROCESS.ESCAPE.KEY
+*
+            IF ESCAPE.SEQUENCE = UP.ARROW THEN
+                GOSUB SCROLL.UP
+*
+            END ELSE IF ESCAPE.SEQUENCE = DOWN.ARROW THEN
+                GOSUB SCROLL.DOWN
+*
+            END ELSE IF ESCAPE.SEQUENCE = LEFT.ARROW THEN
+                IF X.POS > MARGIN.LEFT THEN
+                    X.POS = X.POS - 1
+                END
+*
+            END ELSE IF ESCAPE.SEQUENCE = RIGHT.ARROW THEN
+                LINE.LEN = LEN(LINES<CURRENT.LINE>) + MARGIN.LEFT
+                MAX.X.LEN = SCREEN.WIDTH - MARGIN.RIGHT - 1
+                IF MAX.X.LEN > LINE.LEN THEN
+                    MAX.X.LEN = LINE.LEN
+                END
+                IF X.POS < MAX.X.LEN THEN
+                    X.POS = X.POS + 1
+                END
+            END ELSE
+                EXIT
+            END
+*
+            PRINT BOTTOM : MESSAGE.COLOR : CLEAR.REST.OF.LINE : '-- INSERT --' :
+            PRINT @(X.POS,Y.POS) :
+            CONTINUE
+*
+        END ELSE IF ASCII.CODE = SEQ(KEY.TAB) THEN
+            GOSUB PUSH.HISTORY
+*
+            REAL.LINE.NUMBER = LINE.NUMBERS<CURRENT.LINE>
+            GOSUB GET.INSERT.CHAR.POS
+*
+            RAW.LINE = RAW.LINES<REAL.LINE.NUMBER>
+            RAW.LINE = RAW.LINE[1,INSERT.CHAR.POSITION] : SPACE(TAB.SIZE) : RAW.LINE[INSERT.CHAR.POSITION+1,9999]
+            RAW.LINES<REAL.LINE.NUMBER> = RAW.LINE
+*
+            GOSUB UPDATE.LINE
+*
+            GOSUB DISPLAY.LINES
+*
+            X.POS = X.POS + TAB.SIZE
+            IF X.POS > SCREEN.WIDTH - MARGIN.RIGHT THEN
+                X.POS = MARGIN.LEFT + 1
+                Y.POS = Y.POS + 1
+                CURRENT.LINE = CURRENT.LINE + 1
+            END
+*
+            PRINT BOTTOM : MESSAGE.COLOR : CLEAR.REST.OF.LINE : '-- INSERT --' :
+            PRINT @(X.POS,Y.POS) :
+            
+*
+        END ELSE IF ASCII.CODE = SEQ(KEY.BACKSPACE) THEN
+            GOSUB PUSH.HISTORY
+*
+            IF X.POS > MARGIN.LEFT THEN
+                REAL.LINE.NUMBER = LINE.NUMBERS<CURRENT.LINE>
+                GOSUB GET.INSERT.CHAR.POS
+*
+                RAW.LINE = RAW.LINES<REAL.LINE.NUMBER>
+*
+                IF CC.LIST.OPEN THEN
+                    CC.LIST.OPEN = FALSE
+                    GOSUB DISPLAY.LINES
+                END
+*
+                DELETE.TAB = FALSE
+*
+                IF INSERT.CHAR.POSITION >= TAB.SIZE THEN
+                    TAB.TEST = RAW.LINE[INSERT.CHAR.POSITION-TAB.SIZE,TAB.SIZE]
+                    TAB.TEST = TRIMF(TRIMB(TAB.TEST))
+                    IF TAB.TEST = '' THEN DELETE.TAB = TRUE
+                END
+*
+                RAW.LINE.LEN = LEN(RAW.LINE)
+*
+                IF DELETE.TAB THEN
+                    RAW.LINE = RAW.LINE[1,INSERT.CHAR.POSITION-TAB.SIZE] : RAW.LINE[INSERT.CHAR.POSITION+1,9999]
+                    X.POS = X.POS - TAB.SIZE
+                END ELSE
+                    RAW.LINE = RAW.LINE[1,INSERT.CHAR.POSITION-1] : RAW.LINE[INSERT.CHAR.POSITION+1,9999]
+                    X.POS = X.POS - 1
+                END
+*
+                RAW.LINES<REAL.LINE.NUMBER> = RAW.LINE
+*
+                GOSUB UPDATE.LINE
+*
+                IF RAW.LINE.LEN < VIEW.WIDTH THEN
+                    GOSUB DISPLAY.LINE
+                END ELSE
+                    GOSUB DISPLAY.LINES
+                END
+*
+            END ELSE IF Y.POS > 1 THEN
+                PREV.LINE = CURRENT.LINE - 1
+                REAL.LINE.NUMBER = LINE.NUMBERS<CURRENT.LINE>
+                PREV.LINE.NUMBER = LINE.NUMBERS<PREV.LINE>
+*
+*
+                IF REAL.LINE.NUMBER = PREV.LINE.NUMBER THEN
+                    GOSUB GET.INSERT.CHAR.POS
+*
+                    RAW.LINE = RAW.LINES<REAL.LINE.NUMBER>
+                    RAW.LINE = RAW.LINE[1,INSERT.CHAR.POSITION-1] : RAW.LINE[INSERT.CHAR.POSITION+1,9999]
+                    RAW.LINES<REAL.LINE.NUMBER> = RAW.LINE
+*
+                    GOSUB UPDATE.LINE
+                    GOSUB DISPLAY.LINES
+*
+                    X.POS = SCREEN.WIDTH - MARGIN.RIGHT - 1
+                    Y.POS = Y.POS - 1
+                    CURRENT.LINE = CURRENT.LINE - 1
+*
+                END ELSE
+                    RAW.LINE = RAW.LINES<REAL.LINE.NUMBER>
+                    PREV.LINE = RAW.LINES<PREV.LINE.NUMBER>
+*
+                    X.POS = LEN(PREV.LINE) + MARGIN.LEFT
+                    Y.POS = Y.POS - 1
+                    CURRENT.LINE = CURRENT.LINE - 1
+*
+                    RAW.LINES = DELETE(RAW.LINES,REAL.LINE.NUMBER)
+                    RAW.LINES<PREV.LINE.NUMBER> = PREV.LINE : RAW.LINE
+                END
+*
+                GOSUB CONVERT.RAW.LINES
+                GOSUB DISPLAY.LINES
+            END
+*
+            PRINT BOTTOM : MESSAGE.COLOR : CLEAR.REST.OF.LINE : '-- INSERT --' :
+            PRINT @(X.POS,Y.POS) :
+*
+        END ELSE IF ASCII.CODE = SEQ(KEY.CARRIAGE.RETURN) THEN
+            GOSUB PUSH.HISTORY
+*
+            REAL.LINE.NUMBER = LINE.NUMBERS<CURRENT.LINE>
+            GOSUB GET.INSERT.CHAR.POS
+*
+            RAW.LINE = RAW.LINES<REAL.LINE.NUMBER>
+*
+            IF CC.LIST.OPEN THEN
+                CC.WORD = CC.LIST<CC.POS,1>
+                CC.DESCRIPTION = CC.LIST<CC.POS,2>
+                CC.STRUCTURE = CC.LIST<CC.POS,3>
+*
+                IF CC.STRUCTURE # '' THEN
+                L = RAW.LINE[1,INSERT.CHAR.POSITION-CC.TRIGGER.LEN] : CC.STRUCTURE<1,1,1> : RAW.LINE[INSERT.CHAR.POSITION+1,999]
+                RAW.LINES<REAL.LINE.NUMBER> = L
+                    FOR CC.LINE.CTR = 2 TO DCOUNT(CC.STRUCTURE,@SVM)
+                        CC.LINE = CC.STRUCTURE<1,1,CC.LINE.CTR>
+                        RAW.LINES = INSERT(RAW.LINES,REAL.LINE.NUMBER+CC.LINE.CTR-1;CC.LINE)
+                    NEXT CC.LINE.CTR
+                END ELSE
+                L = RAW.LINE[1,INSERT.CHAR.POSITION-CC.TRIGGER.LEN] : CC.WORD : RAW.LINE[INSERT.CHAR.POSITION+1,999]
+                RAW.LINES<REAL.LINE.NUMBER> = L
+                END
+*
+                CC.LIST.OPEN = FALSE
+*
+                GOSUB CONVERT.RAW.LINES
+                GOSUB DISPLAY.LINES
+*
+                X.POS = X.POS + LEN(CC.WORD) - CC.TRIGGER.LEN
+*
+                PRINT BOTTOM : MESSAGE.COLOR : CLEAR.REST.OF.LINE : '-- INSERT --' :
+                PRINT @(X.POS,Y.POS) :
+*
+                CONTINUE
+            END
+*
+            ORIGINAL.LINE = RAW.LINE[1,INSERT.CHAR.POSITION]
+            NEXT.LINE = RAW.LINE[INSERT.CHAR.POSITION+1,9999]
+*
+            RAW.LINES<REAL.LINE.NUMBER> = ORIGINAL.LINE
+            RAW.LINES = INSERT(RAW.LINES,REAL.LINE.NUMBER+1;NEXT.LINE)
+*
+            NEXT.LINE.NUMBER = REAL.LINE.NUMBER + 1
+*
+            GOSUB CC.TOKENIZE.LINE
+*
+            GOSUB CONVERT.RAW.LINES
+            GOSUB DISPLAY.LINES
+*
+            LOCATE(NEXT.LINE.NUMBER,LINE.NUMBERS;CURRENT.LINE) ELSE CURRENT.LINE = 1
+*
+            X.POS = MARGIN.LEFT
+            Y.POS = Y.POS + 1
+            PRINT BOTTOM : MESSAGE.COLOR : CLEAR.REST.OF.LINE : '-- INSERT --' :
+            PRINT @(X.POS,Y.POS) :
+*
+        END ELSE
+            GOSUB PUSH.HISTORY
+*
+            REAL.LINE.NUMBER = LINE.NUMBERS<CURRENT.LINE>
+            GOSUB GET.INSERT.CHAR.POS
+*
+            RAW.LINE = RAW.LINES<REAL.LINE.NUMBER>
+            RAW.LINE = RAW.LINE[1,INSERT.CHAR.POSITION] : CHR : RAW.LINE[INSERT.CHAR.POSITION+1,9999]
+            RAW.LINES<REAL.LINE.NUMBER> = RAW.LINE
+*
+            IF CHR = ' ' THEN
+                GOSUB CC.TOKENIZE.LINE
+            END ELSE
+                LOCATE(CHR,CC.BREAK.CHARACTERS;ANYPOS) THEN
+                    GOSUB CC.TOKENIZE.LINE
+                END
+            END
+*
+            GOSUB UPDATE.LINE
+*
+            X.POS = X.POS + 1
+            IF X.POS > SCREEN.WIDTH - MARGIN.RIGHT THEN
+                X.POS = MARGIN.LEFT + 1
+                Y.POS = Y.POS + 1
+                CURRENT.LINE = CURRENT.LINE + 1
+            END
+*
+            CURRENT.WORD = FIELD(RAW.LINE,' ',DCOUNT(RAW.LINE,' '))
+*
+            IF CURRENT.WORD = '' OR CHR = ' ' OR LEN(TRIM(CURRENT.WORD)) < 2 OR NUM(CHR) THEN
+                CC.LIST.OPEN = FALSE
+                CC.LIST = ''
+*
+            END ELSE
+                CC.LIST = ''
+                FOR LIST.CTR = 1 TO DCOUNT(SNIPPETS,@AM)
+                    IF INDEX(OCONV(SNIPPETS<LIST.CTR,1>,'MCU'),OCONV(CURRENT.WORD,'MCU'),1) = 1 THEN
+                        CC.LIST<-1> = SNIPPETS<LIST.CTR>
+                    END
+                NEXT LIST.CTR
+            END
+*
+            IF DCOUNT(CC.LIST,@AM) > 0 THEN
+                CC.LIST.OPEN = TRUE
+                CC.POS = 1
+                CC.TRIGGER.LEN = LEN(CURRENT.WORD)
+*
+                GOSUB DISPLAY.LINES
+                GOSUB DISPLAY.CC.LIST
+*
+            END ELSE IF CC.LIST.OPEN THEN
+                CC.LIST.OPEN = FALSE
+                GOSUB DISPLAY.LINES
+*
+            END ELSE
+                GOSUB DISPLAY.LINE
+            END
+*
+            PRINT BOTTOM : MESSAGE.COLOR : CLEAR.REST.OF.LINE : '-- INSERT --' :
+            PRINT @(X.POS,Y.POS) :
+*
+        END
+    REPEAT
+*
+    RETURN
+*
+*********************  S U B R O U T I N E  *********************
+*
+    PROCESS.DELETE.CHARACTER:NULL
+*
+    GOSUB PUSH.HISTORY
+*
+    REAL.LINE.NUMBER = LINE.NUMBERS<CURRENT.LINE>
+    GOSUB GET.INSERT.CHAR.POS
+*
+    RAW.LINE = RAW.LINES<REAL.LINE.NUMBER>
+    RAW.LINE = RAW.LINE[1,INSERT.CHAR.POSITION] : RAW.LINE[INSERT.CHAR.POSITION+2,9999]
+    RAW.LINES<REAL.LINE.NUMBER> = RAW.LINE
+*
+    GOSUB UPDATE.LINE
+*
+    GOSUB DISPLAY.LINE
+*
+    IF X.POS # MARGIN.LEFT AND X.POS = MARGIN.LEFT + LEN(LINES<CURRENT.LINE>) THEN
+        X.POS = X.POS - 1
+    END
+*
+    PRINT @(X.POS,Y.POS) :
+*
+    RETURN
+*
+*********************  S U B R O U T I N E  *********************
+*
+    PROCESS.REPLACE.CHARACTER:NULL
+*
+    GOSUB PUSH.HISTORY
+*
+    CHR = KEYIN()
+*
+    REAL.LINE.NUMBER = LINE.NUMBERS<CURRENT.LINE>
+    GOSUB GET.INSERT.CHAR.POS
+*
+    RAW.LINE = RAW.LINES<REAL.LINE.NUMBER>
+    RAW.LINE[INSERT.CHAR.POSITION+1,1] = CHR
+    RAW.LINES<REAL.LINE.NUMBER> = RAW.LINE
+*
+    GOSUB UPDATE.LINE
+*
+    GOSUB DISPLAY.LINE
+*
+    PRINT @(X.POS,Y.POS) :
+*
+    RETURN
+*
+*********************  S U B R O U T I N E  *********************
+*
+    SCROLL.UP:NULL
+*
+    IF CC.LIST.OPEN THEN
+        IF CC.POS > 1 THEN
+            CC.POS = CC.POS - 1
+            GOSUB DISPLAY.CC.LIST
+        END
+        RETURN
+    END
+*
+    IF CURRENT.LINE = 1 THEN
+        RETURN
+    END
+*
+    IF Y.POS > MARGIN.TOP THEN
+        CURRENT.LINE = CURRENT.LINE - 1
+        Y.POS = Y.POS - 1
+    END ELSE
+        LINE.START = LINE.START - 1
+        CURRENT.LINE = CURRENT.LINE - 1
+        LINE = LINES<CURRENT.LINE>
+        LINE.NUMBER = LINE.NUMBERS<CURRENT.LINE>
+*
+        PRINT @(-49) :
+        PRINT @(0,Y.POS) :
+        PRINT CLEAR.REST.OF.LINE :
+        PRINT LINE.NUMBER.COLOR : LINE.NUMBER PADDING.LEFT :
+        GOSUB TOKENIZE.LINE
+        PRINT FOREGROUND.COLOR : LINE
+    END
+*
+    GOSUB SET.X.POS
+    GOSUB DISPLAY.HEADER
+    GOSUB DISPLAY.FOOTER
+    PRINT @(X.POS, Y.POS) :
+*
+    RETURN
+*
+*********************  S U B R O U T I N E  *********************
+*
+    SCROLL.DOWN:NULL
+*
+    IF CC.LIST.OPEN THEN
+        IF CC.POS < DCOUNT(CC.LIST,@AM) THEN
+            CC.POS = CC.POS + 1
+            GOSUB DISPLAY.CC.LIST
+        END
+        RETURN
+    END
+*
+    IF CURRENT.LINE >= DCOUNT(LINES,@AM) THEN
+        RETURN
+    END
+*
+    IF Y.POS < VIEW.HEIGHT THEN
+        CURRENT.LINE = CURRENT.LINE + 1
+        Y.POS = Y.POS + 1
+    END ELSE
+        LINE.START = LINE.START + 1
+        CURRENT.LINE = CURRENT.LINE + 1
+        LINE = LINES<CURRENT.LINE>
+        LINE.NUMBER = LINE.NUMBERS<CURRENT.LINE>
+*
+        PRINT @(-48) :
+        PRINT @(0,Y.POS) :
+        PRINT LINE.NUMBER.COLOR : LINE.NUMBER PADDING.LEFT :
+        GOSUB TOKENIZE.LINE
+        PRINT FOREGROUND.COLOR : LINE
+    END
+*
+    GOSUB SET.X.POS
+    GOSUB DISPLAY.HEADER
+    PRINT @(X.POS, Y.POS) :
+*
+    RETURN
+*
+*********************  S U B R O U T I N E  *********************
+*
+    SAVE.FILE:NULL
+*
+    IF NEST.LEVEL # 0 THEN
+        SAVE.ROW = TRUE
+        GOSUB POP.EXPLODE
+*
+    END ELSE
+        ORIGINAL.RAW.LINES = RAW.LINES
+        WRITEU RAW.LINES ON FILE, RECORD.ID
+*
+        PRINT BOTTOM : CLEAR.REST.OF.LINE :
+        PRINT MESSAGE.COLOR :
+        PRINT FILENAME : ' ' : RECORD.ID : ' saved.' : CLEAR.REST.OF.LINE :
+*
+        PRINT @(X.POS,Y.POS) :
+    END
+*
+    RETURN
+*
+*
+*********************  S U B R O U T I N E  *********************
+*
+    FORMAT.FILE:NULL
+*
+    GOSUB PUSH.HISTORY
+*
+    FIRST.WORDS.INC = 'FOR,CASE'
+    CONVERT ',' TO @AM IN FIRST.WORDS.INC
+*
+    LAST.WORDS.INC = 'THEN,ELSE,LOCKED,DO,LOOP'
+    CONVERT ',' TO @AM IN LAST.WORDS.INC
+*
+    FIRST.WORDS.DEC = 'END,WHILE,UNTIL,REPEAT,CASE,NEXT'
+    CONVERT ',' TO @AM IN FIRST.WORDS.DEC
+*
+    FMT.LINES = ''
+    INDENT.LEVEL = 1
+*
+    FOR FMT.CTR = 1 TO DCOUNT(RAW.LINES,@AM)
+        TRIMMED.LINE = TRIMB(TRIMF(RAW.LINES<FMT.CTR>))
+*
+        IF TRIMMED.LINE[1,1] = '*' THEN
+            FMT.LINES<FMT.CTR> = TRIMMED.LINE
+            CONTINUE
+        END
+*
+        FIRST.WORD = FIELD(TRIMMED.LINE,' ',1)
+        LAST.WORD = FIELD(TRIMMED.LINE,' ',DCOUNT(TRIMMED.LINE,' '))
+*
+        IF TRIMMED.LINE = 'END CASE' THEN
+            INDENT.LEVEL = INDENT.LEVEL - 2
+            IF INDENT.LEVEL = 0 THEN INDENT.LEVEL = 1
+*
+        END ELSE
+            LOCATE(FIRST.WORD,FIRST.WORDS.DEC;LAST.ANYPOS) THEN
+                INDENT.LEVEL = INDENT.LEVEL - 1
+                IF INDENT.LEVEL = 0 THEN INDENT.LEVEL = 1
+            END
+        END
+*
+        FMT.LINE = SPACE(INDENT.LEVEL * TAB.SIZE) : TRIMMED.LINE
+        FMT.LINES<FMT.CTR> = FMT.LINE
+*
+        LOCATE(LAST.WORD,LAST.WORDS.INC;LAST.ANYPOS) THEN
+            LOCATE(FIRST.WORD,FIRST.WORDS.INC;ANYPOS) ELSE
+                INDENT.LEVEL = INDENT.LEVEL + 1
+            END
+        END
+*
+        LOCATE(FIRST.WORD,FIRST.WORDS.INC;ANYPOS) THEN
+            INDENT.LEVEL = INDENT.LEVEL + 1
+        END
+*
+        IF TRIMMED.LINE = 'BEGIN CASE' THEN
+            INDENT.LEVEL = INDENT.LEVEL + 2
+        END
+    NEXT FMT.CTR
+*
+    RAW.LINES = FMT.LINES
+*
+    GOSUB CONVERT.RAW.LINES
+    GOSUB DISPLAY.LINES
+*
+    RETURN
+*
+*********************  S U B R O U T I N E  *********************
+*
+    DISPLAY.CC.LIST:NULL
+*
+    FOR CC.CTR = 1 TO DCOUNT(CC.LIST,@AM)
+        PRINT @(X.POS-CC.TRIGGER.LEN,Y.POS+CC.CTR) :
+        CC.WORD = CC.LIST<CC.CTR,1>
+        CC.DESCRIPTION = CC.LIST<CC.CTR,2>
+        CC.STRUCTURE = CC.LIST<CC.CTR,3>
+*
+        IF CC.STRUCTURE = '' THEN
+            CC.TYPE = ' [A] '
+        END ELSE
+            CC.TYPE = '~[S] '
+        END
+*
+        IF CC.CTR = CC.POS THEN
+            PRINT BACKGROUND.RED :
+            PRINT RAW.WHITE :
+            PRINT ' ' : CC.WORD 'L#25' : CC.TYPE
+*
+        END ELSE
+            PRINT BACKGROUND.CYAN :
+            PRINT RAW.WHITE :
+            PRINT ' ' : CC.WORD  'L#25' : CC.TYPE
+        END
+        PRINT RESET.COLOR :
+    NEXT CC.CTR
+*
+    RETURN
+*
+*********************  S U B R O U T I N E  *********************
+*
+    ADD.CC.TOKEN:NULL
+*
+    IF TOKEN<1,1> = '' THEN RETURN
+    IF NUM(TOKEN<1,1>) THEN RETURN
+    LOCATE(TOKEN<1,1>,SNIPPET.HEADERS;TOKEN.POS) THEN
+        RETURN
+    END
+    SNIPPETS = INSERT(SNIPPETS,TOKEN.POS;TOKEN)
+    SNIPPET.HEADERS = INSERT(SNIPPET.HEADERS,TOKEN.POS;TOKEN<1,1>)
+    RETURN
+    
+*********************  S U B R O U T I N E  *********************
+*
+    CC.TOKENIZE.LINE:NULL
+*
+    TOKEN = ''
+    FOR LETTER.CTR = 1 TO LEN(RAW.LINE)
+        CHARACTER = RAW.LINE[LETTER.CTR,1]
+*
+        IF CHARACTER = ' ' THEN
+            GOSUB ADD.CC.TOKEN
+            TOKEN = ''
+        END ELSE
+            LOCATE(CHARACTER,CC.BREAK.CHARACTERS;BREAK.POS) THEN
+                GOSUB ADD.CC.TOKEN
+                TOKEN = ''
+            END ELSE
+                TOKEN = TOKEN : CHARACTER
+            END
+        END
+    NEXT LETTER.CTR
+*
+    GOSUB ADD.CC.TOKEN
+*
+    RETURN
+*
+*********************  S U B R O U T I N E  *********************
+*
+    ADD.AUTO.COMPLETE:NULL
+*
+    FOR RAW.LINE.CTR = 1 TO DCOUNT(RAW.LINES,@AM)
+        RAW.LINE = RAW.LINES<RAW.LINE.CTR>
+        GOSUB CC.TOKENIZE.LINE
+    NEXT RAW.LINE.CTR
+*
+    RETURN
+*
+*********************  S U B R O U T I N E  *********************
+*
+    ADD.SNIPPETS:NULL
+*
+*
+    OPENSEQ PATH TO SNIPPETS.FILE ELSE
+        RETURN
+    END
+*
+    DONE = FALSE
+    INSIDE.STRUCTURE = FALSE
+*
+    TOKEN = ''
+    LOOP
+        READSEQ SNIPPET.LINE FROM SNIPPETS.FILE ELSE
+            CLOSESEQ SNIPPETS.FILE
+            DONE = TRUE
+        END
+    UNTIL DONE DO
+        IF SNIPPET.LINE[1,7] = 'snippet' THEN
+            INSIDE.STRUCTURE = TRUE
+            TOKEN<1,1> = FIELD(SNIPPET.LINE,' ', 2)
+            TOKEN<1,2> = FIELD(SNIPPET.LINE,'"', 2)
+            CONTINUE
+        END
+*
+        IF SNIPPET.LINE[1,10] = 'endsnippet' THEN
+            INSIDE.STRUCTURE = FALSE
+            GOSUB ADD.CC.TOKEN
+            TOKEN = ''
+            CONTINUE
+        END
+*
+        IF INSIDE.STRUCTURE THEN
+            TOKEN<1,3,-1> = SNIPPET.LINE
+        END
+*
+    REPEAT
+*
+    RETURN
+*
+* END OF PROGRAM.
+*
+    END
