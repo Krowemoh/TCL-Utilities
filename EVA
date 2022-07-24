@@ -360,12 +360,18 @@
 *
             PRINT @(X.POS,Y.POS) :
 *
+        END ELSE IF CHR = 'e' THEN
+            INSERT.LINE = '*'
+            GOSUB PROCESS.INSERT.LINE
+*
         END ELSE IF CHR = 'd' THEN
             GOSUB PROCESS.DELETE.LINE
 *
         END ELSE IF CHR = 'o' THEN
             INSERT.LINE = ''
             GOSUB PROCESS.INSERT.LINE
+            PROCESS.CHAR = 'i'
+            INPUT.AVAILABLE = TRUE
 *
         END ELSE IF CHR = 'x' THEN
             GOSUB PROCESS.DELETE.CHARACTER
@@ -1905,9 +1911,6 @@
     NUMBER.OF.LINES = INT(LEN(RAW.LINES<REAL.LINE.NUMBER>) / VIEW.WIDTH)
     Y.POS = Y.POS + NUMBER.OF.LINES + 1
     PRINT @(X.POS,Y.POS) :
-*
-    PROCESS.CHAR = 'i'
-    INPUT.AVAILABLE = TRUE
 *
     RETURN
 *
