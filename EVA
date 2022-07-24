@@ -1329,6 +1329,42 @@
             PRINT @(X.POS,Y.POS) :
         END
 *
+    END ELSE IF EDITOR.COMMAND = 'cr' THEN
+        GOSUB SAVE.FILE
+        EXECUTE 'BASIC ' : FILENAME : ' ' : RECORD.ID CAPTURING RESULTS
+*
+        IF RESULTS<3> = '' THEN
+            EXECUTE 'RUN ' : FILENAME : ' ' : RECORD.ID CAPTURING RESULTS
+            PRINT CLEAR.SCREEN :
+            PRINT @(0,MARGIN.TOP) :
+            PRINT OCONV(TIME(),'MTS') : ': ' :
+            PRINT 'Error -----------------'
+            PRINT
+*
+            FOR J = 1 TO DCOUNT(RESULTS,@AM)
+                PRINT RESULTS<J>
+            NEXT J
+            INPUT ANYTHING :
+*
+            GOSUB DISPLAY.LINES
+            PRINT @(X.POS,Y.POS) :
+*
+        END ELSE
+            PRINT CLEAR.SCREEN :
+            PRINT @(0,MARGIN.TOP) :
+            PRINT OCONV(TIME(),'MTS') : ': ' :
+            PRINT 'Error -----------------'
+            PRINT
+*
+            FOR J = 1 TO DCOUNT(RESULTS,@AM)
+                PRINT RESULTS<J>
+            NEXT J
+            INPUT ANYTHING :
+*
+            GOSUB DISPLAY.LINES
+            PRINT @(X.POS,Y.POS) :
+        END
+*
     END ELSE IF EDITOR.COMMAND = 'f' THEN
         GOSUB FORMAT.FILE
 *
@@ -2170,13 +2206,19 @@
 *
                 LINE.FROM = CURRENT.LINE
                 LINE.TO = CURRENT.LINE + DCOUNT(CC.LIST,@AM)
+*
                 IF LINE.TO.MAX > LINE.TO THEN
                     LINE.TO = LINE.TO.MAX
                 END ELSE
                     LINE.TO.MAX = LINE.TO
                 END
 *
-                GOSUB DISPLAY.LINES.FROM.TO
+                IF LINE.TO > DCOUNT(LINES,@AM) THEN
+                    GOSUB DISPLAY.LINES
+                END ELSE
+                    GOSUB DISPLAY.LINES.FROM.TO
+                END
+*
                 GOSUB DISPLAY.CC.LIST
 *
             END ELSE IF CC.LIST.OPEN THEN
