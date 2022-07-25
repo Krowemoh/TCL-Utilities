@@ -1367,7 +1367,7 @@
         GOSUB DISPLAY.LINES
 *
         PRINT BOTTOM : MESSAGE.COLOR : CLEAR.REST.OF.LINE :
-        PRINT 'Exploded line ' : CURRENT.LINE : '.' :
+        PRINT 'VLIST ' : FILENAME : ' ' : RECORD.ID :
 *
         GOSUB PUT.CURSOR.TOP.LEFT
 *
