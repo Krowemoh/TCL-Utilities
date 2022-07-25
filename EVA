@@ -99,7 +99,7 @@
     COMMENT.COLOR = BRIGHTBLACK
     STMT.COLOR = GREEN
     FUNCTION.COLOR = MAGENTA
-    OPERATOR.COLOR = CYAN
+    OPERATOR.COLOR = RED
     SPECIAL.COLOR = YELLOW
     NUMBER.COLOR = YELLOW
 *
@@ -110,10 +110,6 @@
 *
     @USER1 = 'VIM2'
     @USER2 = 'VIM2'
-*
-* SETUP SYNTAX
-*
-    GOSUB SYNTAX.INIT
 *
 * TERMINAL INITIALIZATION
 *
@@ -230,6 +226,26 @@
         PADDING.LEFT = 'R#' : LEN(NUMBER.OF.RAW.LINES) : ' '
         MARGIN.LEFT = LEN(NUMBER.OF.RAW.LINES) + 1
     END
+*
+    OPEN '','MD' TO MD.FILE ELSE
+        PRINT 'Unable to open file:  - Press RETURN':
+        INPUT ANYTHING
+        STOP
+    END
+*
+* SET FILETYPE
+*
+    READ ANYTHING FROM MD.FILE,FILENAME:'.O' THEN
+        FILETYPE = 'BASIC'
+    END ELSE IF RAW.LINES<1> = 'PQ' THEN
+        FILETYPE = 'PROC'
+    END ELSE
+        FILETYPE = 'DATA'
+    END
+*
+* SETUP SYNTAX
+*
+    GOSUB SYNTAX.INIT
 *
 * VIEWPOINT SIZE
 *
@@ -551,6 +567,19 @@
 *
     SYNTAX.INIT:NULL
 *
+    IF FILETYPE = 'BASIC' THEN
+        GOSUB SYNTAX.INIT.BASIC
+    END ELSE IF FILETYPE = 'PROC' THEN
+        GOSUB SYNTAX.INIT.PROC
+    END ELSE IF FILETYPE = 'DATA' THEN
+    END
+*
+    RETURN
+*
+*********************  s u b r o u t i n e  *********************
+*
+    SYNTAX.INIT.BASIC:NULL
+*
     STATEMENTS = ''
     STATEMENTS = STATEMENTS : ' ' : 'ABORT ACTIVATEKEY AUTHORIZATION AUXMAP'
     STATEMENTS = STATEMENTS : ' ' : 'BEGIN BREAK BSCAN'
@@ -642,7 +671,28 @@
 *
     CONVERT ' ' TO @AM IN SPECIALS
 *
-    BREAK.CHARACTERS = '( ) , : + - / ; * < >'
+    BREAK.CHARACTERS = '( ) , : + - / ; * < > #'
+    CONVERT ' ' TO @AM IN BREAK.CHARACTERS
+*
+    RETURN
+*
+*********************  s u b r o u t i n e  *********************
+*
+    SYNTAX.INIT.PROC:NULL
+*
+    STATEMENTS = 'IF GO'
+    CONVERT ' ' TO @AM IN STATEMENTS
+*
+    FUNCTIONS = ''
+    CONVERT ' ' TO @AM IN FUNCTIONS
+*
+    OPERATORS = '< = > >= <= ( ) #'
+    CONVERT ' ' TO @AM IN OPERATORS
+*
+    SPECIALS = ''
+    CONVERT ' ' TO @AM IN SPECIALS
+*
+    BREAK.CHARACTERS = '( ) , : + - / ; * < > #'
     CONVERT ' ' TO @AM IN BREAK.CHARACTERS
 *
     RETURN
@@ -971,9 +1021,23 @@
 *
     RETURN
 *
-*********************  S U B R O U T I N E  *********************
+*********************  s u b r o u t i n e  *********************
 *
     TOKENIZE.LINE:NULL
+*
+    IF FILETYPE = 'BASIC' THEN
+        GOSUB TOKENIZE.LINE.BASIC
+    END ELSE IF FILETYPE = 'PROC' THEN
+        GOSUB TOKENIZE.LINE.PROC
+    END ELSE IF FILETYPE = 'DATA' THEN
+        GOSUB TOKENIZE.LINE.DATA
+    END
+*
+    RETURN
+*
+*********************  S U B R O U T I N E  *********************
+*
+    TOKENIZE.LINE.BASIC:NULL
 *
     TOKEN = ''
     TOKENS = ''
@@ -1112,6 +1176,203 @@
 *
 *********************  S U B R O U T I N E  *********************
 *
+    TOKENIZE.LINE.PROC:NULL
+*
+    TOKEN = ''
+    TOKENS = ''
+    PROC.COMMANDS = 'PQ RI RO STON'
+    CONVERT ' ' TO @AM IN PROC.COMMANDS
+*
+    FOR LETTER.CTR = 1 TO LEN(LINE)
+        CHARACTER = LINE[LETTER.CTR,1]
+*
+        IF LETTER.CTR = 1 THEN
+            TOKEN = CHARACTER
+            TWO.CHARACTERS = LINE[1,2]
+*
+            LOCATE(LINE,PROC.COMMANDS;POS) THEN
+                TOKENS<-1> = GREEN : LINE : FOREGROUND.COLOR
+                LETTER.CTR = LEN(LINE)
+                TOKEN = ''
+                CONTINUE
+            END
+*
+            IF TWO.CHARACTERS = 'IP' THEN
+                TOKENS<-1> = GREEN : TWO.CHARACTERS : FOREGROUND.COLOR
+                LETTER.CTR = LETTER.CTR + 1
+                TOKEN = ''
+*
+            END ELSE IF TOKEN = 'H' THEN
+                TOKENS<-1> = GREEN : TOKEN : FOREGROUND.COLOR
+                TOKEN = ''
+*
+            END ELSE IF TOKEN = 'U' THEN
+                TOKENS<-1> = MAGENTA : LINE : FOREGROUND.COLOR
+                LETTER.CTR = LEN(LINE)
+                TOKEN = ''
+*
+            END ELSE IF TOKEN = 'A' THEN
+                TOKENS<-1> = MAGENTA : LINE : FOREGROUND.COLOR
+                LETTER.CTR = LEN(LINE)
+                TOKEN = ''
+*
+            END ELSE IF TOKEN = 'O' THEN
+                TOKENS<-1> = GREEN : LINE[1,1] : FOREGROUND.COLOR
+                TOKENS<-1> = CYAN : LINE[2,999] : FOREGROUND.COLOR
+                LETTER.CTR = LEN(LINE)
+                TOKEN = ''
+*
+            END ELSE IF TOKEN = 'C' THEN
+                TOKENS<-1> = COMMENT.COLOR : LINE : FOREGROUND.COLOR
+                LETTER.CTR = LEN(LINE)
+                TOKEN = ''
+*
+            END ELSE IF TOKEN = 'S' THEN
+                TOKENS<-1> = GREEN : TOKEN : FOREGROUND.COLOR
+                TOKEN = ''
+*
+            END ELSE IF TOKEN = 'P' THEN
+                TOKENS<-1> = GREEN : TOKEN : FOREGROUND.COLOR
+                TOKEN = ''
+*
+            END ELSE IF TOKEN = '(' THEN
+                TOKENS<-1> = OPERATOR.COLOR : TOKEN : FOREGROUND.COLOR
+                TOKEN = ''
+            END
+*
+        END ELSE IF DQ.STACK.CTR # 0 OR CHARACTER = '"' THEN
+            IF DQ.STACK.CTR = 0 THEN
+                TOKENS<-1> = TOKEN
+            END
+            STRING = CHARACTER
+            LETTER.CTR = LETTER.CTR + 1
+*
+            IF DQ.STACK.CTR = 0 THEN
+                DQ.STACK.CTR = 1
+            END
+*
+            LOOP UNTIL DQ.STACK.CTR = 0 OR LETTER.CTR > LEN(LINE) DO
+                CHARACTER = LINE[LETTER.CTR,1]
+                LETTER.CTR = LETTER.CTR + 1
+                IF CHARACTER = '"' THEN
+                    DQ.STACK.CTR = DQ.STACK.CTR - 1
+                END
+                STRING = STRING : CHARACTER
+            REPEAT
+*
+            CREATED.FIRST.TOKEN = TRUE
+            TOKENS<-1> = STRING.COLOR : STRING : FOREGROUND.COLOR
+            TOKEN = ''
+            LETTER.CTR = LETTER.CTR - 1
+*
+        END ELSE IF SQ.STACK.CTR # 0 OR CHARACTER = "'" THEN
+            IF SQ.STACK.CTR = 0 THEN
+                TOKENS<-1> = TOKEN
+            END
+*
+            STRING = CHARACTER
+            LETTER.CTR = LETTER.CTR + 1
+*
+            IF SQ.STACK.CTR = 0 THEN
+                SQ.STACK.CTR = 1
+            END
+*
+            LOOP UNTIL SQ.STACK.CTR = 0 OR LETTER.CTR > LEN(LINE) DO
+                CHARACTER = LINE[LETTER.CTR,1]
+                LETTER.CTR = LETTER.CTR + 1
+                IF CHARACTER = "'" THEN
+                    SQ.STACK.CTR = SQ.STACK.CTR - 1
+                END
+                STRING = STRING : CHARACTER
+            REPEAT
+*
+            CREATED.FIRST.TOKEN = TRUE
+            TOKENS<-1> = STRING.COLOR : STRING : FOREGROUND.COLOR
+            TOKEN = ''
+            LETTER.CTR = LETTER.CTR - 1
+*
+        END ELSE IF CHARACTER = ' ' THEN
+            GOSUB COLORIZE.TOKEN
+            TOKENS<-1> = TOKEN
+            TOKENS<-1> = ' '
+            TOKEN = ''
+*
+        END ELSE IF ASCII(CHARACTER) = CHAR(253) THEN
+            TOKENS<-1> = TOKEN
+            TOKENS<-1> = STMT.COLOR : CHARACTER : FOREGROUND.COLOR
+            TOKEN = ''
+*
+        END ELSE IF ASCII(CHARACTER) = CHAR(252) THEN
+            TOKENS<-1> = TOKEN
+            TOKENS<-1> = FUNCTION.COLOR : CHARACTER : FOREGROUND.COLOR
+            TOKEN = ''
+*
+        END ELSE IF ASCII(CHARACTER) = CHAR(251) THEN
+            TOKENS<-1> = TOKEN
+            TOKENS<-1> = SPECIAL.COLOR : CHARACTER : FOREGROUND.COLOR
+            TOKEN = ''
+*
+        END ELSE
+            LOCATE(CHARACTER,BREAK.CHARACTERS;BREAK.POS) THEN
+                GOSUB COLORIZE.TOKEN
+                TOKENS<-1> = TOKEN
+                TOKEN = BREAK.CHARACTERS<BREAK.POS>
+                GOSUB COLORIZE.TOKEN
+                TOKENS<-1> = TOKEN
+                TOKEN = ''
+            END ELSE
+                TOKEN = TOKEN : CHARACTER
+            END
+        END
+    NEXT LETTER.CTR
+*
+    GOSUB COLORIZE.TOKEN
+    TOKENS<-1> = TOKEN
+*
+    LINE = TOKENS
+    CONVERT @AM TO '' IN LINE
+*
+    RETURN
+*
+*********************  S U B R O U T I N E  *********************
+*
+    TOKENIZE.LINE.DATA:NULL
+*
+    TOKEN = ''
+    TOKENS = ''
+*
+    FOR LETTER.CTR = 1 TO LEN(LINE)
+        CHARACTER = LINE[LETTER.CTR,1]
+*
+        IF ASCII(CHARACTER) = CHAR(253) THEN
+            TOKENS<-1> = TOKEN
+            TOKENS<-1> = STMT.COLOR : CHARACTER : FOREGROUND.COLOR
+            TOKEN = ''
+*
+        END ELSE IF ASCII(CHARACTER) = CHAR(252) THEN
+            TOKENS<-1> = TOKEN
+            TOKENS<-1> = FUNCTION.COLOR : CHARACTER : FOREGROUND.COLOR
+            TOKEN = ''
+*
+        END ELSE IF ASCII(CHARACTER) = CHAR(251) THEN
+            TOKENS<-1> = TOKEN
+            TOKENS<-1> = SPECIAL.COLOR : CHARACTER : FOREGROUND.COLOR
+            TOKEN = ''
+*
+        END ELSE
+            TOKEN = TOKEN : CHARACTER
+        END
+    NEXT LETTER.CTR
+*
+    TOKENS<-1> = TOKEN
+*
+    LINE = TOKENS
+    CONVERT @AM TO '' IN LINE
+*
+    RETURN
+*
+*********************  S U B R O U T I N E  *********************
+*
     DISPLAY.LINES:NULL
 *
     NUMBER.OF.LINES = DCOUNT(LINES,@AM)
@@ -1199,7 +1460,7 @@
         PRINT LINE.NUMBER.COLOR : LINE.NUMBER PADDING.LEFT :
         GOSUB TOKENIZE.LINE
 *
-        PRINT FOREGROUND.COLOR : LINE
+        PRINT FOREGROUND.COLOR : LINE :
         PREV.LINE.NUMBER = LINE.NUMBER
 *
         LINES.FROM.CTR = LINES.FROM.CTR + 1
@@ -1339,6 +1600,18 @@
         X.POS = MARGIN.LEFT
         PRINT @(X.POS,Y.POS) :
 *
+    END ELSE IF EDITOR.COMMAND[1,5] = 'count' THEN
+        SUM = 0
+        SUBSTRING = OCONV(EDITOR.COMMAND[7,9999],'MCU')
+*
+        FOR RAW.LINE.CTR = 1 TO DCOUNT(RAW.LINES,@AM)
+            SUM = SUM + COUNT(OCONV(RAW.LINES<RAW.LINE.CTR>,'MCU'),SUBSTRING)
+        NEXT RAW.LINE.CTR
+*
+        PRINT BOTTOM : MESSAGE.COLOR : CLEAR.REST.OF.LINE :
+        PRINT 'Counted ' : SUM : ' occurances of ' : SUBSTRING :
+        PRINT @(X.POS,Y.POS) :
+*
     END ELSE IF EDITOR.COMMAND[1,5] = 'vlist' THEN
         EXECUTE 'VLIST ' : FILENAME : ' ' : RECORD.ID CAPTURING RESULTS
 *
@@ -1346,7 +1619,7 @@
 *
         INSIDE.VLIST = TRUE
 *
-        RAW.LINES = '' 
+        RAW.LINES = ''
         FOR RESULT.CTR = 1 TO DCOUNT(RESULTS,@AM)
             IF RESULTS<RESULT.CTR> # '' THEN
                 RAW.LINES<-1> = RESULTS<RESULT.CTR>
@@ -1372,6 +1645,8 @@
         GOSUB PUT.CURSOR.TOP.LEFT
 *
     END ELSE IF EDITOR.COMMAND = 'c' THEN
+        IF FILETYPE # 'BASIC' THEN RETURN
+*
         GOSUB SAVE.FILE
         EXECUTE 'BASIC ' : FILENAME : ' ' : RECORD.ID CAPTURING RESULTS
 *
@@ -1397,6 +1672,8 @@
         END
 *
     END ELSE IF EDITOR.COMMAND = 'cr' THEN
+        IF FILETYPE # 'BASIC' THEN RETURN
+*
         GOSUB SAVE.FILE
         EXECUTE 'BASIC ' : FILENAME : ' ' : RECORD.ID CAPTURING RESULTS
 *
@@ -2511,7 +2788,10 @@
 *
     DISPLAY.CC.LIST:NULL
 *
-    FOR CC.CTR = 1 TO DCOUNT(CC.LIST,@AM)
+    MAX.SHOW = DCOUNT(CC.LIST,@AM)
+    IF MAX.SHOW > 5 THEN MAX.SHOW = 5
+*
+    FOR CC.CTR = 1 TO MAX.SHOW
         PRINT @(X.POS-CC.TRIGGER.LEN,Y.POS+CC.CTR) :
         CC.WORD = CC.LIST<CC.CTR,1>
         CC.DESCRIPTION = CC.LIST<CC.CTR,2>
@@ -2550,10 +2830,22 @@
     SNIPPETS = INSERT(SNIPPETS,TOKEN.POS;TOKEN)
     SNIPPET.HEADERS = INSERT(SNIPPET.HEADERS,TOKEN.POS;TOKEN<1,1>)
     RETURN
-    
-*********************  S U B R O U T I N E  *********************
+*
+*********************  s u b r o u t i n e  *********************
 *
     CC.TOKENIZE.LINE:NULL
+*
+    IF FILETYPE = 'BASIC' THEN
+        GOSUB CC.TOKENIZE.LINE.BASIC
+    END ELSE IF FILETYPE = 'PROC' THEN
+    END ELSE IF FILETYPE = 'DATA' THEN
+    END
+*
+    RETURN
+*
+*********************  S U B R O U T I N E  *********************
+*
+    CC.TOKENIZE.LINE.BASIC:NULL
 *
     TOKEN = ''
     FOR LETTER.CTR = 1 TO LEN(RAW.LINE)
