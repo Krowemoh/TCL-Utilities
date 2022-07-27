@@ -1,3 +1,9 @@
+*
+* COMPILER DIRECTIVES
+*
+    $DEFINE DATABASE.UV
+    $DEFINE PLATFORM.LINUX
+*
 *ASI********************************************************************
 *                                                                      *
 * Copyright 2022 - Asynchron Systems Inc.                              *
@@ -327,12 +333,14 @@
     SNIPPETS = ''
     SNIPPET.HEADERS = ''
 *
-    GOSUB ADD.DEFAULT.SNIPPETS
+    IF DCOUNT(RAW.LINES,@AM) < 3000 THEN
+        GOSUB ADD.DEFAULT.SNIPPETS
 *
-    PATH = '/home/usr/nivethan/.vim/UltiSnips/all.snippets'
-    GOSUB ADD.SNIPPETS
+        PATH = '/home/usr/nivethan/.vim/UltiSnips/all.snippets'
+        GOSUB ADD.SNIPPETS
 *
-    GOSUB ADD.AUTO.COMPLETE
+        GOSUB ADD.AUTO.COMPLETE
+    END
 *
     LINE.TO.MAX = 0
 *
@@ -341,7 +349,12 @@
             CHR = PROCESS.CHAR
             INPUT.AVAILABLE = FALSE
         END ELSE
-            CHR = KEYIN()
+            $IFDEF DATABASE.UV
+                CHR = KEYIN()
+            $ENDIF
+            $IFDEF DATABASE.D3
+                INPUT CHR,0
+            $ENDIF
         END
 *
         ASCII.CODE = SEQ(CHR)
@@ -421,7 +434,14 @@
             PRINT @(X.POS,Y.POS) :
 *
             LOOP WHILE TRUE DO
-                CHR = KEYIN()
+                
+                $IFDEF DATABASE.UV
+                    CHR = KEYIN()
+                $ENDIF
+                $IFDEF DATABASE.D3
+                    INPUT CHR,0
+                $ENDIF
+*
                 ASCII.CODE = SEQ(CHR)
 *
                 IF ASCII.CODE = SEQ(KEY.ESCAPE) THEN
@@ -585,7 +605,7 @@
     SYNTAX.INIT.BASIC:NULL
 *
     STATEMENTS = ''
-    STATEMENTS = STATEMENTS : ' ' : 'ABORT ACTIVATEKEY AUTHORIZATION AUXMAP'
+    STATEMENTS = STATEMENTS : ' ' : '$DEFINE $IFDEF $ENDIF ABORT ACTIVATEKEY AUTHORIZATION AUXMAP'
     STATEMENTS = STATEMENTS : ' ' : 'BEGIN BREAK BSCAN'
     STATEMENTS = STATEMENTS : ' ' : 'CALL CALLING CAPTURING CASE CHAIN CLEAR CLEARDATA CLEARFILE CLEARPROMPTS CLEARSELECT CLOSE'
     STATEMENTS = STATEMENTS : ' ' : 'CLOSESEQ COMMIT COMMON CONTINUE CREATE CRT'
@@ -1481,15 +1501,31 @@
     PROCESS.ESCAPE.KEY:NULL
 *
     ESCAPE.SEQUENCE = ''
-    CHR = KEYIN()
+    $IFDEF DATABASE.UV
+        CHR = KEYIN()
+    $ENDIF
+    $IFDEF DATABASE.D3
+        INPUT CHR,0
+    $ENDIF
     ESCAPE.SEQUENCE = CHR
 *
     IF CHR = 'O' THEN
-        CHR = KEYIN()
+        
+        $IFDEF DATABASE.UV
+            CHR = KEYIN()
+        $ENDIF
+        $IFDEF DATABASE.D3
+            INPUT CHR,0
+        $ENDIF
         ESCAPE.SEQUENCE = ESCAPE.SEQUENCE : CHR
     END ELSE IF CHR = '[' THEN
         LOOP
-            CHR = KEYIN()
+            $IFDEF DATABASE.UV
+                CHR = KEYIN()
+            $ENDIF
+            $IFDEF DATABASE.D3
+                INPUT CHR,0
+            $ENDIF
             ESCAPE.SEQUENCE = ESCAPE.SEQUENCE : CHR
         UNTIL NOT(NUM(CHR)) DO REPEAT
     END ELSE
@@ -2270,7 +2306,12 @@
     PRINT @(X.POS,Y.POS) :
 *
     LOOP WHILE TRUE DO
-        CHR = KEYIN()
+        $IFDEF DATABASE.UV
+            CHR = KEYIN()
+        $ENDIF
+        $IFDEF DATABASE.D3
+            INPUT CHR,0
+        $ENDIF
         ASCII.CODE = SEQ(CHR)
 *
         IF CHR = '`' THEN
@@ -2596,7 +2637,13 @@
 *
     GOSUB PUSH.HISTORY
 *
-    CHR = KEYIN()
+    
+    $IFDEF DATABASE.UV
+        CHR = KEYIN()
+    $ENDIF
+    $IFDEF DATABASE.D3
+        INPUT CHR,0
+    $ENDIF
 *
     REAL.LINE.NUMBER = LINE.NUMBERS<CURRENT.LINE>
     GOSUB GET.INSERT.CHAR.POS
