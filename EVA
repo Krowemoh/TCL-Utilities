@@ -322,6 +322,7 @@
         END
 *
         ASCII.CODE = SEQ(CHR)
+        GOSUB PRINT.CURRENT.LINE
 *
         IF ASCII.CODE = SEQ(KEY.ESCAPE) THEN
             GOSUB PROCESS.ESCAPE.KEY
@@ -336,7 +337,6 @@
             END
 *
         END ELSE IF ASCII.CODE = SEQ(KEY.CARRIAGE.RETURN) THEN
-            GOSUB PRINT.CURRENT.LINE
             GOSUB SCROLL.DOWN
 *
         END ELSE IF CHR = ':' THEN
