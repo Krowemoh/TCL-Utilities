@@ -112,9 +112,6 @@
 *
     STRING.COLOR = CYAN
 *
-    PAGE.UP = '[5~'
-    PAGE.DOWN = '[6~'
-*
     @USER1 = 'VIM2'
     @USER2 = 'VIM2'
 *
@@ -126,58 +123,25 @@
     EQU TERMINAL.LEFT.ATTRIBUTE TO 4
     EQU TERMINAL.RIGHT.ATTRIBUTE TO 5
 *
-    TERMINAL.CODES = TERMINFO(0)
-    TERMINAL.TYPE = FIELD(TERMINAL.CODES<1>,'|',1)
-    IF TERMINAL.TYPE = 'vp' THEN
-        PRINT 'NSH: Re-mapped susp to ^B (Ctrl B)'
-        EXECUTE 'SH -c "stty susp ^B"'
-        TERMINAL.TYPE = 'viewpoint'
-    END
+    $IFDEF DATABASE.UV
+        UP.ARROW = 'OA'
+        DOWN.ARROW = 'OB'
+        LEFT.ARROW = 'OD'
+        RIGHT.ARROW = 'OC'
 *
-    TERMINAL = ''
-    TERMINAL.POS = 1
-    TERMINAL<TERMINAL.TYPE.ATTRIBUTE,1> = TERMINAL.TYPE
+        PAGE.UP = '[5~'
+        PAGE.DOWN = '[6~'
+    $ENDIF
 *
-    EXECUTE 'SH -c "infocmp "' : TERMINAL.TYPE CAPTURING RESULTS
+    $IFDEF DATABASE.D3
+        UP.ARROW = '[A'
+        DOWN.ARROW = '[B'
+        LEFT.ARROW = '[D'
+        RIGHT.ARROW = '[C'
 *
-    ARROW.CODES = ''
-    ARROW.CODES<1,-1> = 'kcuu1='
-    ARROW.CODES<1,-1> = 'kcud1='
-    ARROW.CODES<1,-1> = 'kcub1='
-    ARROW.CODES<1,-1> = 'kcuf1='
-*
-    ARROW.CTR = 0
-    LOOP
-        ARROW.CTR = ARROW.CTR + 1
-        ARROW.CODE = ARROW.CODES<1,ARROW.CTR>
-    UNTIL ARROW.CODE = '' DO
-        STR = ''
-        START.POS = INDEX(RESULTS, ARROW.CODE, 1)
-        IF START.POS # 0 THEN
-            STR = RESULTS[START.POS,999999]
-            START.POS = LEN(ARROW.CODE) + 1
-            END.POS = INDEX(STR, ',', 1) - START.POS
-            STR = STR[START.POS,END.POS]
-            IF INDEX(STR,'^',1) # 0 THEN
-                STR = STR[2,99999]
-            END ELSE IF INDEX(STR,'\E',1) THEN
-                STR = STR[3,99999]
-            END ELSE
-                STR = ''
-            END
-        END
-        TERMINAL<-1> = STR
-    REPEAT
-*
-    UP.ARROW = TERMINAL<TERMINAL.UP.ATTRIBUTE>
-    DOWN.ARROW = TERMINAL<TERMINAL.DOWN.ATTRIBUTE>
-    LEFT.ARROW = TERMINAL<TERMINAL.LEFT.ATTRIBUTE>
-    RIGHT.ARROW = TERMINAL<TERMINAL.RIGHT.ATTRIBUTE>
-*
-    UP.ARROW = 'OA'
-    DOWN.ARROW = 'OB'
-    LEFT.ARROW = 'OD'
-    RIGHT.ARROW = 'OC'
+        PAGE.UP = 'J'
+        PAGE.DOWN = 'K'
+    $ENDIF
 *
     SCREEN.WIDTH = 132
     SCREEN.HEIGHT = 66
@@ -187,7 +151,7 @@
     MARGIN.LEFT = 3
     MARGIN.RIGHT = 1
 *
-    COMMAND = @SENTENCE
+    COMMAND = SENTENCE()
 *
     NUMBER.OF.ARGUMENTS = DCOUNT(COMMAND,' ')
     IF NUMBER.OF.ARGUMENTS = 3 THEN
@@ -252,7 +216,7 @@
     END ELSE IF RAW.LINES<1> = 'PQ' THEN
         FILETYPE = 'PROC'
     END ELSE
-        FILETYPE = 'DATA'
+        FILETYPE = 'BASIC'
     END
 *
 * SETUP SYNTAX
@@ -372,6 +336,7 @@
             END
 *
         END ELSE IF ASCII.CODE = SEQ(KEY.CARRIAGE.RETURN) THEN
+            GOSUB PRINT.CURRENT.LINE
             GOSUB SCROLL.DOWN
 *
         END ELSE IF CHR = ':' THEN
@@ -457,6 +422,8 @@
                             HIGHLIGHTED.CHARS = HIGHLIGHTED.CHARS + 1
                         END
                     END
+*
+                    GOSUB PRINT.CURRENT.LINE
 *
                     LINE = LINES<CURRENT.LINE>
                     LINE = LINE[1,START.COPY.POS] : BACKGROUND.CYAN : LINE[START.COPY.POS+1,HIGHLIGHTED.CHARS] : RESET.COLOR : LINE[START.COPY.POS+HIGHLIGHTED.CHARS+1,9999]
@@ -725,6 +692,10 @@
 *
     PUSH.HISTORY:NULL
 *
+    $IFDEF DATABASE.D3
+        RETURN
+    $ENDIF
+*
     FOR HIST.CTR = HISTORY.POS TO DCOUNT(HISTORY,@AM)
         HISTORY = DELETE(HISTORY,HIST.CTR)
         HISTORY.X.Y = DELETE(HISTORY.X.Y,HIST.CTR)
@@ -806,6 +777,10 @@
 *********************  s u b r o u t i n e  *********************
 *
     PUSH.EXPLODE:NULL
+*
+    $IFDEF DATABASE.D3
+        RETURN
+    $ENDIF
 *
     IF INSIDE.VLIST THEN RETURN
 *
@@ -1439,6 +1414,21 @@
 *
 *********************  S U B R O U T I N E  *********************
 *
+    PRINT.CURRENT.LINE:NULL
+*
+    LINE = LINES<CURRENT.LINE>
+    LINE.NUMBER = LINE.NUMBERS<CURRENT.LINE>
+*
+    PRINT @(0,Y.POS) :
+    PRINT CLEAR.REST.OF.LINE :
+    PRINT LINE.NUMBER.COLOR : LINE.NUMBER PADDING.LEFT :
+    GOSUB TOKENIZE.LINE
+    PRINT FOREGROUND.COLOR : LINE :
+*
+    RETURN
+*
+*********************  S U B R O U T I N E  *********************
+*
     DISPLAY.LINE:NULL
 *
     LINE.NUMBER = LINE.NUMBERS<CURRENT.LINE>
@@ -1540,6 +1530,8 @@
     PROCESS.BASE.ESCAPE.KEY:NULL
 *
     IF ESCAPE.SEQUENCE = PAGE.UP THEN
+        GOSUB PRINT.CURRENT.LINE
+*
         OLD.LINE.START = LINE.START
 *
         LINE.START = LINE.START - PAGE.HEIGHT
@@ -1564,6 +1556,8 @@
         PRINT @(X.POS, Y.POS) :
 *
     END ELSE IF ESCAPE.SEQUENCE = PAGE.DOWN THEN
+        GOSUB PRINT.CURRENT.LINE
+*
         NUMBER.OF.LINES = DCOUNT(LINES,@AM)
         IF LINE.START + PAGE.HEIGHT > NUMBER.OF.LINES THEN
             RETURN
@@ -1583,12 +1577,16 @@
         PRINT @(X.POS, Y.POS) :
 *
     END ELSE IF ESCAPE.SEQUENCE = UP.ARROW THEN
+        GOSUB PRINT.CURRENT.LINE
         GOSUB SCROLL.UP
 *
     END ELSE IF ESCAPE.SEQUENCE = DOWN.ARROW THEN
+        GOSUB PRINT.CURRENT.LINE
         GOSUB SCROLL.DOWN
 *
     END ELSE IF ESCAPE.SEQUENCE = LEFT.ARROW THEN
+        GOSUB PRINT.CURRENT.LINE
+*
         IF X.POS - 1 < MARGIN.LEFT THEN
             RETURN
         END
@@ -1599,6 +1597,8 @@
         PRINT @(X.POS, Y.POS) :
 *
     END ELSE IF ESCAPE.SEQUENCE = RIGHT.ARROW THEN
+        GOSUB PRINT.CURRENT.LINE
+*
         LINE.LEN = LEN(LINES<CURRENT.LINE>)
         IF X.POS + 1 >= LINE.LEN + MARGIN.LEFT THEN
             RETURN
@@ -1692,7 +1692,14 @@
         IF FILETYPE # 'BASIC' THEN RETURN
 *
         GOSUB SAVE.FILE
-        EXECUTE 'BASIC ' : FILENAME : ' ' : RECORD.ID CAPTURING RESULTS
+*
+        $IFDEF DATABASE.UV
+            EXECUTE 'BASIC ' : FILENAME : ' ' : RECORD.ID CAPTURING RESULTS
+        $ENDIF
+*
+        $IFDEF DATABASE.D3
+            EXECUTE 'COMPILE ' : FILENAME : ' ' : RECORD.ID CAPTURING RESULTS
+        $ENDIF
 *
         IF RESULTS<3> = '' THEN
             PRINT BOTTOM : MESSAGE.COLOR : CLEAR.REST.OF.LINE :
@@ -2156,7 +2163,13 @@
     INPUT.HISTORY.POS = DCOUNT(INPUT.HISTORY,@AM) + 1
 *
     LOOP WHILE TRUE DO
-        CHR = KEYIN()
+        $IFDEF DATABASE.UV
+            CHR = KEYIN()
+        $ENDIF
+        $IFDEF DATABASE.D3
+            INPUT CHR,0
+        $ENDIF
+*
         ASCII.CODE = SEQ(CHR)
 *
         IF ASCII.CODE = SEQ(KEY.ESCAPE) THEN
@@ -2339,11 +2352,15 @@
                 GOSUB SCROLL.DOWN
 *
             END ELSE IF ESCAPE.SEQUENCE = LEFT.ARROW THEN
+                GOSUB PRINT.CURRENT.LINE
+*
                 IF X.POS > MARGIN.LEFT THEN
                     X.POS = X.POS - 1
                 END
 *
             END ELSE IF ESCAPE.SEQUENCE = RIGHT.ARROW THEN
+                GOSUB PRINT.CURRENT.LINE
+*
                 LINE.LEN = LEN(LINES<CURRENT.LINE>) + MARGIN.LEFT
                 MAX.X.LEN = SCREEN.WIDTH - MARGIN.RIGHT - 1
                 IF MAX.X.LEN > LINE.LEN THEN
@@ -2672,6 +2689,8 @@
         RETURN
     END
 *
+    GOSUB PRINT.CURRENT.LINE
+*
     IF CURRENT.LINE = 1 THEN
         RETURN
     END
@@ -2929,40 +2948,41 @@
 *
     ADD.SNIPPETS:NULL
 *
-*
-    OPENSEQ PATH TO SNIPPETS.FILE ELSE
-        RETURN
-    END
-*
-    DONE = FALSE
-    INSIDE.STRUCTURE = FALSE
-*
-    TOKEN = ''
-    LOOP
-        READSEQ SNIPPET.LINE FROM SNIPPETS.FILE ELSE
-            CLOSESEQ SNIPPETS.FILE
-            DONE = TRUE
-        END
-    UNTIL DONE DO
-        IF SNIPPET.LINE[1,7] = 'snippet' THEN
-            INSIDE.STRUCTURE = TRUE
-            TOKEN<1,1> = FIELD(SNIPPET.LINE,' ', 2)
-            TOKEN<1,2> = FIELD(SNIPPET.LINE,'"', 2)
-            CONTINUE
+    $IFDEF DATABASE.UV
+        OPENSEQ PATH TO SNIPPETS.FILE ELSE
+            RETURN
         END
 *
-        IF SNIPPET.LINE[1,10] = 'endsnippet' THEN
-            INSIDE.STRUCTURE = FALSE
-            GOSUB ADD.CC.TOKEN
-            TOKEN = ''
-            CONTINUE
-        END
+        DONE = FALSE
+        INSIDE.STRUCTURE = FALSE
 *
-        IF INSIDE.STRUCTURE THEN
-            TOKEN<1,3,-1> = CHANGE(SNIPPET.LINE,'$1','')
-        END
+        TOKEN = ''
+        LOOP
+            READSEQ SNIPPET.LINE FROM SNIPPETS.FILE ELSE
+                CLOSESEQ SNIPPETS.FILE
+                DONE = TRUE
+            END
+        UNTIL DONE DO
+            IF SNIPPET.LINE[1,7] = 'snippet' THEN
+                INSIDE.STRUCTURE = TRUE
+                TOKEN<1,1> = FIELD(SNIPPET.LINE,' ', 2)
+                TOKEN<1,2> = FIELD(SNIPPET.LINE,'"', 2)
+                CONTINUE
+            END
 *
-    REPEAT
+            IF SNIPPET.LINE[1,10] = 'endsnippet' THEN
+                INSIDE.STRUCTURE = FALSE
+                GOSUB ADD.CC.TOKEN
+                TOKEN = ''
+                CONTINUE
+            END
+*
+            IF INSIDE.STRUCTURE THEN
+                TOKEN<1,3,-1> = CHANGE(SNIPPET.LINE,'$1','')
+            END
+*
+        REPEAT
+    $ENDIF
 *
     RETURN
 *********************  S U B R O U T I N E  *********************
