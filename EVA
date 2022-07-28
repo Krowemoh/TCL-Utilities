@@ -213,10 +213,12 @@
 *
     READ ANYTHING FROM MD.FILE,FILENAME:'.O' THEN
         FILETYPE = 'BASIC'
+    END ELSE IF FILENAME = 'BP' OR FILENAME = 'MPROCLIB' THEN
+        FILETYPE = 'BASIC'
     END ELSE IF RAW.LINES<1> = 'PQ' THEN
         FILETYPE = 'PROC'
     END ELSE
-        FILETYPE = 'BASIC'
+        FILETYPE = 'DATA'
     END
 *
 * SETUP SYNTAX
@@ -982,7 +984,6 @@
                 LINE.NUMBERS<CTR> = RAW.LINE.CTR
                 CTR = CTR + 1
             NEXT J
-* CTR WILL GET INCREMENTED IN THE NEXT ITERATION
             CTR = CTR - 1
         END
     UNTIL RAW.LINE.CTR = NUMBER.OF.RAW.LINES DO REPEAT
@@ -1689,38 +1690,8 @@
         GOSUB PUT.CURSOR.TOP.LEFT
 *
     END ELSE IF EDITOR.COMMAND = 'c' THEN
-        IF FILETYPE # 'BASIC' THEN RETURN
-*
         GOSUB SAVE.FILE
-*
-        $IFDEF DATABASE.UV
-            EXECUTE 'BASIC ' : FILENAME : ' ' : RECORD.ID CAPTURING RESULTS
-        $ENDIF
-*
-        $IFDEF DATABASE.D3
-            EXECUTE 'COMPILE ' : FILENAME : ' ' : RECORD.ID CAPTURING RESULTS
-        $ENDIF
-*
-        IF RESULTS<3> = '' THEN
-            PRINT BOTTOM : MESSAGE.COLOR : CLEAR.REST.OF.LINE :
-            PRINT OCONV(TIME(),'MTS') : ': ' : RESULTS<1> :
-            PRINT @(X.POS,Y.POS) :
-*
-        END ELSE
-            PRINT CLEAR.SCREEN :
-            PRINT @(0,MARGIN.TOP) :
-            PRINT OCONV(TIME(),'MTS') : ': ' :
-            PRINT 'Error -----------------'
-            PRINT
-*
-            FOR J = 1 TO DCOUNT(RESULTS,@AM)
-                PRINT RESULTS<J>
-            NEXT J
-            INPUT ANYTHING :
-*
-            GOSUB DISPLAY.LINES
-            PRINT @(X.POS,Y.POS) :
-        END
+        GOSUB COMPILE.FILE
 *
     END ELSE IF EDITOR.COMMAND = 'cr' THEN
         IF FILETYPE # 'BASIC' THEN RETURN
@@ -1963,6 +1934,8 @@
 *
     END ELSE IF EDITOR.COMMAND[1,1] = 'w' THEN
         GOSUB SAVE.FILE
+        GOSUB COMPILE.FILE
+*
         IF NEST.LEVEL = 0 AND EDITOR.COMMAND[2,1] = 'q' THEN
             QUIT.FLAG = TRUE
         END
@@ -2783,6 +2756,42 @@
 *
     RETURN
 *
+*********************  S U B R O U T I N E  *********************
+*
+    COMPILE.FILE:NULL
+*
+    IF FILETYPE # 'BASIC' THEN RETURN
+*
+    $IFDEF DATABASE.UV
+        EXECUTE 'BASIC ' : FILENAME : ' ' : RECORD.ID CAPTURING RESULTS
+    $ENDIF
+*
+    $IFDEF DATABASE.D3
+        EXECUTE 'COMPILE ' : FILENAME : ' ' : RECORD.ID CAPTURING RESULTS
+    $ENDIF
+*
+    IF RESULTS<3> = '' THEN
+        PRINT BOTTOM : MESSAGE.COLOR : CLEAR.REST.OF.LINE :
+        PRINT OCONV(TIME(),'MTS') : ': ' : RESULTS<1> :
+        PRINT @(X.POS,Y.POS) :
+*
+    END ELSE
+        PRINT CLEAR.SCREEN :
+        PRINT @(0,MARGIN.TOP) :
+        PRINT OCONV(TIME(),'MTS') : ': ' :
+        PRINT 'Error -----------------'
+        PRINT
+*
+        FOR J = 1 TO DCOUNT(RESULTS,@AM)
+            PRINT RESULTS<J>
+        NEXT J
+        INPUT ANYTHING :
+*
+        GOSUB DISPLAY.LINES
+        PRINT @(X.POS,Y.POS) :
+    END
+*
+    RETURN
 *
 *********************  S U B R O U T I N E  *********************
 *
