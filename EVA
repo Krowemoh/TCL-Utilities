@@ -152,10 +152,133 @@
     MARGIN.LEFT = 3
     MARGIN.RIGHT = 1
 *
+* SET VOC
+*
+    $IFDEF DATABASE.UV
+        VOC = 'VOC'
+    $ENDIF
+    $IFDEF DATABASE.D3
+        VOC = 'MD'
+    $ENDIF
+*
+* FILE FOR SAVING HISTORY 
+*
+    EQU EVA.SEARCH.ATTRIBUTE TO 1
+    EQU EVA.EDITOR.ATTRIBUTE TO 2
+    EQU EVA.YANKED.ATTRIBUTE TO 3
+*
+    EVA.HISTORY.OPENED = TRUE
+    OPEN '','EVA-HISTORY-FILE' TO EVA.HISTORY.FILE ELSE
+        OPEN '',VOC TO VOC.FILE THEN
+            EVA.ENTRY = ''
+            $IFDEF PLATFORM.LINUX
+                $IFDEF DATABASE.UV
+                    EVA.ENTRY<1> = 'F'
+                    EVA.ENTRY<2> = '/tmp/.eva/'
+                    EVA.ENTRY<3> = '/tmp/.eva/'
+                $ENDIF
+                $IFDEF DATABASE.D3
+                    EVA.ENTRY<1> = 'Q'
+                    EVA.ENTRY<3> = 'UNIX:/tmp/.eva/'
+                $ENDIF
+            $ENDIF
+            $IFDEF PLATFORM.WINDOWS
+                $IFDEF DATABASE.UV
+                    EVA.ENTRY<1> = 'F'
+                    EVA.ENTRY<2> = 'DOS:C:\.eva\'
+                    EVA.ENTRY<3> = 'DOS:C:\.eva\'
+                $ENDIF
+                $IFDEF DATABASE.D3
+                    EVA.ENTRY<1> = 'Q'
+                    EVA.ENTRY<3> = 'DOS:C:\.eva\'
+                $ENDIF
+            $ENDIF
+*
+            WRITE EVA.ENTRY ON VOC.FILE,'EVA-HISTORY-FILE'
+*
+            OPEN '','EVA-HISTORY-FILE' TO EVA.HISTORY.FILE ELSE
+                $IFDEF PLATFORM.LINUX
+                    $IFDEF DATABASE.UV
+                        EXECUTE 'SH -c "mkdir -p /tmp/.eva/"'
+                    $ENDIF
+                    $IFDEF DATABASE.D3
+                        EXECUTE '!mkdir -p /tmp/.eva/'
+                    $ENDIF
+                $ENDIF
+                $IFDEF PLATFORM.WINDOWS
+                    EXECUTE '! mkdir C:\.eva'
+                $ENDIF
+                OPEN '','EVA-HISTORY-FILE' TO EVA.HISTORY.FILE ELSE
+                    EVA.HISTORY.OPENED = FALSE
+                END
+            END
+        END ELSE
+            EVA.HISTORY.OPENED = FALSE
+        END
+    END
+*
+* SHELL INITIALIZATION
+*
+    $IFDEF DATABASE.UV
+        USER.NAME = @ACCOUNT
+        PORT.NUMBER = @USERNO
+        ACCOUNT.NAME = @WHO
+    $ENDIF
+*
+    $IFDEF DATABASE.D3
+        USER.NAME = @USER
+        PORT.NUMBER = @USERNO
+        ACCOUNT.NAME = @ACCOUNT
+    $ENDIF
+*
+* EVA USER SPECIFIC INITIALIZATION
+*
+    EVA.HISTORY.NAME = USER.NAME : '.eva_history'
+*
+    IF EVA.HISTORY.OPENED THEN
+        READ EVA.HISTORY FROM EVA.HISTORY.FILE, EVA.HISTORY.NAME ELSE EVA.HISTORY = ''
+        SEARCH.HISTORY = EVA.HISTORY<EVA.SEARCH.ATTRIBUTE>
+        EDITOR.HISTORY = EVA.HISTORY<EVA.EDITOR.ATTRIBUTE>
+        YANKED.LINES = EVA.HISTORY<EVA.YANKED.ATTRIBUTE>
+    END ELSE
+        SEARCH.HISTORY = ''
+        EDITOR.HISTORY = ''
+        YANKED.LINES = ''
+    END
+*
     COMMAND = SENTENCE()
 *
     NUMBER.OF.ARGUMENTS = DCOUNT(COMMAND,' ')
-    IF NUMBER.OF.ARGUMENTS = 3 THEN
+*
+    QUIT.ALL.FLAG = FALSE
+*
+    IF NUMBER.OF.ARGUMENTS = 2 THEN
+        FILENAME = FIELD(COMMAND,' ',2)
+        OPEN '',FILENAME TO FILE ELSE
+            PRINT 'Unable to open file: ' : FILENAME : ' - Press RETURN':
+            INPUT ANYTHING
+            STOP
+        END
+*
+        LOOP
+            READNEXT RECORD.ID ELSE RECORD.ID = ''
+        UNTIL RECORD.ID = '' DO
+            PRINT RECORD.ID
+            READU RAW.LINES FROM FILE,RECORD.ID LOCKED
+                PRINT 'Record is locked: ' : RECORD.ID : ' - Press RETURN':
+                INPUT ANYTHING :
+            END ELSE RAW.LINES = ''
+*
+            GOSUB MAIN
+*
+            RELEASE FILE,RECORD.ID
+*
+            IF QUIT.ALL.FLAG THEN
+                EXIT
+            END
+        REPEAT
+*
+    END ELSE IF NUMBER.OF.ARGUMENTS = 3 THEN
         FILENAME = FIELD(COMMAND,' ',2)
 *
         OPEN '',FILENAME TO FILE ELSE
@@ -165,11 +288,9 @@
         END
 *
         RECORD.ID = FIELD(COMMAND,' ',3)
-        READU RAW.LINES FROM FILE,RECORD.ID LOCKED
-            PRINT 'Record is locked: ' : RECORD.ID : ' - Press RETURN':
-            INPUT ANYTHING
-            STOP
-        END ELSE RAW.LINES = ''
+        GOSUB READ.RECORD
+*
+        GOSUB MAIN
 *
     END ELSE IF NUMBER.OF.ARGUMENTS = 4 THEN
         FILENAME = FIELD(COMMAND,' ',3)
@@ -181,15 +302,34 @@
         END
 *
         RECORD.ID = FIELD(COMMAND,' ',4)
-        READU RAW.LINES FROM FILE,RECORD.ID LOCKED
-            PRINT 'Record is locked: ' : RECORD.ID : ' - Press RETURN':
-            INPUT ANYTHING
-            STOP
-        END ELSE RAW.LINES = ''
+        GOSUB READ.RECORD
+*
+        GOSUB MAIN
+*
     END ELSE
         PRINT 'Invalid number of arguments.'
         STOP
     END
+*
+    STOP
+*
+*********************  S U B R O U T I N E  *********************
+*
+    READ.RECORD:NULL
+*
+    READU RAW.LINES FROM FILE,RECORD.ID LOCKED
+        PRINT 'Record is locked: ' : RECORD.ID : ' - Press RETURN':
+        INPUT ANYTHING
+        STOP
+    END ELSE RAW.LINES = ''
+*
+    RETURN
+*
+*********************  S U B R O U T I N E  *********************
+*
+    MAIN:NULL
+*
+    QUIT.FLAG = FALSE
 *
     ORIGINAL.RAW.LINES = RAW.LINES
 *
@@ -259,7 +399,6 @@
     LINE.START.STACK = ''
     NEST.LEVEL = 0
 *
-    QUIT.FLAG = FALSE
 *
     PAGE.HEIGHT = VIEW.HEIGHT
 *
@@ -272,21 +411,18 @@
     ORIGINAL.SEARCH.STRING = ''
     SEARCH.STRING = ''
     SEARCH.OCCURANCE = 1
-    SEARCH.HISTORY = ''
 *
     INPUT.AVAILABLE = FALSE
     PROCESS.CHAR = ''
 *
     EDITOR.COMMAND.AVAILABLE = FALSE
     EDITOR.COMMAND = ''
-    EDITOR.HISTORY = ''
 *
     HISTORY = ''
     HISTORY.X.Y = ''
     HISTORY.POS = 1
 *
     PASTE.NEWLINE = FALSE
-    YANKED.LINES = ''
 *
     SEARCH.RESULTS = ''
     SEARCH.POSITION = 0
@@ -440,6 +576,7 @@
 *
             PASTE.NEWLINE = FALSE
             YANKED.LINES = LINES<CURRENT.LINE>[START.COPY.POS+1,HIGHLIGHTED.CHARS]
+            IF EVA.HISTORY.OPENED THEN WRITEV YANKED.LINES ON EVA.HISTORY.FILE,EVA.HISTORY.NAME,EVA.YANKED.ATTRIBUTE
 *
             GOSUB DISPLAY.LINE
             PRINT @(X.POS,Y.POS) :
@@ -451,6 +588,7 @@
             PASTE.NEWLINE = TRUE
             REAL.LINE.NUMBER = LINE.NUMBERS<CURRENT.LINE>
             YANKED.LINES = RAW.LINES<REAL.LINE.NUMBER>
+            IF EVA.HISTORY.OPENED THEN WRITEV YANKED.LINES ON EVA.HISTORY.FILE,EVA.HISTORY.NAME,EVA.YANKED.ATTRIBUTE
             PRINT BOTTOM : CLEAR.REST.OF.LINE : MESSAGE.COLOR :
             PRINT 'Copied line ' : CURRENT.LINE : '.' :
             PRINT @(X.POS,Y.POS) :
@@ -459,10 +597,10 @@
             GOSUB PUSH.HISTORY
 *
             IF PASTE.NEWLINE THEN
-                NUMBER.OF.YANKED.LINES = DCOUNT(YANKED.LINES,@AM)
+                NUMBER.OF.YANKED.LINES = DCOUNT(YANKED.LINES,@VM)
 *
                 FOR PASTE.CTR = 1 TO NUMBER.OF.YANKED.LINES
-                    INSERT.LINE = YANKED.LINES<PASTE.CTR>
+                    INSERT.LINE = YANKED.LINES<1,PASTE.CTR>
                     GOSUB PROCESS.INSERT.LINE
                 NEXT PASTE.CTR
 *
@@ -534,8 +672,9 @@
             PASTE.NEWLINE = TRUE
             YANKED.LINES = ''
             FOR BLOCK.CTR = BLOCK.START TO BLOCK.END
-                YANKED.LINES<-1> = RAW.LINES<BLOCK.CTR>
+                YANKED.LINES<1,-1> = RAW.LINES<BLOCK.CTR>
             NEXT BLOCK.CTR
+            IF EVA.HISTORY.OPENED THEN WRITEV YANKED.LINES ON EVA.HISTORY.FILE,EVA.HISTORY.NAME,EVA.YANKED.ATTRIBUTE
 *
             PRINT BOTTOM : CLEAR.REST.OF.LINE : MESSAGE.COLOR :
             PRINT 'Copied ' : BLOCK.END - BLOCK.START : ' lines from ' : BLOCK.START : ' to ' : BLOCK.END : '.' :
@@ -557,7 +696,7 @@
         END
     REPEAT
 *
-    STOP
+    RETURN
 *
 *********************  s u b r o u t i n e  *********************
 *
@@ -1640,7 +1779,8 @@
         EDITOR.COMMAND = INPUT.STRING
     END
 *
-    EDITOR.HISTORY<-1> = EDITOR.COMMAND
+    EDITOR.HISTORY<1,-1> = EDITOR.COMMAND
+    IF EVA.HISTORY.OPENED THEN WRITEV EDITOR.HISTORY ON EVA.HISTORY.FILE,EVA.HISTORY.NAME,EVA.EDITOR.ATTRIBUTE
 *
     IF EDITOR.COMMAND # '' AND NUM(EDITOR.COMMAND) THEN
         GOTO.LINE = EDITOR.COMMAND
@@ -1803,15 +1943,12 @@
                 PRINT @(X.POS,Y.POS) :
 *
             END ELSE
+                ORIGINAL.NUMBER.OF.LINES = DCOUNT(LINES,@AM)
+*
                 REAL.LINE.NUMBER = LINE.NUMBERS<CURRENT.LINE>
                 CURRENT.RAW.LINE = RAW.LINES<REAL.LINE.NUMBER>
 *
                 RAW.LINES = DELETE(RAW.LINES,REAL.LINE.NUMBER)
-*
-                IF CURRENT.LINE = DCOUNT(LINES,@AM) AND CURRENT.LINE # 1 THEN
-                    Y.POS = Y.POS - 1
-                    CURRENT.LINE = CURRENT.LINE - 1
-                END
 *
                 IF LEN(CURRENT.RAW.LINE) < VIEW.WIDTH THEN
                     LINES = DELETE(LINES,CURRENT.LINE)
@@ -1825,6 +1962,15 @@
                     GOSUB CONVERT.RAW.LINES
                 END
                 GOSUB DISPLAY.LINES
+*
+                IF CURRENT.LINE =  ORIGINAL.NUMBER.OF.LINES AND CURRENT.LINE # 1 THEN
+                    Y.POS = Y.POS - 1
+                    CURRENT.LINE = CURRENT.LINE - 1
+                END
+*
+                PASTE.NEWLINE = TRUE
+                YANKED.LINES = CURRENT.RAW.LINE
+                IF EVA.HISTORY.OPENED THEN WRITEV YANKED.LINES ON EVA.HISTORY.FILE,EVA.HISTORY.NAME,EVA.YANKED.ATTRIBUTE
 *
                 X.POS = MARGIN.LEFT
                 PRINT @(X.POS,Y.POS) :
@@ -1914,7 +2060,7 @@
 *
         GOSUB PUT.CURSOR.TOP.LEFT
 *
-    END ELSE IF EDITOR.COMMAND[1,1] = 'q' THEN
+    END ELSE IF EDITOR.COMMAND[1,1] = 'q' OR EDITOR.COMMAND = 'exk'  OR EDITOR.COMMAND = 'x' THEN
         IF NEST.LEVEL # 0 THEN
             IF ORIGINAL.RAW.LINES = RAW.LINES THEN
                 SAVE.ROW = FALSE
@@ -1936,6 +2082,7 @@
 *
         END ELSE
             IF ORIGINAL.RAW.LINES = RAW.LINES OR EDITOR.COMMAND[2,1] = '!' THEN
+                IF EDITOR.COMMAND = 'exk' OR EDITOR.COMMAND = 'x' THEN QUIT.ALL.FLAG = TRUE
                 QUIT.FLAG = TRUE
 *
             END ELSE
@@ -1944,6 +2091,7 @@
                 INPUT ANSWER :
 *
                 IF OCONV(ANSWER,'MCL') = 'y' THEN
+                    IF EDITOR.COMMAND = 'exk' OR EDITOR.COMMAND = 'x' THEN QUIT.ALL.FLAG = TRUE
                     QUIT.FLAG = TRUE
                 END
 *
@@ -2079,7 +2227,8 @@
     END
 *
     LOCATE(SEARCH.STRING,SEARCH.HISTORY;ANYPOS) ELSE
-        SEARCH.HISTORY<-1> = SEARCH.STRING
+        SEARCH.HISTORY<1,-1> = SEARCH.STRING
+        IF EVA.HISTORY.OPENED THEN WRITEV SEARCH.HISTORY ON EVA.HISTORY.FILE,EVA.HISTORY.NAME,EVA.SEARCH.ATTRIBUTE
     END
 *
     ORIGINAL.SEARCH.STRING = SEARCH.STRING
@@ -2155,7 +2304,7 @@
 *
     PROCESS.INPUT:NULL
 *
-    INPUT.HISTORY.POS = DCOUNT(INPUT.HISTORY,@AM) + 1
+    INPUT.HISTORY.POS = DCOUNT(INPUT.HISTORY,@VM) + 1
 *
     LOOP WHILE TRUE DO
         $IFDEF DATABASE.UV
@@ -2180,13 +2329,13 @@
             END ELSE IF ESCAPE.SEQUENCE = UP.ARROW THEN
                 IF INPUT.HISTORY.POS > 1 THEN
                     INPUT.HISTORY.POS = INPUT.HISTORY.POS - 1
-                    INPUT.STRING = INPUT.HISTORY<INPUT.HISTORY.POS>
+                    INPUT.STRING = INPUT.HISTORY<1,INPUT.HISTORY.POS>
                     INPUT.X.POS = LEN(INPUT.STRING)
                 END
             END ELSE IF ESCAPE.SEQUENCE = DOWN.ARROW THEN
-                IF INPUT.HISTORY.POS < DCOUNT(INPUT.HISTORY,@AM) THEN
+                IF INPUT.HISTORY.POS < DCOUNT(INPUT.HISTORY,@VM) THEN
                     INPUT.HISTORY.POS = INPUT.HISTORY.POS + 1
-                    INPUT.STRING = INPUT.HISTORY<INPUT.HISTORY.POS>
+                    INPUT.STRING = INPUT.HISTORY<1,INPUT.HISTORY.POS>
                     INPUT.X.POS = LEN(INPUT.STRING)
                 END
             END
