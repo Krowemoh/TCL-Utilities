@@ -246,10 +246,12 @@
         SEARCH.HISTORY = EVA.HISTORY<EVA.SEARCH.ATTRIBUTE>
         EDITOR.HISTORY = EVA.HISTORY<EVA.EDITOR.ATTRIBUTE>
         YANKED.LINES = EVA.HISTORY<EVA.YANKED.ATTRIBUTE>
+        PASTE.NEWLINE = TRUE
     END ELSE
         SEARCH.HISTORY = ''
         EDITOR.HISTORY = ''
         YANKED.LINES = ''
+        PASTE.NEWLINE = FALSE
     END
 *
     COMMAND = SENTENCE()
@@ -372,13 +374,11 @@
         FILETYPE = 'DATA'
     END
 *
+    ARCHIVE.FILENAME = 'ARCHIVE-' : FILENAME
     ARCHIVE.OPENED = FALSE
 *
-    IF FILETYPE = 'BASIC' THEN
-        ARCHIVE.FILENAME = 'ARCHIVE-' : FILENAME
-        OPEN '', ARCHIVE.FILENAME TO ARCHIVE.FILE THEN
-            ARCHIVE.OPENED = TRUE
-        END
+    OPEN '', ARCHIVE.FILENAME TO ARCHIVE.FILE THEN
+        ARCHIVE.OPENED = TRUE
     END
 *
 * SETUP SYNTAX
@@ -440,8 +440,6 @@
     HISTORY = ''
     HISTORY.X.Y = ''
     HISTORY.POS = 1
-*
-    PASTE.NEWLINE = FALSE
 *
     SEARCH.RESULTS = ''
     SEARCH.POSITION = 0
@@ -707,6 +705,9 @@
             GOSUB GOTO.LINE.POSITION
 *
             X.POS = MARGIN.LEFT
+            PRINT @(X.POS,Y.POS) :
+*
+        END ELSE
             PRINT @(X.POS,Y.POS) :
         END
 *
@@ -1659,9 +1660,8 @@
 *
     PREV.LINE.NUMBER = 0
 *
-    Y.CTR = 0
-    BUFFER = ''
-*
+    PRINT @(0,MARGIN.TOP) :
+
     FOR I = LINE.START TO LINE.END
         LINE = LINES<I>
         LINE.NUMBER = LINE.NUMBERS<I>
@@ -1672,15 +1672,11 @@
 *
         GOSUB TOKENIZE.LINE
 *
-        BUFFER = BUFFER : @(0,MARGIN.TOP+Y.CTR) 
-        BUFFER = BUFFER : LINE.NUMBER.COLOR : LINE.NUMBER PADDING.LEFT 
-        BUFFER = BUFFER : FOREGROUND.COLOR : LINE : CLEAR.REST.OF.LINE
+        PRINT LINE.NUMBER.COLOR : LINE.NUMBER PADDING.LEFT :
+        PRINT FOREGROUND.COLOR : LINE : CLEAR.REST.OF.LINE
 *
         PREV.LINE.NUMBER = LINE.NUMBER
-        Y.CTR = Y.CTR + 1
     NEXT I
-*
-    PRINT BUFFER
 *
     RETURN
 *
@@ -1807,11 +1803,12 @@
         OLD.LINE.START = LINE.START
 *
         LINE.START = LINE.START - PAGE.HEIGHT
-        IF LINE.START - PAGE.HEIGHT < 1 THEN
+        IF LINE.START < 1 THEN
             LINE.START = 1
         END
 *
         IF OLD.LINE.START = LINE.START THEN
+            PRINT @(X.POS, Y.POS) :
             RETURN
         END
 *
@@ -1820,6 +1817,8 @@
         IF CURRENT.LINE < 1 THEN
             CURRENT.LINE = 1
             Y.POS = MARGIN.TOP
+        END ELSE
+            Y.POS = CURRENT.LINE - LINE.START + MARGIN.TOP
         END
 *
         GOSUB SET.X.POS
@@ -1832,6 +1831,7 @@
 *
         NUMBER.OF.LINES = DCOUNT(LINES,@AM)
         IF LINE.START + PAGE.HEIGHT > NUMBER.OF.LINES THEN
+            PRINT @(X.POS, Y.POS) :
             RETURN
         END
 *
@@ -1851,6 +1851,7 @@
     END ELSE IF ESCAPE.SEQUENCE = UP.ARROW THEN
         GOSUB PRINT.CURRENT.LINE
         GOSUB SCROLL.UP
+        PRINT @(X.POS, Y.POS) :
 *
     END ELSE IF ESCAPE.SEQUENCE = DOWN.ARROW THEN
         GOSUB PRINT.CURRENT.LINE
@@ -1860,6 +1861,7 @@
         GOSUB PRINT.CURRENT.LINE
 *
         IF X.POS - 1 < MARGIN.LEFT THEN
+            PRINT @(X.POS, Y.POS) :
             RETURN
         END
 *
@@ -1873,10 +1875,12 @@
 *
         LINE.LEN = LEN(LINES<CURRENT.LINE>)
         IF X.POS + 1 >= LINE.LEN + MARGIN.LEFT THEN
+            PRINT @(X.POS, Y.POS) :
             RETURN
         END
 *
         IF X.POS > SCREEN.WIDTH - MARGIN.RIGHT THEN
+            PRINT @(X.POS, Y.POS) :
             RETURN
         END
 *
@@ -1926,7 +1930,12 @@
             ID.OK = FALSE
             SEQ = 0
             LOOP
-                ARCHIVE.ID = ARCHIVE.DATE : '*' : RECORD.ID
+                $IFDEF DATABASE.UV
+                    ARCHIVE.ID = ARCHIVE.DATE : '*' : RECORD.ID
+                $ENDIF
+                $IFDEF DATABASE.D3
+                    ARCHIVE.ID = FILENAME : '*' : ARCHIVE.DATE : '*' : RECORD.ID
+                $ENDIF
                 IF SEQ # 0 THEN ARCHIVE.ID = ARCHIVE.ID : '*' : SEQ
                 READV ANYTHING FROM ARCHIVE.FILE, ARCHIVE.ID, 1 ELSE ID.OK = TRUE
             UNTIL ID.OK DO
@@ -2725,8 +2734,6 @@
                     CC.LIST.OPEN = FALSE
                     GOSUB DISPLAY.LINES
                 END
-                INPUT.AVAILABLE = FALSE
-                PROCESS.CHAR = ''
 *
                 PRINT BOTTOM : CLEAR.REST.OF.LINE :
                 PRINT @(X.POS,Y.POS) :
