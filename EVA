@@ -448,6 +448,7 @@
 *
     CC.BREAK.CHARACTERS = '( ) , : + - / ; * < > = [ ]' : ' "' : " '"
     CONVERT ' ' TO @AM IN CC.BREAK.CHARACTERS
+    CC.BREAK.CHARACTERS = CC.BREAK.CHARACTERS : @AM : ' '
 *
     CC.LIST.OPEN = FALSE
     SNIPPETS = ''
@@ -1661,7 +1662,7 @@
     PREV.LINE.NUMBER = 0
 *
     PRINT @(0,MARGIN.TOP) :
-
+    
     FOR I = LINE.START TO LINE.END
         LINE = LINES<I>
         LINE.NUMBER = LINE.NUMBERS<I>
@@ -2920,6 +2921,13 @@
             RAW.LINE = RAW.LINE[1,INSERT.CHAR.POSITION] : CHR : RAW.LINE[INSERT.CHAR.POSITION+1,9999]
             RAW.LINES<REAL.LINE.NUMBER> = RAW.LINE
 *
+            LOCATE(CHR,CC.BREAK.CHARACTERS;BREAK.POS) THEN
+                IF CC.LIST.OPEN THEN
+                    CC.LIST.OPEN = FALSE
+                    GOSUB DISPLAY.LINES
+                END
+            END
+*
             IF CHR = ' ' THEN
                 GOSUB CC.TOKENIZE.LINE
             END ELSE
@@ -2937,9 +2945,21 @@
                 CURRENT.LINE = CURRENT.LINE + 1
             END
 *
-            CURRENT.WORD = FIELD(RAW.LINE,' ',DCOUNT(RAW.LINE,' '))
+            LINE = LINES<CURRENT.LINE>
+            CURRENT.WORD = ''
+            CURSOR.POSITION = X.POS - MARGIN.LEFT
 *
-            IF CURRENT.WORD = '' OR CHR = ' ' OR LEN(TRIM(CURRENT.WORD)) < 2 OR NUM(CHR) THEN
+            IF CURSOR.POSITION > 1 THEN
+                FOR CC.WORD.START = CURSOR.POSITION TO 1 STEP -1
+                    CHARACTER = LINE[CC.WORD.START,1]
+                    LOCATE(CHARACTER,CC.BREAK.CHARACTERS;BREAK.POS) THEN
+                        EXIT
+                    END
+                    CURRENT.WORD = CHARACTER : CURRENT.WORD
+                NEXT CC.WORD.START
+            END
+*            
+            IF CURRENT.WORD = '' OR LEN(CURRENT.WORD) < 2 THEN
                 CC.LIST.OPEN = FALSE
                 CC.LIST = ''
 *
