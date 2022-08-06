@@ -342,7 +342,9 @@
     SEARCH.RESULTS = ''
     SEARCH.POSITION = 0
     ORIGINAL.SEARCH.STRING = ''
+*
     SEARCH.STRING = SEARCH.HISTORY<1,DCOUNT(SEARCH.HISTORY<1>,@VM)>
+    GOSUB PROCESS.SEARCH
 *
     PRINT @(0,0) : CLEAR.REST.OF.SCREEN
 *
@@ -498,11 +500,6 @@
         END ELSE IF CHR = ':' THEN
             GOSUB PROCESS.EDITOR.COMMAND
 *
-        END ELSE IF CHR = '/' OR ASCII.CODE = SEQ(KEY.CTRL.F) THEN
-            GOSUB PROCESS.SEARCH.INPUT
-            GOSUB PROCESS.SEARCH
-            GOSUB GOTO.SEARCH.RESULT
-*
         END ELSE IF CHR = 'c' THEN
             REAL.LINE.NUMBER = LINE.NUMBERS<CURRENT.LINE>
             RAW.LINE = RAW.LINES<REAL.LINE.NUMBER>
@@ -647,9 +644,23 @@
                 PRINT @(X.POS,Y.POS) :
             END
 *
+        END ELSE IF CHR = '/' OR ASCII.CODE = SEQ(KEY.CTRL.F) THEN
+            GOSUB PROCESS.SEARCH.INPUT
+            GOSUB PROCESS.SEARCH
+            SEARCH.POSITION = SEARCH.POSITION + 1
+            GOSUB GOTO.SEARCH.RESULT
+*
         END ELSE IF CHR = 'n' THEN
             GOSUB PROCESS.SEARCH
-            GOSUB GOTO.SEARCH.RESULT
+            IF SEARCH.RESULTS # '' THEN
+                IF SEARCH.POSITION = DCOUNT(SEARCH.RESULTS,@AM) THEN
+                    SEARCH.POSITION = 0
+                    PRINT BOTTOM : CLEAR.REST.OF.LINE : MESSAGE.COLOR :
+                    PRINT 'Search hit the bottom, starting from top.' :
+                END
+                SEARCH.POSITION = SEARCH.POSITION + 1
+                GOSUB GOTO.SEARCH.RESULT
+            END
 *
         END ELSE IF CHR = 'N' THEN
             GOSUB PROCESS.SEARCH
@@ -2464,9 +2475,6 @@
         PRINT BOTTOM : CLEAR.REST.OF.LINE :
         PRINT ERROR.MESSAGE :
         PRINT @(X.POS,Y.POS) :
-*
-    END ELSE
-        SEARCH.POSITION = STARTING.SEARCH.POS
     END
 *
     RETURN
