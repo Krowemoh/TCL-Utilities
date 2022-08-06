@@ -2529,6 +2529,9 @@
 *
     PROCESS.INPUT:NULL
 *
+    INPUT.SEARCH.TRIGGERED = FALSE
+    INPUT.SEARCH.TERM = ''
+*
     INPUT.HISTORY.POS = DCOUNT(INPUT.HISTORY,@VM) + 1
 *
     LOOP WHILE TRUE DO
@@ -2552,15 +2555,59 @@
                     INPUT.X.POS = INPUT.X.POS + 1
                 END
             END ELSE IF ESCAPE.SEQUENCE = UP.ARROW THEN
-                IF INPUT.HISTORY.POS > 1 THEN
+                IF NOT(INPUT.SEARCH.TRIGGERED) THEN
+                    IF INPUT.HISTORY.POS > 1 THEN
+                        INPUT.HISTORY.POS = INPUT.HISTORY.POS - 1
+                        INPUT.STRING = INPUT.HISTORY<1,INPUT.HISTORY.POS>
+                        INPUT.X.POS = LEN(INPUT.STRING)
+                    END
+                END ELSE
+                    OLD.INPUT.HISTORY.POS = INPUT.HISTORY.POS
                     INPUT.HISTORY.POS = INPUT.HISTORY.POS - 1
-                    INPUT.STRING = INPUT.HISTORY<1,INPUT.HISTORY.POS>
+                    IF INPUT.HISTORY.POS = 0 THEN INPUT.HISTORY.POS = 1
+*
+                    LOOP
+                        PREV.INPUT = INPUT.HISTORY<1, INPUT.HISTORY.POS>
+                        INPUT.HISTORY.RESULT = INDEX(OCONV(PREV.INPUT,'MCU'),OCONV(INPUT.SEARCH.TERM,'MCU'),1)
+                    UNTIL (INPUT.HISTORY.POS <= 1 OR INPUT.HISTORY.RESULT # 0) DO
+                        INPUT.HISTORY.POS = INPUT.HISTORY.POS - 1
+                    REPEAT
+*
+                    IF INPUT.HISTORY.RESULT = 0 THEN
+                        PREV.INPUT = INPUT.HISTORY<1, OLD.INPUT.HISTORY.POS>
+                        INPUT.HISTORY.POS = OLD.INPUT.HISTORY.POS
+                    END
+*
+                    INPUT.STRING = PREV.INPUT
                     INPUT.X.POS = LEN(INPUT.STRING)
                 END
+*
             END ELSE IF ESCAPE.SEQUENCE = DOWN.ARROW THEN
-                IF INPUT.HISTORY.POS < DCOUNT(INPUT.HISTORY,@VM) THEN
+                IF NOT(INPUT.SEARCH.TRIGGERED) THEN
+                    IF INPUT.HISTORY.POS < DCOUNT(INPUT.HISTORY,@VM) THEN
+                        INPUT.HISTORY.POS = INPUT.HISTORY.POS + 1
+                        INPUT.STRING = INPUT.HISTORY<1,INPUT.HISTORY.POS>
+                        INPUT.X.POS = LEN(INPUT.STRING)
+                    END
+*
+                END ELSE
+                    OLD.INPUT.HISTORY.POS = INPUT.HISTORY.POS
+                    INPUT.HISTORY.LEN = DCOUNT(INPUT.HISTORY<1>,@VM)
                     INPUT.HISTORY.POS = INPUT.HISTORY.POS + 1
-                    INPUT.STRING = INPUT.HISTORY<1,INPUT.HISTORY.POS>
+*
+                    LOOP
+                        NEXT.INPUT = INPUT.HISTORY<1, INPUT.HISTORY.POS>
+                        INPUT.HISTORY.RESULT = INDEX(OCONV(NEXT.INPUT,'MCU'),OCONV(INPUT.SEARCH.TERM,'MCU'),1)
+                    UNTIL (INPUT.HISTORY.POS > INPUT.HISTORY.LEN OR INPUT.HISTORY.RESULT # 0) DO
+                        INPUT.HISTORY.POS = INPUT.HISTORY.POS + 1
+                    REPEAT
+*
+                    IF INPUT.HISTORY.RESULT = 0 THEN
+                        NEXT.INPUT = INPUT.HISTORY<1, OLD.INPUT.HISTORY.POS>
+                        INPUT.HISTORY.POS = OLD.INPUT.HISTORY.POS
+                    END
+*
+                    INPUT.STRING = NEXT.INPUT
                     INPUT.X.POS = LEN(INPUT.STRING)
                 END
             END
@@ -2578,8 +2625,10 @@
             END
 *
         END ELSE
+            INPUT.SEARCH.TRIGGERED = TRUE
             INPUT.STRING = INPUT.STRING[1,INPUT.X.POS] : CHR : INPUT.STRING[INPUT.X.POS+1,9999]
             INPUT.X.POS = INPUT.X.POS + 1
+            INPUT.SEARCH.TERM = INPUT.STRING
         END
 *
         PRINT BOTTOM : EDITOR.COLOR : INPUT.PROMPT : INPUT.STRING : CLEAR.REST.OF.LINE :
