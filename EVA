@@ -2718,9 +2718,13 @@
 *
             IF ESCAPE.SEQUENCE = UP.ARROW THEN
                 GOSUB SCROLL.UP
+                PRINT @(X.POS,Y.POS) :
+                CONTINUE
 *
             END ELSE IF ESCAPE.SEQUENCE = DOWN.ARROW THEN
                 GOSUB SCROLL.DOWN
+                PRINT @(X.POS,Y.POS) :
+                CONTINUE
 *
             END ELSE IF ESCAPE.SEQUENCE = LEFT.ARROW THEN
                 GOSUB PRINT.CURRENT.LINE
@@ -3352,6 +3356,10 @@
             PRINT BACKGROUND.RED :
             PRINT RAW.WHITE :
             PRINT ' ' : CC.WORD 'L#25' : CC.TYPE
+*
+            PRINT BACKGROUND.BLACK
+            PRINT BOTTOM : CLEAR.REST.OF.LINE : MESSAGE.COLOR :
+            PRINT CC.DESCRIPTION[1,VIEW.WIDTH] :
 *
         END ELSE
             PRINT BACKGROUND.CYAN :
