@@ -522,12 +522,19 @@
             INSERT.LINE = '*'
             GOSUB PROCESS.INSERT.LINE
 *
+            GOSUB DISPLAY.LINES
+            PRINT @(X.POS,Y.POS) :
+*
         END ELSE IF CHR = 'd' THEN
             GOSUB PROCESS.DELETE.LINE
 *
         END ELSE IF CHR = 'o' THEN
             INSERT.LINE = ''
             GOSUB PROCESS.INSERT.LINE
+*
+            GOSUB DISPLAY.LINES
+            PRINT @(X.POS,Y.POS) :
+*
             PROCESS.CHAR = 'i'
             INPUT.AVAILABLE = TRUE
 *
@@ -621,6 +628,9 @@
                     INSERT.LINE = YANKED.LINES<1,PASTE.CTR>
                     GOSUB PROCESS.INSERT.LINE
                 NEXT PASTE.CTR
+*
+                GOSUB DISPLAY.LINES
+                PRINT @(X.POS,Y.POS) :
 *
             END ELSE
                 REAL.LINE.NUMBER = LINE.NUMBERS<CURRENT.LINE>
@@ -2632,13 +2642,10 @@
         GOSUB CONVERT.RAW.LINES
     END
 *
-    GOSUB DISPLAY.LINES
-*
     LOCATE(NEXT.LINE.NUMBER,LINE.NUMBERS;CURRENT.LINE) ELSE CURRENT.LINE = 1
 *
     NUMBER.OF.LINES = INT(LEN(RAW.LINES<REAL.LINE.NUMBER>) / VIEW.WIDTH)
     Y.POS = Y.POS + NUMBER.OF.LINES + 1
-    PRINT @(X.POS,Y.POS) :
 *
     RETURN
 *
