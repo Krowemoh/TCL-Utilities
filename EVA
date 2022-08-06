@@ -2958,7 +2958,7 @@
                     CURRENT.WORD = CHARACTER : CURRENT.WORD
                 NEXT CC.WORD.START
             END
-*            
+*
             IF CURRENT.WORD = '' OR LEN(CURRENT.WORD) < 2 THEN
                 CC.LIST.OPEN = FALSE
                 CC.LIST = ''
@@ -3091,7 +3091,17 @@
         LINE = LINES<CURRENT.LINE>
         LINE.NUMBER = LINE.NUMBERS<CURRENT.LINE>
 *
-        GOSUB DISPLAY.LINES
+        $IFDEF DATABASE.UV
+            PRINT @(-49) :
+            PRINT @(0,Y.POS) :
+            PRINT CLEAR.REST.OF.LINE :
+            PRINT LINE.NUMBER.COLOR : LINE.NUMBER PADDING.LEFT :
+            GOSUB TOKENIZE.LINE
+            PRINT FOREGROUND.COLOR : LINE
+        $ENDIF
+        $IFDEF DATABASE.D3
+            GOSUB DISPLAY.LINES
+        $ENDIF
     END
 *
     GOSUB SET.X.POS
@@ -3126,7 +3136,16 @@
         LINE = LINES<CURRENT.LINE>
         LINE.NUMBER = LINE.NUMBERS<CURRENT.LINE>
 *
-        GOSUB DISPLAY.LINES
+        $IFDEF DATABASE.UV
+            PRINT @(-48) :
+            PRINT @(0,Y.POS) :
+            PRINT LINE.NUMBER.COLOR : LINE.NUMBER PADDING.LEFT :
+            GOSUB TOKENIZE.LINE
+            PRINT FOREGROUND.COLOR : LINE
+        $ENDIF
+        $IFDEF DATABASE.D3
+            GOSUB DISPLAY.LINES
+        $ENDIF
     END
 *
     GOSUB SET.X.POS
