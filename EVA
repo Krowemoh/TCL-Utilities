@@ -455,12 +455,12 @@
     SNIPPETS = ''
     SNIPPET.HEADERS = ''
 *
+    GOSUB ADD.DEFAULT.SNIPPETS
+*
+    PATH = '/home/usr/nivethan/.vim/UltiSnips/all.snippets'
+    GOSUB ADD.SNIPPETS
+*
     IF DCOUNT(RAW.LINES,@AM) < 3000 THEN
-        GOSUB ADD.DEFAULT.SNIPPETS
-*
-        PATH = '/home/usr/nivethan/.vim/UltiSnips/all.snippets'
-        GOSUB ADD.SNIPPETS
-*
         GOSUB ADD.AUTO.COMPLETE
     END
 *
