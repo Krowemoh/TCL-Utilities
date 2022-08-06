@@ -1,6 +1,8 @@
-# eva
+# EVA
 
-Eva is a BASIC editor for the multivalue database Universe, it has the following features:
+EVA is an editor for BASIC, PROCs and MultiValue data. It runs on both UniVerse and D3. 
+
+It has the following features:
 
 1. Syntax highlighting
 2. Code formatting
