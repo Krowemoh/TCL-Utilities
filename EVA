@@ -2030,11 +2030,7 @@
 *
         GOSUB PUT.CURSOR.TOP.LEFT
 *
-    END ELSE IF EDITOR.COMMAND = 'c' THEN
-        GOSUB SAVE.FILE
-        GOSUB COMPILE.FILE
-*
-    END ELSE IF EDITOR.COMMAND = 'cr' THEN
+    END ELSE IF EDITOR.COMMAND = 'r' THEN
         IF FILETYPE # 'BASIC' THEN RETURN
 *
         GOSUB SAVE.FILE
@@ -2043,14 +2039,16 @@
         IF RESULTS<3> = '' THEN
             EXECUTE 'RUN ' : FILENAME : ' ' : RECORD.ID CAPTURING RESULTS
             PRINT CLEAR.SCREEN :
-            PRINT @(0,MARGIN.TOP) :
+            PRINT @(0,0) :
             PRINT OCONV(TIME(),'MTS') : ': ' :
-            PRINT 'Error -----------------'
+            PRINT 'SUCCESS -----------------'
             PRINT
 *
             FOR J = 1 TO DCOUNT(RESULTS,@AM)
                 PRINT RESULTS<J>
             NEXT J
+*
+            PRINT 'Program finished - Press Return : ' :
             INPUT ANYTHING :
 *
             GOSUB DISPLAY.LINES
@@ -2058,7 +2056,7 @@
 *
         END ELSE
             PRINT CLEAR.SCREEN :
-            PRINT @(0,MARGIN.TOP) :
+            PRINT @(0,0) :
             PRINT OCONV(TIME(),'MTS') : ': ' :
             PRINT 'Error -----------------'
             PRINT
@@ -2066,6 +2064,8 @@
             FOR J = 1 TO DCOUNT(RESULTS,@AM)
                 PRINT RESULTS<J>
             NEXT J
+*
+            PRINT 'Program finished - Press Return : ' :
             INPUT ANYTHING :
 *
             GOSUB DISPLAY.LINES
@@ -2180,7 +2180,7 @@
 *
         EDITOR.COMMAND = ''
 *
-    END ELSE IF EDITOR.COMMAND[1,1] = 'r' OR EDITOR.COMMAND[1,1] = '%' or EDITOR.COMMAND[1,1] = 's' THEN
+    END ELSE IF EDITOR.COMMAND[1,1] = '%' or EDITOR.COMMAND[1,1] = 's' THEN
         GOSUB PUSH.HISTORY
 *
         REPLACE.PERCENT = FALSE
