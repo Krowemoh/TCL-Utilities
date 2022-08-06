@@ -2714,12 +2714,6 @@
             GOSUB SAVE.FILE
 *
         END ELSE IF ASCII.CODE = SEQ(KEY.ESCAPE) THEN
-            IF CC.LIST.OPEN THEN
-                CC.LIST.OPEN = FALSE
-                GOSUB DISPLAY.LINES
-            END
-            PRINT @(X.POS,Y.POS) :
-*
             GOSUB PROCESS.ESCAPE.KEY
 *
             IF ESCAPE.SEQUENCE = UP.ARROW THEN
