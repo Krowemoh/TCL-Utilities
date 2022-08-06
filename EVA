@@ -500,6 +500,22 @@
         END ELSE IF CHR = ':' THEN
             GOSUB PROCESS.EDITOR.COMMAND
 *
+        END ELSE IF CHR = 'h' THEN
+            GOSUB PRINT.CURRENT.LINE
+            GOSUB SCROLL.LEFT
+            PRINT @(X.POS, Y.POS) :
+*
+        END ELSE IF CHR = 'l' THEN
+            GOSUB PRINT.CURRENT.LINE
+            GOSUB SCROLL.RIGHT
+            PRINT @(X.POS, Y.POS) :
+*
+        END ELSE IF CHR = 'j' THEN
+            GOSUB SCROLL.DOWN
+*
+        END ELSE IF CHR = 'k' THEN
+            GOSUB SCROLL.UP
+*
         END ELSE IF CHR = 'c' THEN
             REAL.LINE.NUMBER = LINE.NUMBERS<CURRENT.LINE>
             RAW.LINE = RAW.LINES<REAL.LINE.NUMBER>
@@ -1863,34 +1879,12 @@
 *
     END ELSE IF ESCAPE.SEQUENCE = LEFT.ARROW THEN
         GOSUB PRINT.CURRENT.LINE
-*
-        IF X.POS - 1 < MARGIN.LEFT THEN
-            PRINT @(X.POS, Y.POS) :
-            RETURN
-        END
-*
-        ORIGINAL.X.POS = 0
-        X.POS = X.POS - 1
-        GOSUB DISPLAY.HEADER
+        GOSUB SCROLL.LEFT
         PRINT @(X.POS, Y.POS) :
 *
     END ELSE IF ESCAPE.SEQUENCE = RIGHT.ARROW THEN
         GOSUB PRINT.CURRENT.LINE
-*
-        LINE.LEN = LEN(LINES<CURRENT.LINE>)
-        IF X.POS + 1 >= LINE.LEN + MARGIN.LEFT THEN
-            PRINT @(X.POS, Y.POS) :
-            RETURN
-        END
-*
-        IF X.POS > SCREEN.WIDTH - MARGIN.RIGHT THEN
-            PRINT @(X.POS, Y.POS) :
-            RETURN
-        END
-*
-        ORIGINAL.X.POS = 0
-        X.POS = X.POS + 1
-        GOSUB DISPLAY.HEADER
+        GOSUB SCROLL.RIGHT
         PRINT @(X.POS, Y.POS) :
     END
 *
@@ -3173,6 +3167,41 @@
     GOSUB SET.X.POS
     GOSUB DISPLAY.HEADER
     PRINT @(X.POS, Y.POS) :
+*
+    RETURN
+*
+*********************  S U B R O U T I N E  *********************
+*
+    SCROLL.RIGHT:NULL
+*
+    LINE.LEN = LEN(LINES<CURRENT.LINE>)
+    IF X.POS + 1 >= LINE.LEN + MARGIN.LEFT THEN
+        PRINT @(X.POS, Y.POS) :
+        RETURN
+    END
+*
+    IF X.POS > SCREEN.WIDTH - MARGIN.RIGHT THEN
+        PRINT @(X.POS, Y.POS) :
+        RETURN
+    END
+*
+    ORIGINAL.X.POS = 0
+    X.POS = X.POS + 1
+    GOSUB DISPLAY.HEADER
+    RETURN
+*
+*********************  S U B R O U T I N E  *********************
+*
+    SCROLL.LEFT:NULL
+*
+    IF X.POS - 1 < MARGIN.LEFT THEN
+        PRINT @(X.POS, Y.POS) :
+        RETURN
+    END
+*
+    ORIGINAL.X.POS = 0
+    X.POS = X.POS - 1
+    GOSUB DISPLAY.HEADER
 *
     RETURN
 *
