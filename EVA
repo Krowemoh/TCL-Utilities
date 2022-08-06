@@ -2728,22 +2728,13 @@
 *
             END ELSE IF ESCAPE.SEQUENCE = LEFT.ARROW THEN
                 GOSUB PRINT.CURRENT.LINE
-*
-                IF X.POS > MARGIN.LEFT THEN
-                    X.POS = X.POS - 1
-                END
+                GOSUB SCROLL.LEFT
+                PRINT @(X.POS,Y.POS) :
 *
             END ELSE IF ESCAPE.SEQUENCE = RIGHT.ARROW THEN
                 GOSUB PRINT.CURRENT.LINE
-*
-                LINE.LEN = LEN(LINES<CURRENT.LINE>) + MARGIN.LEFT
-                MAX.X.LEN = SCREEN.WIDTH - MARGIN.RIGHT - 1
-                IF MAX.X.LEN > LINE.LEN THEN
-                    MAX.X.LEN = LINE.LEN
-                END
-                IF X.POS < MAX.X.LEN THEN
-                    X.POS = X.POS + 1
-                END
+                GOSUB SCROLL.RIGHT
+                PRINT @(X.POS,Y.POS) :
 *
             END ELSE
                 IF CC.LIST.OPEN THEN
@@ -3172,6 +3163,11 @@
 *
     SCROLL.RIGHT:NULL
 *
+    IF CC.LIST.OPEN THEN
+        CC.LIST.OPEN = FALSE
+        GOSUB DISPLAY.LINES
+    END
+*
     LINE.LEN = LEN(LINES<CURRENT.LINE>)
     IF X.POS + 1 >= LINE.LEN + MARGIN.LEFT THEN
         PRINT @(X.POS, Y.POS) :
@@ -3191,6 +3187,11 @@
 *********************  S U B R O U T I N E  *********************
 *
     SCROLL.LEFT:NULL
+*
+    IF CC.LIST.OPEN THEN
+        CC.LIST.OPEN = FALSE
+        GOSUB DISPLAY.LINES
+    END
 *
     IF X.POS - 1 < MARGIN.LEFT THEN
         PRINT @(X.POS, Y.POS) :
