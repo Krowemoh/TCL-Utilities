@@ -326,7 +326,7 @@
 *
 *********************  S U B R O U T I N E  *********************
 *
-    READ.RECORD:NULL
+READ.RECORD:NULL
 *
     READU RAW.LINES FROM FILE,RECORD.ID LOCKED
         PRINT 'Record is locked: ' : RECORD.ID : ' - Press RETURN':
@@ -338,7 +338,7 @@
 *
 *********************  S U B R O U T I N E  *********************
 *
-    MAIN:NULL
+MAIN:NULL
 *
     SEARCH.RESULTS = ''
     SEARCH.POSITION = 0
@@ -757,7 +757,7 @@
 *
 *********************  s u b r o u t i n e  *********************
 *
-    SYNTAX.INIT:NULL
+SYNTAX.INIT:NULL
 *
     IF FILETYPE = 'BASIC' THEN
         GOSUB SYNTAX.INIT.BASIC
@@ -770,7 +770,7 @@
 *
 *********************  s u b r o u t i n e  *********************
 *
-    SYNTAX.INIT.BASIC:NULL
+SYNTAX.INIT.BASIC:NULL
 *
     STATEMENTS = ''
     STATEMENTS = STATEMENTS : ' ' : '$DEFINE $IFDEF $ENDIF ABORT ACTIVATEKEY AUTHORIZATION AUXMAP'
@@ -870,7 +870,7 @@
 *
 *********************  s u b r o u t i n e  *********************
 *
-    SYNTAX.INIT.PROC:NULL
+SYNTAX.INIT.PROC:NULL
 *
     STATEMENTS = 'IF GO'
     CONVERT ' ' TO @AM IN STATEMENTS
@@ -891,7 +891,7 @@
 *
 *********************  s u b r o u t i n e  *********************
 *
-    PUSH.HISTORY:NULL
+PUSH.HISTORY:NULL
 *
     NUMBER.OF.HISTORY = DCOUNT(HISTORY,@AM)
 *
@@ -922,7 +922,7 @@
 *
 *********************  s u b r o u t i n e  *********************
 *
-    UNDO.HISTORY:NULL
+UNDO.HISTORY:NULL
 *
     IF HISTORY.POS = 1 THEN
         PRINT BOTTOM : CLEAR.REST.OF.LINE : MESSAGE.COLOR :
@@ -974,7 +974,7 @@
 *
 *********************  s u b r o u t i n e  *********************
 *
-    REDO.HISTORY:NULL
+REDO.HISTORY:NULL
 *
     IF HISTORY.POS >= DCOUNT(HISTORY,@AM) THEN
         PRINT BOTTOM : CLEAR.REST.OF.LINE : MESSAGE.COLOR :
@@ -1011,7 +1011,7 @@
 *
 *********************  s u b r o u t i n e  *********************
 *
-    PUSH.EXPLODE:NULL
+PUSH.EXPLODE:NULL
 *
     IF INSIDE.VLIST THEN RETURN
 *
@@ -1061,7 +1061,7 @@
 *
 *********************  s u b r o u t i n e  *********************
 *
-    POP.EXPLODE:NULL
+POP.EXPLODE:NULL
 *
     $IFDEF DATABASE.UV
         LOWERED.RECORD = LOWER(RAW.LINES)
@@ -1150,7 +1150,7 @@
 *
 *********************  S U B R O U T I N E  *********************
 *
-    PRINT.ERROR.MESSAGE:NULL
+PRINT.ERROR.MESSAGE:NULL
 *
     PRINT BOTTOM : CLEAR.REST.OF.LINE :
     PRINT BRIGHTRED : 'E -> ' :
@@ -1161,7 +1161,7 @@
 *
 *********************  S U B R O U T I N E  *********************
 *
-    PUT.CURSOR.TOP.LEFT:NULL
+PUT.CURSOR.TOP.LEFT:NULL
 *
 * PLACE CURSOR IN TOP LEFT
 *
@@ -1172,7 +1172,7 @@
 *
 *********************  S U B R O U T I N E  *********************
 *
-    SET.X.POS:NULL
+SET.X.POS:NULL
 *
     IF ORIGINAL.X.POS # 0 THEN
         X.POS = ORIGINAL.X.POS
@@ -1191,7 +1191,7 @@
 *
 *********************  S U B R O U T I N E  *********************
 *
-    GOTO.LINE.POSITION:NULL
+GOTO.LINE.POSITION:NULL
 *
     LOCATE(GOTO.LINE,LINE.NUMBERS;CURRENT.LINE) ELSE CURRENT.LINE = NUMBER.OF.LINES
 *
@@ -1209,7 +1209,7 @@
 *
 *********************  S U B R O U T I N E  *********************
 *
-    GOTO.VISIBLE.LINE.POSITION:NULL
+GOTO.VISIBLE.LINE.POSITION:NULL
 *
     IF CURRENT.LINE > LINE.END OR CURRENT.LINE < LINE.START THEN
         LINE.START = CURRENT.LINE - 15
@@ -1225,7 +1225,7 @@
 *
 *********************  S U B R O U T I N E  *********************
 *
-    DISPLAY.HEADER:NULL
+DISPLAY.HEADER:NULL
 *
     PRINT @(0,0) : CLEAR.REST.OF.LINE
     PRINT @(MARGIN.LEFT,0) :
@@ -1243,13 +1243,13 @@
 *
 *********************  S U B R O U T I N E  *********************
 *
-    DISPLAY.FOOTER:NULL
+DISPLAY.FOOTER:NULL
 *
     PRINT BOTTOM : CLEAR.REST.OF.LINE :
     RETURN
 *********************  S U B R O U T I N E  *********************
 *
-    SETUP.DISPLAY:NULL
+SETUP.DISPLAY:NULL
 *
 *TEMP     PRINT CLEAR.SCREEN :
     GOSUB DISPLAY.HEADER
@@ -1258,7 +1258,7 @@
 *
 *********************  S U B R O U T I N E  *********************
 *
-    CONVERT.RAW.LINES:NULL
+CONVERT.RAW.LINES:NULL
 *
     LINES = ''
     LINE.NUMBERS = ''
@@ -1292,7 +1292,7 @@
 *
 *********************  S U B R O U T I N E  *********************
 *
-    COLORIZE.TOKEN:NULL
+COLORIZE.TOKEN:NULL
 *
     LOCATE(TOKEN,STATEMENTS;ANY.POS) THEN
         TOKEN = STMT.COLOR : TOKEN : FOREGROUND.COLOR
@@ -1323,7 +1323,7 @@
 *
 *********************  s u b r o u t i n e  *********************
 *
-    TOKENIZE.LINE:NULL
+TOKENIZE.LINE:NULL
 *
     IF FILETYPE = 'BASIC' THEN
         GOSUB TOKENIZE.LINE.BASIC
@@ -1337,7 +1337,7 @@
 *
 *********************  S U B R O U T I N E  *********************
 *
-    TOKENIZE.LINE.BASIC:NULL
+TOKENIZE.LINE.BASIC:NULL
 *
     TOKEN = ''
     TOKENS = ''
@@ -1474,7 +1474,7 @@
 *
 *********************  S U B R O U T I N E  *********************
 *
-    TOKENIZE.LINE.PROC:NULL
+TOKENIZE.LINE.PROC:NULL
 *
     TOKEN = ''
     TOKENS = ''
@@ -1638,7 +1638,7 @@
 *
 *********************  S U B R O U T I N E  *********************
 *
-    TOKENIZE.LINE.DATA:NULL
+TOKENIZE.LINE.DATA:NULL
 *
     TOKEN = ''
     TOKENS = ''
@@ -1675,7 +1675,7 @@
 *
 *********************  S U B R O U T I N E  *********************
 *
-    DISPLAY.LINES:NULL
+DISPLAY.LINES:NULL
 *
     NUMBER.OF.LINES = DCOUNT(LINES,@AM)
     IF NUMBER.OF.LINES = 0 THEN NUMBER.OF.LINES = 1
@@ -1720,7 +1720,7 @@
 *
 *********************  S U B R O U T I N E  *********************
 *
-    PRINT.CURRENT.LINE:NULL
+PRINT.CURRENT.LINE:NULL
 *
     LINE = LINES<CURRENT.LINE>
     LINE.NUMBER = LINE.NUMBERS<CURRENT.LINE>
@@ -1748,7 +1748,7 @@
 *
 *********************  S U B R O U T I N E  *********************
 *
-    DISPLAY.LINES.FROM.TO:NULL
+DISPLAY.LINES.FROM.TO:NULL
 *
     DQ.STACK.CTR = 0
     SQ.STACK.CTR = 0
@@ -1785,7 +1785,7 @@
 *
 *********************  S U B R O U T I N E  *********************
 *
-    PROCESS.ESCAPE.KEY:NULL
+PROCESS.ESCAPE.KEY:NULL
 *
     ESCAPE.SEQUENCE = ''
     $IFDEF DATABASE.UV
@@ -1824,7 +1824,7 @@
 *
 *********************  S U B R O U T I N E  *********************
 *
-    PROCESS.BASE.ESCAPE.KEY:NULL
+PROCESS.BASE.ESCAPE.KEY:NULL
 *
     IF ESCAPE.SEQUENCE = PAGE.UP THEN
         GOSUB PRINT.CURRENT.LINE
@@ -1902,7 +1902,7 @@
 *
 *********************  S U B R O U T I N E  *********************
 *
-    PROCESS.EDITOR.COMMAND:NULL
+PROCESS.EDITOR.COMMAND:NULL
 *
     PRINT BOTTOM : CLEAR.REST.OF.LINE :
     PRINT EDITOR.COLOR : EDITOR.PROMPT : EDITOR.COMMAND :
@@ -2424,7 +2424,7 @@
 *
 *********************  S U B R O U T I N E  *********************
 *
-    PROCESS.SEARCH.INPUT:NULL
+PROCESS.SEARCH.INPUT:NULL
 *
     PRINT BOTTOM : EDITOR.COLOR : CLEAR.REST.OF.LINE :
     PRINT SEARCH.PROMPT :
@@ -2443,7 +2443,7 @@
 *
 *********************  S U B R O U T I N E  *********************
 *
-    PROCESS.SEARCH:NULL
+PROCESS.SEARCH:NULL
 *
     IF SEARCH.STRING = '' THEN
         SEARCH.STRING = ORIGINAL.SEARCH.STRING
@@ -2503,7 +2503,7 @@
 *
 *********************  S U B R O U T I N E  *********************
 *
-    GOTO.SEARCH.RESULT:NULL
+GOTO.SEARCH.RESULT:NULL
 *
     GOTO.LINE = SEARCH.RESULTS<SEARCH.POSITION,1>
     FOUND.POS = SEARCH.RESULTS<SEARCH.POSITION,2>
@@ -2527,7 +2527,7 @@
 *
 *********************  S U B R O U T I N E  *********************
 *
-    PROCESS.INPUT:NULL
+PROCESS.INPUT:NULL
 *
     INPUT.SEARCH.TRIGGERED = FALSE
     INPUT.SEARCH.TERM = ''
@@ -2639,7 +2639,7 @@
 *
 *********************  S U B R O U T I N E  *********************
 *
-    GET.INSERT.CHAR.POS:NULL
+GET.INSERT.CHAR.POS:NULL
 *
     REAL.LINE.NUMBER = LINE.NUMBERS<CURRENT.LINE>
     LOCATE(REAL.LINE.NUMBER,LINE.NUMBERS;LINE.START.POS) ELSE LINE.START.POS = CURRENT.LINE
@@ -2658,7 +2658,7 @@
 * 3. CHUNK THE RAW.LINE
 * 4. INSERT THEM BACK INTO LINES
 *
-    UPDATE.LINE:NULL
+UPDATE.LINE:NULL
 *
     LOCATE(REAL.LINE.NUMBER,LINE.NUMBERS;LINE.START.POS) ELSE LINE.START.POS = CURRENT.LINE
 *
@@ -2689,7 +2689,7 @@
 *
 *********************  S U B R O U T I N E  *********************
 *
-    PROCESS.INSERT.LINE:NULL
+PROCESS.INSERT.LINE:NULL
 *
     GOSUB PUSH.HISTORY
 *
@@ -2733,7 +2733,7 @@
 *
 *********************  S U B R O U T I N E  *********************
 *
-    PROCESS.DELETE.LINE:NULL
+PROCESS.DELETE.LINE:NULL
 *
     GOSUB PUSH.HISTORY
 *
@@ -2762,7 +2762,7 @@
 *
 *********************  S U B R O U T I N E  *********************
 *
-    PROCESS.INSERT:NULL
+PROCESS.INSERT:NULL
 *
     PRINT BOTTOM : MESSAGE.COLOR : CLEAR.REST.OF.LINE : '-- INSERT --' :
     PRINT @(X.POS,Y.POS) :
@@ -3096,7 +3096,7 @@
 *
 *********************  S U B R O U T I N E  *********************
 *
-    PROCESS.DELETE.CHARACTER:NULL
+PROCESS.DELETE.CHARACTER:NULL
 *
     GOSUB PUSH.HISTORY
 *
@@ -3127,7 +3127,7 @@
 *
 *********************  S U B R O U T I N E  *********************
 *
-    PROCESS.REPLACE.CHARACTER:NULL
+PROCESS.REPLACE.CHARACTER:NULL
 *
     GOSUB PUSH.HISTORY
 *
@@ -3156,7 +3156,7 @@
 *
 *********************  S U B R O U T I N E  *********************
 *
-    SCROLL.UP:NULL
+SCROLL.UP:NULL
 *
     IF CC.LIST.OPEN THEN
         IF CC.POS > 1 THEN
@@ -3199,7 +3199,7 @@
 *
 *********************  S U B R O U T I N E  *********************
 *
-    SCROLL.DOWN:NULL
+SCROLL.DOWN:NULL
 *
     IF CC.LIST.OPEN THEN
         IF CC.POS < DCOUNT(CC.LIST,@AM) THEN
@@ -3239,7 +3239,7 @@
 *
 *********************  S U B R O U T I N E  *********************
 *
-    SCROLL.RIGHT:NULL
+SCROLL.RIGHT:NULL
 *
     IF CC.LIST.OPEN THEN
         CC.LIST.OPEN = FALSE
@@ -3264,7 +3264,7 @@
 *
 *********************  S U B R O U T I N E  *********************
 *
-    SCROLL.LEFT:NULL
+SCROLL.LEFT:NULL
 *
     IF CC.LIST.OPEN THEN
         CC.LIST.OPEN = FALSE
@@ -3284,7 +3284,7 @@
 *
 *********************  S U B R O U T I N E  *********************
 *
-    SAVE.FILE:NULL
+SAVE.FILE:NULL
 *
     IF INSIDE.VLIST THEN
         PRINT BOTTOM : CLEAR.REST.OF.LINE :
@@ -3310,7 +3310,7 @@
 *
 *********************  S U B R O U T I N E  *********************
 *
-    COMPILE.FILE:NULL
+COMPILE.FILE:NULL
 *
     IF FILETYPE # 'BASIC' THEN RETURN
 *
@@ -3347,7 +3347,7 @@
 *
 *********************  S U B R O U T I N E  *********************
 *
-    FORMAT.FILE:NULL
+FORMAT.FILE:NULL
 *
     GOSUB PUSH.HISTORY
 *
@@ -3368,7 +3368,7 @@
     FOR FMT.CTR = 1 TO NUMBER.OF.RAW.LINES
         TRIMMED.LINE = TRIMB(TRIMF(RAW.LINES<FMT.CTR>))
 *
-        IF TRIMMED.LINE[1,1] = '*' THEN
+        IF TRIMMED.LINE[1,1] = '*' OR (INDEX(TRIMMED.LINE,':NULL',1) # 0AND INDEX(TRIMMED.LINE,'"',1) = 0 AND INDEX(TRIMMED.LINE,"'",1) = 0) THEN
             FMT.LINES<FMT.CTR> = TRIMMED.LINE
             CONTINUE
         END
@@ -3414,7 +3414,7 @@
 *
 *********************  S U B R O U T I N E  *********************
 *
-    DISPLAY.CC.LIST:NULL
+DISPLAY.CC.LIST:NULL
 *
     MAX.SHOW = DCOUNT(CC.LIST,@AM)
     IF MAX.SHOW > 5 THEN MAX.SHOW = 5
@@ -3452,7 +3452,7 @@
 *
 *********************  S U B R O U T I N E  *********************
 *
-    ADD.CC.TOKEN:NULL
+ADD.CC.TOKEN:NULL
 *
     IF TOKEN<1,1> = '' THEN RETURN
     IF NUM(TOKEN<1,1>) THEN RETURN
@@ -3465,7 +3465,7 @@
 *
 *********************  s u b r o u t i n e  *********************
 *
-    CC.TOKENIZE.LINE:NULL
+CC.TOKENIZE.LINE:NULL
 *
     IF FILETYPE = 'BASIC' THEN
         GOSUB CC.TOKENIZE.LINE.BASIC
@@ -3477,7 +3477,7 @@
 *
 *********************  S U B R O U T I N E  *********************
 *
-    CC.TOKENIZE.LINE.BASIC:NULL
+CC.TOKENIZE.LINE.BASIC:NULL
 *
     TOKEN = ''
     FOR LETTER.CTR = 1 TO LEN(RAW.LINE)
@@ -3502,7 +3502,7 @@
 *
 *********************  S U B R O U T I N E  *********************
 *
-    ADD.AUTO.COMPLETE:NULL
+ADD.AUTO.COMPLETE:NULL
 *
     NUMBER.OF.RAW.LINES = DCOUNT(RAW.LINES,@AM)
 *
@@ -3515,7 +3515,7 @@
 *
 *********************  S U B R O U T I N E  *********************
 *
-    ADD.SNIPPETS:NULL
+ADD.SNIPPETS:NULL
 *
     $IFDEF DATABASE.UV
         OPENSEQ PATH TO SNIPPETS.FILE ELSE
@@ -3556,7 +3556,7 @@
     RETURN
 *********************  S U B R O U T I N E  *********************
 *
-    ADD.DEFAULT.SNIPPETS:NULL
+ADD.DEFAULT.SNIPPETS:NULL
 *
     SNIPPETS<1,1> = 'ABORT'
     SNIPPETS<1,2> = 'Use the ABORT statement to terminate execution of a BASIC program and return to the UniVerse prompt.'
