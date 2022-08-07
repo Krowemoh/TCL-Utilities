@@ -756,7 +756,7 @@ MAIN:NULL
 *
     RETURN
 *
-*********************  s u b r o u t i n e  *********************
+*********************  S U B R O U T I N E  *********************
 *
 SYNTAX.INIT:NULL
 *
@@ -769,7 +769,7 @@ SYNTAX.INIT:NULL
 *
     RETURN
 *
-*********************  s u b r o u t i n e  *********************
+*********************  S U B R O U T I N E  *********************
 *
 SYNTAX.INIT.BASIC:NULL
 *
@@ -869,7 +869,7 @@ SYNTAX.INIT.BASIC:NULL
 *
     RETURN
 *
-*********************  s u b r o u t i n e  *********************
+*********************  S U B R O U T I N E  *********************
 *
 SYNTAX.INIT.PROC:NULL
 *
@@ -890,7 +890,7 @@ SYNTAX.INIT.PROC:NULL
 *
     RETURN
 *
-*********************  s u b r o u t i n e  *********************
+*********************  S U B R O U T I N E  *********************
 *
 PUSH.HISTORY:NULL
 *
@@ -921,7 +921,7 @@ PUSH.HISTORY:NULL
 *
     RETURN
 *
-*********************  s u b r o u t i n e  *********************
+*********************  S U B R O U T I N E  *********************
 *
 UNDO.HISTORY:NULL
 *
@@ -973,7 +973,7 @@ UNDO.HISTORY:NULL
     PRINT @(X.POS,Y.POS) :
     RETURN
 *
-*********************  s u b r o u t i n e  *********************
+*********************  S U B R O U T I N E  *********************
 *
 REDO.HISTORY:NULL
 *
@@ -2165,6 +2165,66 @@ PROCESS.EDITOR.COMMAND:NULL
             PRINT @(X.POS,Y.POS) :
         END
 *
+    END ELSE IF EDITOR.COMMAND[1,2] = 'dt' THEN
+        GOSUB PUSH.HISTORY
+*
+        POSSIBLE.NUMBER = EDITOR.COMMAND[3,999]
+        IF POSSIBLE.NUMBER = '' THEN
+            POSSIBLE.NUMBER = 1
+        END
+*
+        IF NOT(NUM(POSSIBLE.NUMBER)) THEN
+            EDITOR.COMMAND = ''
+            PRINT BOTTOM : CLEAR.REST.OF.LINE :
+            PRINT @(X.POS,Y.POS) :
+            RETURN
+        END
+*
+        REAL.LINE.NUMBER = LINE.NUMBERS<CURRENT.LINE>
+        IF POSSIBLE.NUMBER > DCOUNT(RAW.LINES,@AM) - REAL.LINE.NUMBER + 1 THEN
+            POSSIBLE.NUMBER = DCOUNT(RAW.LINES,@AM) - REAL.LINE.NUMBER + 1
+            IF POSSIBLE.NUMBER = 0 THEN POSSIBLE.NUMBER = REAL.LINE.NUMBER 
+        END
+*
+        FOR EDITOR.CTR = REAL.LINE.NUMBER TO POSSIBLE.NUMBER
+            IF DCOUNT(RAW.LINES,@AM) = 0 THEN
+                PRINT BOTTOM : CLEAR.REST.OF.LINE :
+                PRINT @(X.POS,Y.POS) :
+*
+            END ELSE
+                ORIGINAL.NUMBER.OF.LINES = DCOUNT(LINES,@AM)
+*
+                REAL.LINE.NUMBER = LINE.NUMBERS<CURRENT.LINE>
+                CURRENT.RAW.LINE = RAW.LINES<REAL.LINE.NUMBER>
+*
+                RAW.LINES = DELETE(RAW.LINES,REAL.LINE.NUMBER)
+*
+                IF DCOUNT(RAW.LINES,@AM) = 0 THEN
+                    RAW.LINES<-1> = ''
+                    LINES = ''
+                    LINE.NUMBERS = 1
+                END
+*
+                IF CURRENT.LINE =  ORIGINAL.NUMBER.OF.LINES AND CURRENT.LINE # 1 THEN
+                    Y.POS = Y.POS - 1
+                    CURRENT.LINE = CURRENT.LINE - 1
+                END
+            END
+        NEXT EDITOR.CTR
+*
+        PASTE.NEWLINE = TRUE
+        YANKED.LINES = CURRENT.RAW.LINE
+        IF EVA.HISTORY.OPENED THEN WRITEV YANKED.LINES ON EVA.HISTORY.FILE,EVA.HISTORY.NAME,EVA.YANKED.ATTRIBUTE
+*
+        GOSUB CONVERT.RAW.LINES
+        GOSUB DISPLAY.LINES
+*
+        X.POS = MARGIN.LEFT
+        PRINT @(X.POS,Y.POS) :
+*
+        EDITOR.COMMAND = ''
+*
+*
     END ELSE IF EDITOR.COMMAND[1,1] = 'd' THEN
         GOSUB PUSH.HISTORY
 *
@@ -2199,39 +2259,28 @@ PROCESS.EDITOR.COMMAND:NULL
 *
                 RAW.LINES = DELETE(RAW.LINES,REAL.LINE.NUMBER)
 *
-                IF LEN(CURRENT.RAW.LINE) < VIEW.WIDTH THEN
-                    LINES = DELETE(LINES,CURRENT.LINE)
-                    LINE.NUMBERS = DELETE(LINE.NUMBERS,CURRENT.LINE)
-*
-                    NUMBER.OF.LINES = DCOUNT(LINES,@AM)
-                    FOR J = CURRENT.LINE TO NUMBER.OF.LINES
-                        LINE.NUMBERS<J> = LINE.NUMBERS<J> - 1
-                    NEXT J
-                END ELSE
-                    GOSUB CONVERT.RAW.LINES
-                END
-*
                 IF DCOUNT(RAW.LINES,@AM) = 0 THEN
                     RAW.LINES<-1> = ''
                     LINES = ''
                     LINE.NUMBERS = 1
                 END
 *
-                GOSUB DISPLAY.LINES
-*
                 IF CURRENT.LINE =  ORIGINAL.NUMBER.OF.LINES AND CURRENT.LINE # 1 THEN
                     Y.POS = Y.POS - 1
                     CURRENT.LINE = CURRENT.LINE - 1
                 END
-*
-                PASTE.NEWLINE = TRUE
-                YANKED.LINES = CURRENT.RAW.LINE
-                IF EVA.HISTORY.OPENED THEN WRITEV YANKED.LINES ON EVA.HISTORY.FILE,EVA.HISTORY.NAME,EVA.YANKED.ATTRIBUTE
-*
-                X.POS = MARGIN.LEFT
-                PRINT @(X.POS,Y.POS) :
             END
         NEXT EDITOR.CTR
+*
+        PASTE.NEWLINE = TRUE
+        YANKED.LINES = CURRENT.RAW.LINE
+        IF EVA.HISTORY.OPENED THEN WRITEV YANKED.LINES ON EVA.HISTORY.FILE,EVA.HISTORY.NAME,EVA.YANKED.ATTRIBUTE
+*
+        GOSUB CONVERT.RAW.LINES
+        GOSUB DISPLAY.LINES
+*
+        X.POS = MARGIN.LEFT
+        PRINT @(X.POS,Y.POS) :
 *
         EDITOR.COMMAND = ''
 *
