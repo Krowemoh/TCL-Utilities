@@ -4,6 +4,7 @@ EVA is an editor for BASIC, PROCs and MultiValue data. It runs on both UniVerse 
 
 It has the following features:
 
+0. Persistent undo
 1. Syntax highlighting
 2. Code formatting
 3. Auto complete
