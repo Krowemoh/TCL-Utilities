@@ -2256,7 +2256,7 @@ PROCESS.EDITOR.COMMAND:NULL
         PRINT 'Counted ' : SUM : ' occurances of ' : SUBSTRING :
         PRINT @(X.POS,Y.POS) :
 *
-    END ELSE IF EDITOR.COMMAND = 'dict' THEN
+    END ELSE IF EDITOR.COMMAND = 'fa' THEN
         IF NEST.LEVEL # 0 THEN
             RETURN
         END
