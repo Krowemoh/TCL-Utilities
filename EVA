@@ -477,7 +477,7 @@ MAIN:NULL
 *
 * STACK INITIALIZATION
 *
-    INSIDE.VLIST = FALSE
+    INSIDE.VIEW.BUFFER = FALSE
 *
     ORIGINAL.RAW.LINES.STACK = ''
     RAW.LINES.STACK = ''
@@ -588,19 +588,19 @@ MAIN:NULL
             GOSUB PUSH.HISTORY
 *
             IF FILETYPE = 'BASIC' THEN
-            IF RAW.LINE[1,6] = '*TEMP ' THEN
-                RAW.LINE = CHANGE(RAW.LINE,'*TEMP ','',1)
-            END ELSE
-                RAW.LINE = '*TEMP ' : RAW.LINE
-            END
+                IF RAW.LINE[1,6] = '*TEMP ' THEN
+                    RAW.LINE = CHANGE(RAW.LINE,'*TEMP ','',1)
+                END ELSE
+                    RAW.LINE = '*TEMP ' : RAW.LINE
+                END
             END ELSE IF FILETYPE = 'PROC' THEN
-            IF RAW.LINE[1,2] = 'C ' THEN
-                RAW.LINE = CHANGE(RAW.LINE,'C ','',1)
-            END ELSE
-                RAW.LINE = 'C ' : RAW.LINE
+                IF RAW.LINE[1,2] = 'C ' THEN
+                    RAW.LINE = CHANGE(RAW.LINE,'C ','',1)
+                END ELSE
+                    RAW.LINE = 'C ' : RAW.LINE
+                END
             END
-            END
- 
+            
             RAW.LINES<REAL.LINE.NUMBER> = RAW.LINE
 *
             GOSUB CONVERT.RAW.LINES
@@ -974,7 +974,7 @@ SYNTAX.INIT.PROC:NULL
 *
 PUSH.HISTORY:NULL
 *
-    IF INSIDE.VLIST THEN RETURN
+    IF INSIDE.VIEW.BUFFER THEN RETURN
 *
     IF NEST.LEVEL # 0 THEN
         RETURN
@@ -1036,7 +1036,7 @@ PUSH.HISTORY:NULL
 *
 UNDO.HISTORY:NULL
 *
-    IF INSIDE.VLIST THEN RETURN
+    IF INSIDE.VIEW.BUFFER THEN RETURN
 *
     IF NEST.LEVEL # 0 THEN
         RETURN
@@ -1132,7 +1132,7 @@ UNDO.HISTORY:NULL
 *
 REDO.HISTORY:NULL
 *
-    IF INSIDE.VLIST THEN RETURN
+    IF INSIDE.VIEW.BUFFER THEN RETURN
 *
     IF NEST.LEVEL # 0 THEN
         RETURN
@@ -1197,8 +1197,6 @@ REDO.HISTORY:NULL
 *********************  S U B R O U T I N E  *********************
 *
 PUSH.EXPLODE:NULL
-*
-    IF INSIDE.VLIST THEN RETURN
 *
     NEST.LEVEL = NEST.LEVEL + 1
 *
@@ -1325,8 +1323,8 @@ POP.EXPLODE:NULL
 *
     NEST.LEVEL = NEST.LEVEL - 1
 *
-    IF INSIDE.VLIST THEN
-        INSIDE.VLIST = FALSE
+    IF INSIDE.VIEW.BUFFER THEN
+        INSIDE.VIEW.BUFFER = FALSE
     END
 *
     PRINT @(X.POS,Y.POS) :
@@ -2229,12 +2227,58 @@ PROCESS.EDITOR.COMMAND:NULL
         PRINT 'Counted ' : SUM : ' occurances of ' : SUBSTRING :
         PRINT @(X.POS,Y.POS) :
 *
+    END ELSE IF EDITOR.COMMAND[1,5] = 'dict' THEN
+        OPEN 'DICT',FILENAME TO DICT.FILE ELSE
+            PRINT BOTTOM : MESSAGE.COLOR : CLEAR.REST.OF.LINE :
+            PRINT 'Unable to open dict.' :
+            PRINT @(X.POS,Y.POS) :
+            EDITOR.COMMAND = ''
+            RETURN
+        END
+*
+        GOSUB PUSH.EXPLODE
+        INSIDE.VIEW.BUFFER = TRUE
+*
+        EXECUTE 'SELECT DICT ' : FILENAME : ' WITH F1 = "A"'
+*
+        RAW.LINES = ''
+        DICT.NUMBERS = ''
+*
+        LOOP
+            READNEXT DICT.ITEM.ID ELSE DICT.ITEM.ID = ''
+        UNTIL DICT.ITEM.ID = '' DO
+            READV ATTRIBUTE.NUMBER FROM DICT.FILE,DICT.ITEM.ID,2 ELSE ATTRIBUTE.NUMBER = 0
+            IF ATTRIBUTE.NUMBER # 0 THEN
+                LOCATE(ATTRIBUTE.NUMBER,DICT.NUMBERS;DICT.POS;'AR') ELSE
+                    RAW.LINES = INSERT(RAW.LINES,DICT.POS;DICT.ITEM.ID)
+                    DICT.NUMBERS = INSERT(DICT.NUMBERS,DICT.POS;ATTRIBUTE.NUMBER)
+                END
+            END
+        REPEAT
+*
+        ORIGINAL.RAW.LINES = RAW.LINES
+*
+        HISTORY = ''
+        HISTORY.X.Y = ''
+        HISTORY.POS = 1
+*
+        CURRENT.LINE = 1
+        LINE.START = 1
+*
+        GOSUB PUT.CURSOR.TOP.LEFT
+        GOSUB CONVERT.RAW.LINES
+        GOSUB DISPLAY.LINES
+*
+        PRINT BOTTOM : MESSAGE.COLOR : CLEAR.REST.OF.LINE :
+        PRINT 'DICT ' : FILENAME : ' ' : RECORD.ID :
+*
+        GOSUB PUT.CURSOR.TOP.LEFT
+*
     END ELSE IF EDITOR.COMMAND[1,5] = 'vlist' THEN
         EXECUTE 'VLIST ' : FILENAME : ' ' : RECORD.ID CAPTURING RESULTS
 *
         GOSUB PUSH.EXPLODE
-*
-        INSIDE.VLIST = TRUE
+        INSIDE.VIEW.BUFFER = TRUE
 *
         RAW.LINES = ''
         NUMBER.OF.VLIST = DCOUNT(RESULTS,@AM)
@@ -3554,10 +3598,10 @@ SCROLL.LEFT:NULL
 *
 SAVE.FILE:NULL
 *
-    IF INSIDE.VLIST THEN
+    IF INSIDE.VIEW.BUFFER THEN
         PRINT BOTTOM : CLEAR.REST.OF.LINE :
         PRINT MESSAGE.COLOR :
-        PRINT 'Cannot save inside a vlist.' : CLEAR.REST.OF.LINE :
+        PRINT 'Cannot save inside a view buffer.' : CLEAR.REST.OF.LINE :
 *
     END ELSE IF NEST.LEVEL # 0 THEN
         SAVE.ROW = TRUE
