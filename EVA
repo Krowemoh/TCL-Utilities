@@ -996,7 +996,7 @@ SYNTAX.INIT.PROC:NULL
     FUNCTIONS = ''
     CONVERT ' ' TO @AM IN FUNCTIONS
 *
-    OPERATORS = '< = > >= <= ( ) #'
+    OPERATORS = '< = > >= <= #'
     CONVERT ' ' TO @AM IN OPERATORS
 *
     SPECIALS = ''
@@ -1672,10 +1672,13 @@ TOKENIZE.LINE.BASIC:NULL
         END ELSE
             LOCATE(CHARACTER,BREAK.CHARACTERS;BREAK.POS) THEN
                 IF TOKEN # '' THEN CREATED.FIRST.TOKEN = TRUE
+*
                 GOSUB COLORIZE.TOKEN
                 TOKENS<-1> = TOKEN
+*
                 TOKEN = BREAK.CHARACTERS<BREAK.POS>
                 GOSUB COLORIZE.TOKEN
+*
                 TOKENS<-1> = TOKEN
                 TOKEN = ''
             END ELSE
@@ -4094,6 +4097,14 @@ TOGGLE.DICTIONARY:NULL
     PRINT BOTTOM : MESSAGE.COLOR : CLEAR.REST.OF.LINE :
     PRINT 'Showing dictionary' :
     PRINT @(X.POS,Y.POS) :
+*
+    RETURN
+*
+*********************  S U B R O U T I N E  *********************
+*
+BUILD.HELP.ITEM:NULL
+*
+    HELP.ITEM = ''
 *
     RETURN
 *
