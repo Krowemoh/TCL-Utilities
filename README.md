@@ -94,7 +94,7 @@ Commands starting with `:` are commands you can run in command mode. You can ent
 `:dict` - View the dictionary in a seperate buffer  
 
 `:count` {string} - Count the occurnace of the string  
-`:s/{SS}/{RR}/{number=1}` - Replace SS with RR in the current line and next number of lines, any delimiter can be used  
+`:s/{SS}/{RR}/{number=1}` - Replace SS with RR in the current line and next number of lines  
 `:%s/{SS}/{RR}` - Replace SS with RR globally  
 
 `:a{num} {string}` - Append a string to the next number of lines  
