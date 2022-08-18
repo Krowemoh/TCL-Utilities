@@ -3602,7 +3602,8 @@ SCROLL.UP:NULL
             GOSUB PRINT.CURRENT.LINE
         $ENDIF
         $IFDEF DATABASE.D3
-            GOSUB DISPLAY.LINES
+            PRINT @(-106) 
+            GOSUB PRINT.CURRENT.LINE
         $ENDIF
     END
 *
@@ -3646,7 +3647,9 @@ SCROLL.DOWN:NULL
             GOSUB PRINT.CURRENT.LINE
         $ENDIF
         $IFDEF DATABASE.D3
-            GOSUB DISPLAY.LINES
+            PRINT 
+            PRINT
+            GOSUB PRINT.CURRENT.LINE
         $ENDIF
     END
 *
