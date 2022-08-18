@@ -2061,8 +2061,7 @@ PROCESS.ESCAPE.KEY:NULL
     $ENDIF
     ESCAPE.SEQUENCE = CHR
 *
-    IF CHR = 'O' THEN
-        
+    IF SEQ(CHR) = SEQ('O') THEN
         $IFDEF DATABASE.UV
             CHR = KEYIN()
         $ENDIF
