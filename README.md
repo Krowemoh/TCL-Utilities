@@ -81,6 +81,7 @@ Commands starting with `:` are commands you can run in command mode. You can ent
 
 ## Editor Mode Commands
 `:help` - Display the help  
+`:syntax={BASIC,PROC,DATA}` - Change the syntax highlighting  
 `:{lineNumber}` - This will put the cursor on that line number  
 
 `:invert` - This will inverse the case of a line  

@@ -25,8 +25,6 @@
 *                                                                      *
 ************************************************************************
 *
-    EXECUTE 'TERM xterm'
-*
 * VERSION
 *
     VERSION = '3'
@@ -367,6 +365,8 @@ READ.RECORD:NULL
 *
 MAIN:NULL
 *
+    EXECUTE 'TERM xterm'
+*
 * INITIALIZE CHECKSUM
 *
     $IFDEF DATABASE.UV
@@ -469,7 +469,7 @@ MAIN:NULL
     READ ANYTHING FROM MD.FILE,FILENAME:'.O' THEN
         FILETYPE = 'BASIC'
 *
-    END ELSE IF FILENAME = 'BP' OR FILENAME = 'MPROCLIB' THEN
+    END ELSE IF FILENAME = 'BP' OR FILENAME = 'NEW-BP' OR FILENAME = 'MPROCLIB' THEN
         FILETYPE = 'BASIC'
 *
     END ELSE IF IS.DICTIONARY THEN
@@ -2361,6 +2361,12 @@ PROCESS.EDITOR.COMMAND:NULL
 *
         GOSUB PUT.CURSOR.TOP.LEFT
 *
+    END ELSE IF EDITOR.COMMAND[1,6] = 'syntax' THEN
+        FILETYPE = FIELD(EDITOR.COMMAND,'=',2)
+        GOSUB SYNTAX.INIT
+        GOSUB DISPLAY.LINES
+        PRINT @(X.POS,Y.POS) :
+*
     END ELSE IF EDITOR.COMMAND = 'vlist' THEN
         EXECUTE 'VLIST ' : FILENAME : ' ' : RECORD.ID CAPTURING RESULTS
 *
@@ -4222,6 +4228,7 @@ BUILD.HELP.LINES:NULL
     HELP.LINES<-1> = '*'
     HELP.LINES<-1> = '## Editor Mode Commands'
     HELP.LINES<-1> = '    :help - Display the help  '
+    HELP.LINES<-1> = '    :syntax={BASIC,PROC,DATA} - Change the syntax highlighting  '
     HELP.LINES<-1> = '    :{lineNumber} - This will put the cursor on that line number  '
     HELP.LINES<-1> = '*'
     HELP.LINES<-1> = '    :invert - This will inverse the case of a line  '
