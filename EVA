@@ -652,6 +652,11 @@ MAIN:NULL
             INSERT.LINE = '*'
             GOSUB PROCESS.INSERT.LINE
 *
+            IF Y.POS > VIEW.HEIGHT THEN
+                LINE.START = LINE.START + 1
+                Y.POS = VIEW.HEIGHT
+             END
+*
             GOSUB DISPLAY.LINES
             PRINT @(X.POS,Y.POS) :
 *
@@ -661,6 +666,11 @@ MAIN:NULL
         END ELSE IF CHR = 'o' THEN
             INSERT.LINE = ''
             GOSUB PROCESS.INSERT.LINE
+*
+            IF Y.POS > VIEW.HEIGHT THEN
+                LINE.START = LINE.START + 1
+                Y.POS = VIEW.HEIGHT
+             END
 *
             GOSUB DISPLAY.LINES
             PRINT @(X.POS,Y.POS) :
@@ -756,6 +766,11 @@ MAIN:NULL
                     INSERT.LINE = YANKED.LINES<1,PASTE.CTR>
                     GOSUB PROCESS.INSERT.LINE
                 NEXT PASTE.CTR
+*
+                IF Y.POS > VIEW.HEIGHT THEN
+                    LINE.START = LINE.START + PASTE.CTR - 1
+                    Y.POS = VIEW.HEIGHT
+                END
 *
                 GOSUB DISPLAY.LINES
                 PRINT @(X.POS,Y.POS) :
@@ -3460,13 +3475,19 @@ PROCESS.INSERT:NULL
 *
             GOSUB CC.TOKENIZE.LINE
 *
-            GOSUB CONVERT.RAW.LINES
-            GOSUB DISPLAY.LINES
-*
             CURRENT.LINE = CURRENT.LINE + 1
 *
             X.POS = MARGIN.LEFT + NUMBER.OF.SPACES
             Y.POS = Y.POS + 1
+*
+            IF Y.POS > VIEW.HEIGHT THEN
+                LINE.START = LINE.START + 1
+                Y.POS = VIEW.HEIGHT
+             END
+*
+            GOSUB CONVERT.RAW.LINES
+            GOSUB DISPLAY.LINES
+*
             PRINT BOTTOM : MESSAGE.COLOR : CLEAR.REST.OF.LINE : '-- INSERT --' :
             PRINT @(X.POS,Y.POS) :
 *
