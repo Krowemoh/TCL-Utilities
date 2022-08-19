@@ -3541,11 +3541,6 @@ PROCESS.INSERT:NULL
 *
                 LINE.FROM = CURRENT.LINE
                 LINE.TO = CURRENT.LINE + MAX.SUGGESTIONS + 1
-                LINE.TO.MAX = DCOUNT(LINE.NUMBERS,@AM)
-*
-                IF LINE.TO > LINE.TO.MAX THEN
-                    LINE.TO = LINE.TO.MAX
-                END
 *
                 IF LINE.TO > DCOUNT(LINES,@AM) THEN
                     GOSUB DISPLAY.LINES
