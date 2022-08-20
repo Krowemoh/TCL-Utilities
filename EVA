@@ -27,7 +27,7 @@
 *
 * VERSION
 *
-    VERSION = '5'
+    VERSION = '6'
 *
     @USER1 = 'EVA'
     @USER2 = 'EVA'
