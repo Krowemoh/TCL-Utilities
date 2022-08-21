@@ -1,4 +1,7 @@
 *
+    GIT.FILENAME = 'EVA'
+    GIT.REPO = 'https://github.com/Krowemoh/eva.git'
+*
 * COMPILER DIRECTIVES
 *
     $DEFINE DATABASE.UV
@@ -4755,7 +4758,7 @@ ADD.DEFAULT.SNIPPETS:NULL
     SNIPPETS<136,3,1> = "INCLUDE "
     SNIPPETS<137,1> = 'INDEX'
     SNIPPETS<137,2> = 'Use the INDEX function to return the starting character position for the specified occurrence of substring in string.'
-    SNIPPETS<137,3,1> = "INDEX(, , )"
+    SNIPPETS<137,3,1> = "INDEX(H,N,1)"
     SNIPPETS<138,1> = 'INDEXS'
     SNIPPETS<138,2> = 'Use the INDEXS function to return a dynamic array of the starting column positions for a specified occurrence of a substring in each element of dynamic.'
     SNIPPETS<138,3,1> = "INDEXS(, , )"
@@ -4948,7 +4951,7 @@ ADD.DEFAULT.SNIPPETS:NULL
     SNIPPETS<200,1> = 'OPEN'
     SNIPPETS<200,2> = 'Use the OPEN statement to open a UniVerse file for use by BASIC programs.'
     SNIPPETS<200,3,1> = "OPEN '','' TO .FILE ELSE"
-    SNIPPETS<200,3,2> = "PRINT 'Unable to open file:  - Press RETURN':"
+    SNIPPETS<200,3,2> = "PRINT 'Unable to open file: ' : .FILE : ' - Press RETURN':"
     SNIPPETS<200,3,3> = "INPUT ANYTHING"
     SNIPPETS<200,3,4> = "STOP"
     SNIPPETS<200,3,5> = "END"
