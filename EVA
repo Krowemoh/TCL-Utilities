@@ -30,7 +30,7 @@
 *
 * VERSION
 *
-    VERSION = '6'
+    VERSION = '7'
 *
     @USER1 = 'EVA'
     @USER2 = 'EVA'
@@ -439,8 +439,6 @@ MAIN:NULL
     PRINT @(0,0) : CLEAR.REST.OF.SCREEN
 *
     QUIT.FLAG = FALSE
-*
-    UP.ARROW.MODE = FALSE
 *
 * INITIALIZE RIGHT WINDOW
 *
