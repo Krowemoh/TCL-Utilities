@@ -105,6 +105,7 @@ Commands starting with `:` are commands you can run in command mode. You can ent
 
 `:dt{lineNumber}` - Delete to a specific line number  
 `:d{number}` - Delete the next number of lines  
+`:drop` - Delete a block that has been marked  
 
 `:ev` - Explode into a multivalue line  
 
