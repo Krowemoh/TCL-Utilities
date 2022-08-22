@@ -3997,7 +3997,7 @@ COMPILE.FILE:NULL
 *
     IF RESULTS<3> = '' THEN
         PRINT BOTTOM : MESSAGE.COLOR : CLEAR.REST.OF.LINE :
-        PRINT OCONV(TIME(),'MTS') : ': ' : RESULTS<1> :
+        PRINT OCONV(TIME(),'MTS') : ': Finished compiling ' : RECORD.ID :
         PRINT @(X.POS,Y.POS) :
 *
     END ELSE
