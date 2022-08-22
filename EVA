@@ -706,7 +706,6 @@ MAIN:NULL
             PRINT @(X.POS,Y.POS) :
 *
             LOOP WHILE TRUE DO
-                
                 $IFDEF DATABASE.UV
                     CHR = KEYIN()
                 $ENDIF
@@ -2626,6 +2625,47 @@ PROCESS.EDITOR.COMMAND:NULL
             PRINT @(X.POS,Y.POS) :
         END
 *
+    END ELSE IF EDITOR.COMMAND = 'drop' THEN
+        IF BLOCK.END < BLOCK.START THEN
+            PRINT BOTTOM : CLEAR.REST.OF.LINE : MESSAGE.COLOR :
+            PRINT 'Cannot drop from ' : BLOCK.START : ' to ' : BLOCK.END : '.' :
+            PRINT @(X.POS,Y.POS) :
+            RETURN
+        END
+*
+        LOCATE(BLOCK.START,LINE.NUMBERS;REAL.BLOCK.START) ELSE REAL.BLOCK.START = 1
+        LOCATE(BLOCK.END,LINE.NUMBERS;REAL.BLOCK.END) ELSE REAL.BLOCK.END = 1
+*
+        FOR EDITOR.CTR = REAL.BLOCK.START TO REAL.BLOCK.END
+            IF DCOUNT(RAW.LINES,@AM) = 0 THEN
+                PRINT BOTTOM : CLEAR.REST.OF.LINE :
+                PRINT @(X.POS,Y.POS) :
+*
+            END ELSE
+                REAL.LINE.NUMBER = LINE.NUMBERS<REAL.BLOCK.START>
+                RAW.LINE = RAW.LINES<REAL.LINE.NUMBER>
+*
+                UNDO.OP = 'DELETE.LINE'
+                GOSUB PUSH.HISTORY
+*
+                RAW.LINES = DELETE(RAW.LINES,REAL.LINE.NUMBER)
+*
+                IF DCOUNT(RAW.LINES,@AM) = 0 THEN
+                    RAW.LINES<-1> = ''
+                    LINES = ''
+                    LINE.NUMBERS = 1
+                END
+            END
+        NEXT EDITOR.CTR
+*
+        GOSUB CONVERT.RAW.LINES
+        GOSUB DISPLAY.LINES
+*
+        X.POS = MARGIN.LEFT
+        PRINT @(X.POS,Y.POS) :
+*
+        EDITOR.COMMAND = ''
+*
     END ELSE IF EDITOR.COMMAND[1,2] = 'dt' THEN
         POSSIBLE.NUMBER = EDITOR.COMMAND[3,999]
         IF POSSIBLE.NUMBER = '' THEN
@@ -2751,61 +2791,16 @@ PROCESS.EDITOR.COMMAND:NULL
 *
         EDITOR.COMMAND = ''
 *
-    END ELSE IF EDITOR.COMMAND[1,1] = '%' or EDITOR.COMMAND[1,1] = 's' THEN
-        START.POS = REAL.LINE.NUMBER
-        REPLACE.PERCENT = FALSE
-*
-        IF EDITOR.COMMAND[1,1] = '%' AND EDITOR.COMMAND[2,1] = 's' THEN
-            REPLACE.PERCENT = TRUE
-            VALUE = EDITOR.COMMAND[3,999]
-            START.POS = 1
-*
-        END ELSE
-            VALUE = EDITOR.COMMAND[2,999]
-        END
+    END ELSE IF EDITOR.COMMAND[1,2] = '%s' THEN
+        VALUE = EDITOR.COMMAND[3,999]
 *
         DELIMITER = VALUE[1,1]
         NEEDLE = FIELD(VALUE,DELIMITER,2)
         NEW.VALUE = FIELD(VALUE,DELIMITER,3)
-        OCCURANCES = FIELD(VALUE,DELIMITER,4)
 *
-        IF REPLACE.PERCENT THEN
-            OCCURANCES = 'G99999'
-        END
+        REPLACE.TO = DCOUNT(RAW.LINES,@AM)
 *
-        REAL.LINE.NUMBER = LINE.NUMBERS<CURRENT.LINE>
-        REPLACE.TO = REAL.LINE.NUMBER
-*
-        IF OCCURANCES # '' AND NUM(OCCURANCES) THEN
-            NULL
-*
-        END ELSE IF OCONV(OCCURANCES[1,1],'MCU') = 'G' THEN
-            START.POS = 1
-*
-            NUMBER.OF.LINES = OCCURANCES[2,999]
-            IF NUMBER.OF.LINES # '' AND NUM(NUMBER.OF.LINES) AND NUMBER.OF.LINES > 0 THEN
-                NUMBER.OF.LINES = NUMBER.OF.LINES - 1
-            END ELSE
-                NUMBER.OF.LINES = DCOUNT(RAW.LINES,@AM)
-            END
-*
-            REPLACE.TO = REAL.LINE.NUMBER + NUMBER.OF.LINES
-*
-            IF NOT(NUM(REPLACE.TO)) THEN
-                REPLACE.TO = REAL.LINE.NUMBER
-            END
-*
-            IF REPLACE.TO > DCOUNT(RAW.LINES,@AM) THEN
-                REPLACE.TO = DCOUNT(RAW.LINES,@AM)
-            END
-*
-            OCCURANCES = 0
-*
-        END ELSE
-            OCCURANCES = 1
-        END
-*
-        FOR REPLACE.LINE.CTR = START.POS TO REPLACE.TO
+        FOR REPLACE.LINE.CTR = 1 TO REPLACE.TO
             REAL.LINE.NUMBER = REPLACE.LINE.CTR
             RAW.LINE = RAW.LINES<REAL.LINE.NUMBER>
 *
@@ -2815,7 +2810,43 @@ PROCESS.EDITOR.COMMAND:NULL
             IF NEEDLE = '' THEN
                 RAW.LINE = NEW.VALUE : RAW.LINE
             END ELSE
-                RAW.LINE = CHANGE(RAW.LINE,NEEDLE,NEW.VALUE,OCCURANCES)
+                RAW.LINE = CHANGE(RAW.LINE,NEEDLE,NEW.VALUE)
+            END
+*
+            RAW.LINES<REAL.LINE.NUMBER> = RAW.LINE
+            GOSUB UPDATE.LINE
+        NEXT REPLACE.LINE.CTR
+*
+        GOSUB DISPLAY.LINES
+        PRINT @(X.POS,Y.POS) :
+*
+    END ELSE IF EDITOR.COMMAND[1,1] = 's' THEN
+        VALUE = EDITOR.COMMAND[2,999]
+*
+        REAL.LINE.NUMBER = LINE.NUMBERS<CURRENT.LINE>
+*
+        DELIMITER = VALUE[1,1]
+        NEEDLE = FIELD(VALUE,DELIMITER,2)
+        NEW.VALUE = FIELD(VALUE,DELIMITER,3)
+        OCCURANCES = FIELD(VALUE,DELIMITER,4)
+*
+        IF OCCURANCES = '' OR NOT(NUM(OCCURANCES)) THEN
+            OCCURANCES = 1
+        END
+*
+        REPLACE.TO = REAL.LINE.NUMBER + OCCURANCES - 1
+*
+        FOR REPLACE.LINE.CTR = REAL.LINE.NUMBER TO REPLACE.TO
+            REAL.LINE.NUMBER = REPLACE.LINE.CTR
+            RAW.LINE = RAW.LINES<REAL.LINE.NUMBER>
+*
+            UNDO.OP = 'CHANGE'
+            GOSUB PUSH.HISTORY
+*
+            IF NEEDLE = '' THEN
+                RAW.LINE = NEW.VALUE : RAW.LINE
+            END ELSE
+                RAW.LINE = CHANGE(RAW.LINE,NEEDLE,NEW.VALUE)
             END
 *
             RAW.LINES<REAL.LINE.NUMBER> = RAW.LINE
@@ -4412,6 +4443,7 @@ BUILD.HELP.LINES:NULL
     HELP.LINES<-1> = '*'
     HELP.LINES<-1> = '    :dt{lineNumber} - Delete to a specific line number  '
     HELP.LINES<-1> = '    :d{number} - Delete the next number of lines  '
+    HELP.LINES<-1> = '    :drop - Delete a block that has been marked  '
     HELP.LINES<-1> = '*'
     HELP.LINES<-1> = '    :ev - Explode into a multivalue line  '
     HELP.LINES<-1> = '*'
