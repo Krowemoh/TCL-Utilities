@@ -370,6 +370,8 @@ MAIN:NULL
 *
     EXECUTE 'TERM xterm'
 *
+    UP.CARET.MODE = FALSE
+*
 * INITIALIZE CHECKSUM
 *
     $IFDEF DATABASE.UV
@@ -658,7 +660,7 @@ MAIN:NULL
             IF Y.POS > VIEW.HEIGHT THEN
                 LINE.START = LINE.START + 1
                 Y.POS = VIEW.HEIGHT
-             END
+            END
 *
             GOSUB DISPLAY.LINES
             PRINT @(X.POS,Y.POS) :
@@ -673,7 +675,7 @@ MAIN:NULL
             IF Y.POS > VIEW.HEIGHT THEN
                 LINE.START = LINE.START + 1
                 Y.POS = VIEW.HEIGHT
-             END
+            END
 *
             GOSUB DISPLAY.LINES
             PRINT @(X.POS,Y.POS) :
@@ -1510,6 +1512,38 @@ CONVERT.RAW.LINES:NULL
         RAW.LINE = RAW.LINES<RAW.LINE.CTR>
         RAW.LINE.LEN = LEN(RAW.LINE)
 *
+        IF UP.CARET.MODE AND FILETYPE = 'DATA' THEN
+            FOR CHAR.CTR = 0 TO 9
+                RAW.LINE = CHANGE(RAW.LINE,CHAR(CHAR.CTR),'^00':CHAR.CTR)
+            NEXT CHAR.CTR
+*
+            FOR CHAR.CTR = 10 TO 31
+                RAW.LINE = CHANGE(RAW.LINE,CHAR(CHAR.CTR),'^0':CHAR.CTR)
+            NEXT CHAR.CTR
+*
+            FOR CHAR.CTR = 127 TO 253
+                RAW.LINE = CHANGE(RAW.LINE,CHAR(CHAR.CTR),'^':CHAR.CTR)
+            NEXT CHAR.CTR
+*
+            RAW.LINES<RAW.LINE.CTR> = RAW.LINE
+        END
+*
+        IF NOT(UP.CARET.MODE) AND FILETYPE = 'DATA' THEN
+            FOR CHAR.CTR = 0 TO 9
+                RAW.LINE = CHANGE(RAW.LINE,'^00':CHAR.CTR,CHAR(CHAR.CTR))
+            NEXT CHAR.CTR
+*
+            FOR CHAR.CTR = 10 TO 31
+                RAW.LINE = CHANGE(RAW.LINE,'^0':CHAR.CTR,CHAR(CHAR.CTR))
+            NEXT CHAR.CTR
+*
+            FOR CHAR.CTR = 127 TO 254
+                RAW.LINE = CHANGE(RAW.LINE,'^':CHAR.CTR,CHAR(CHAR.CTR))
+            NEXT CHAR.CTR
+*
+            RAW.LINES<RAW.LINE.CTR> = RAW.LINE
+        END
+*
         IF RAW.LINE.LEN < VIEW.WIDTH THEN
             IF RAW.LINE.CTR = 1 THEN
                 LINES = RAW.LINE
@@ -1933,6 +1967,32 @@ TOKENIZE.LINE.DATA:NULL
     FOR LETTER.CTR = 1 TO LEN(LINE)
         CHARACTER = LINE[LETTER.CTR,1]
 *
+        IF UP.CARET.MODE AND FILETYPE = 'DATA' AND CHARACTER = '^' THEN
+            MV.MARK = LINE[LETTER.CTR,4]
+*
+            IF MV.MARK = '^251' THEN
+                TOKENS<-1> = TOKEN
+                TOKENS<-1> = SPECIAL.COLOR : MV.MARK : FOREGROUND.COLOR
+                TOKEN = ''
+                LETTER.CTR = LETTER.CTR + 3
+                CONTINUE
+*
+            END ELSE IF MV.MARK = '^252' THEN
+                TOKENS<-1> = TOKEN
+                TOKENS<-1> = FUNCTION.COLOR : MV.MARK : FOREGROUND.COLOR
+                TOKEN = ''
+                LETTER.CTR = LETTER.CTR + 3
+                CONTINUE
+*
+            END ELSE IF MV.MARK = '^253' THEN
+                TOKENS<-1> = TOKEN
+                TOKENS<-1> = STMT.COLOR : MV.MARK : FOREGROUND.COLOR
+                TOKEN = ''
+                LETTER.CTR = LETTER.CTR + 3
+                CONTINUE
+            END
+        END
+*
         IF ASCII(CHARACTER) = CHAR(253) THEN
             TOKENS<-1> = TOKEN
             TOKENS<-1> = STMT.COLOR : CHARACTER : FOREGROUND.COLOR
@@ -2041,7 +2101,7 @@ PRINT.CURRENT.LINE:NULL
         LINE.TO = LINE.FROM
         LINE.TO.MAX = DCOUNT(LINE.NUMBERS,@AM)
 *
-        FOR PRINT.CTR = LINE.FROM TO LINE.TO.MAX 
+        FOR PRINT.CTR = LINE.FROM TO LINE.TO.MAX
             IF LINE.NUMBERS<PRINT.CTR> # LINE.NUMBER THEN
                 EXIT
             END
@@ -2051,7 +2111,7 @@ PRINT.CURRENT.LINE:NULL
         IF LINE.FROM < CURRENT.LINE THEN
             LINE.DIFF = CURRENT.LINE - LINE.FROM
             LINE.Y.POS = Y.POS - LINE.DIFF
-        END ELSE 
+        END ELSE
             LINE.Y.POS = Y.POS
         END
 *
@@ -2420,6 +2480,27 @@ PROCESS.EDITOR.COMMAND:NULL
         PRINT 'Help':
 *
         GOSUB PUT.CURSOR.TOP.LEFT
+*
+    END ELSE IF EDITOR.COMMAND = '^' THEN
+        PRINT BOTTOM : MESSAGE.COLOR : CLEAR.REST.OF.LINE :
+*
+        IF FILETYPE = 'DATA' THEN
+            IF UP.CARET.MODE THEN
+                UP.CARET.MODE = FALSE
+                PRINT 'Turned off up-arrow mode.' :
+            END ELSE
+                UP.CARET.MODE = TRUE
+                PRINT 'Turned on up-arrow mode.' :
+            END
+*
+            GOSUB CONVERT.RAW.LINES
+            GOSUB DISPLAY.LINES
+*
+        END ELSE
+            PRINT 'Up-arrow mode is only available for data files. Please change the file type.' :
+        END
+*
+        PRINT @(X.POS,Y.POS) :
 *
     END ELSE IF EDITOR.COMMAND[1,6] = 'syntax' THEN
         FILETYPE = FIELD(EDITOR.COMMAND,'=',2)
@@ -3475,7 +3556,7 @@ PROCESS.INSERT:NULL
             IF Y.POS > VIEW.HEIGHT THEN
                 LINE.START = LINE.START + 1
                 Y.POS = VIEW.HEIGHT
-             END
+            END
 *
             GOSUB CONVERT.RAW.LINES
             GOSUB DISPLAY.LINES
@@ -3676,7 +3757,7 @@ SCROLL.UP:NULL
             GOSUB PRINT.CURRENT.LINE
         $ENDIF
         $IFDEF DATABASE.D3
-            PRINT @(-106) 
+            PRINT @(-106)
             GOSUB PRINT.CURRENT.LINE
         $ENDIF
     END
@@ -3721,7 +3802,7 @@ SCROLL.DOWN:NULL
             GOSUB PRINT.CURRENT.LINE
         $ENDIF
         $IFDEF DATABASE.D3
-            PRINT 
+            PRINT
             PRINT
             GOSUB PRINT.CURRENT.LINE
         $ENDIF
