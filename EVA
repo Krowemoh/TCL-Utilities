@@ -4,6 +4,8 @@
 *
 * COMPILER DIRECTIVES
 *
+    $DEFINE DATABASE.UV
+    $DEFINE PLATFORM.LINUX
 *
 *ASI********************************************************************
 *                                                                      *
@@ -139,6 +141,7 @@
     EQU TERMINAL.LEFT.ATTRIBUTE TO 4
     EQU TERMINAL.RIGHT.ATTRIBUTE TO 5
 *
+    $IFDEF DATABASE.UV
         UP.ARROW = 'OA'
         DOWN.ARROW = 'OB'
         LEFT.ARROW = 'OD'
@@ -146,7 +149,17 @@
 *
         PAGE.UP = '[5~'
         PAGE.DOWN = '[6~'
+    $ENDIF
 *
+    $IFDEF DATABASE.D3
+        UP.ARROW = '[A'
+        DOWN.ARROW = '[B'
+        LEFT.ARROW = '[D'
+        RIGHT.ARROW = '[C'
+*
+        PAGE.UP = '[5~'
+        PAGE.DOWN = '[6~'
+    $ENDIF
 *
 * INITIALIZE TERMINAL SIZE
 *
@@ -164,7 +177,12 @@
 *
 * SET VOC
 *
+    $IFDEF DATABASE.UV
         VOC = 'VOC'
+    $ENDIF
+    $IFDEF DATABASE.D3
+        VOC = 'MD'
+    $ENDIF
 *
 * OPEN EVA-HISTORY-FILE
 *
@@ -177,14 +195,43 @@
     OPEN '','EVA-HISTORY-FILE' TO EVA.HISTORY.FILE ELSE
         OPEN '',VOC TO VOC.FILE THEN
             EVA.ENTRY = ''
+            $IFDEF PLATFORM.LINUX
+                $IFDEF DATABASE.UV
                     EVA.ENTRY<1> = 'F'
                     EVA.ENTRY<2> = '/tmp/.eva/'
                     EVA.ENTRY<3> = '/tmp/.eva/'
+                $ENDIF
+                $IFDEF DATABASE.D3
+                    EVA.ENTRY<1> = 'Q'
+                    EVA.ENTRY<3> = 'UNIX:/tmp/.eva/'
+                $ENDIF
+            $ENDIF
+            $IFDEF PLATFORM.WINDOWS
+                $IFDEF DATABASE.UV
+                    EVA.ENTRY<1> = 'F'
+                    EVA.ENTRY<2> = 'DOS:C:\.eva\'
+                    EVA.ENTRY<3> = 'DOS:C:\.eva\'
+                $ENDIF
+                $IFDEF DATABASE.D3
+                    EVA.ENTRY<1> = 'Q'
+                    EVA.ENTRY<3> = 'DOS:C:\.eva\'
+                $ENDIF
+            $ENDIF
 *
             WRITE EVA.ENTRY ON VOC.FILE,'EVA-HISTORY-FILE'
 *
             OPEN '','EVA-HISTORY-FILE' TO EVA.HISTORY.FILE ELSE
+                $IFDEF PLATFORM.LINUX
+                    $IFDEF DATABASE.UV
                         EXECUTE 'SH -c "mkdir -p /tmp/.eva/"'
+                    $ENDIF
+                    $IFDEF DATABASE.D3
+                        EXECUTE '!mkdir -p /tmp/.eva/'
+                    $ENDIF
+                $ENDIF
+                $IFDEF PLATFORM.WINDOWS
+                    EXECUTE '! mkdir C:\.eva'
+                $ENDIF
                 OPEN '','EVA-HISTORY-FILE' TO EVA.HISTORY.FILE ELSE
                     EVA.HISTORY.OPENED = FALSE
                 END
@@ -196,10 +243,17 @@
 *
 * INITALIZE USER INFORMATION
 *
+    $IFDEF DATABASE.UV
         USER.NAME = @ACCOUNT
         PORT.NUMBER = @USERNO
         ACCOUNT.NAME = @WHO
+    $ENDIF
 *
+    $IFDEF DATABASE.D3
+        USER.NAME = @USER
+        PORT.NUMBER = @USERNO
+        ACCOUNT.NAME = @ACCOUNT
+    $ENDIF
 *
 * INITALIZE EVA BY USER
 *
@@ -318,7 +372,12 @@ MAIN:NULL
 *
 * INITIALIZE CHECKSUM
 *
+    $IFDEF DATABASE.UV
         CURRENT.CHECKSUM = CHECKSUM(RAW.LINES)
+    $ENDIF
+    $IFDEF DATABASE.D3
+        CURRENT.CHECKSUM = OCONV(RAW.LINES,'u001e')
+    $ENDIF
 *
 * UNDO INITIALIZATION
 *
@@ -358,7 +417,13 @@ MAIN:NULL
     IF UNDO.MATRIX # '' THEN
         UNDO.PTR = DCOUNT(UNDO.MATRIX,@AM)
         FOR UNDO.CTR = 1 TO UNDO.PTR
+            $IFDEF DATABASE.UV
                 RAISED.RECORD = RAISE(UNDO.MATRIX<UNDO.CTR>)
+            $ENDIF
+            $IFDEF DATABASE.D3
+                RAISED.RECORD = UNDO.MATRIX<UNDO.CTR>
+                CONVERT @VM:@SVM:@TM TO @AM:@VM:@SVM IN RAISED.RECORD
+            $ENDIF
             UNDO.STACK(UNDO.CTR) = RAISED.RECORD
         NEXT UNDO.CTR
     END
@@ -513,7 +578,12 @@ MAIN:NULL
             CHR = PROCESS.CHAR
             INPUT.AVAILABLE = FALSE
         END ELSE
+            $IFDEF DATABASE.UV
                 CHR = KEYIN()
+            $ENDIF
+            $IFDEF DATABASE.D3
+                INPUT CHR,0
+            $ENDIF
         END
 *
         ASCII.CODE = SEQ(CHR)
@@ -637,7 +707,12 @@ MAIN:NULL
 *
             LOOP WHILE TRUE DO
                 
+                $IFDEF DATABASE.UV
                     CHR = KEYIN()
+                $ENDIF
+                $IFDEF DATABASE.D3
+                    INPUT CHR,0
+                $ENDIF
 *
                 ASCII.CODE = SEQ(CHR)
 *
@@ -1183,6 +1258,7 @@ PUSH.EXPLODE:NULL
 *
     NEST.LEVEL = NEST.LEVEL + 1
 *
+    $IFDEF DATABASE.UV
         ORIGINAL.RAW.LINES.STACK<NEST.LEVEL> = LOWER(ORIGINAL.RAW.LINES)
         RAW.LINES.STACK<NEST.LEVEL> = LOWER(RAW.LINES)
 *
@@ -1194,7 +1270,33 @@ PUSH.EXPLODE:NULL
         HISTORY.POS.STACK<NEST.LEVEL> = HISTORY.POS
 *
         LINE.START.STACK<NEST.LEVEL> = LINE.START
+    $ENDIF
 *
+    $IFDEF DATABASE.D3
+        LOWERED.RECORD = ORIGINAL.RAW.LINES
+        CONVERT @AM:@VM:@SVM:@TM TO @VM:@SVM:@TM:@STM IN LOWERED.RECORD
+        ORIGINAL.RAW.LINES.STACK<NEST.LEVEL> = LOWERED.RECORD
+*
+        LOWERED.RECORD = RAW.LINES
+        CONVERT @AM:@VM:@SVM:@TM TO @VM:@SVM:@TM:@STM IN LOWERED.RECORD
+        RAW.LINES.STACK<NEST.LEVEL> = LOWERED.RECORD
+*
+        REAL.LINE.NUMBER = LINE.NUMBERS<CURRENT.LINE>
+        REAL.LINE.NUMBER.STACK<NEST.LEVEL> = REAL.LINE.NUMBER
+*
+        LOWERED.RECORD = HISTORY
+        CONVERT @AM:@VM:@SVM:@TM TO @VM:@SVM:@TM:@STM IN LOWERED.RECORD
+        HISTORY.STACK<NEST.LEVEL> = LOWERED.RECORD
+*
+        LOWERED.RECORD = HISTORY.X.Y
+        CONVERT @AM:@VM:@SVM:@TM TO @VM:@SVM:@TM:@STM IN LOWERED.RECORD
+        HISTORY.X.Y.STACK<NEST.LEVEL> = LOWERED.RECORD
+*
+        HISTORY.POS.STACK<NEST.LEVEL> = HISTORY.POS
+*
+        LINE.START.STACK<NEST.LEVEL> = LINE.START
+*
+    $ENDIF
 *
     RETURN
 *
@@ -1202,12 +1304,24 @@ PUSH.EXPLODE:NULL
 *
 POP.EXPLODE:NULL
 *
+    $IFDEF DATABASE.UV
         LOWERED.RECORD = LOWER(RAW.LINES)
+    $ENDIF
 *
+    $IFDEF DATABASE.D3
+        LOWERED.RECORD = RAW.LINES
+        CONVERT @AM:@VM:@SVM:@TM TO @VM:@SVM:@TM:@STM IN LOWERED.RECORD
+    $ENDIF
 *
     ROW = LOWERED.RECORD
 *
+    $IFDEF DATABASE.UV
         RAISED.RECORD = RAISE(RAW.LINES.STACK<NEST.LEVEL>)
+    $ENDIF
+    $IFDEF DATABASE.D3
+        RAISED.RECORD = RAW.LINES.STACK<NEST.LEVEL>
+        CONVERT @VM:@SVM:@TM TO @AM:@VM:@SVM IN RAISED.RECORD
+    $ENDIF
 *
     RAW.LINES = RAISED.RECORD
 *
@@ -1217,15 +1331,33 @@ POP.EXPLODE:NULL
         RAW.LINES<REAL.LINE.NUMBER> = ROW
     END
 *
+    $IFDEF DATABASE.UV
         RAISED.RECORD = RAISE(ORIGINAL.RAW.LINES.STACK<NEST.LEVEL>)
+    $ENDIF
+    $IFDEF DATABASE.D3
+        RAISED.RECORD = ORIGINAL.RAW.LINES.STACK<NEST.LEVEL>
+        CONVERT @VM:@SVM:@TM TO @AM:@VM:@SVM IN RAISED.RECORD
+    $ENDIF
 *
     ORIGINAL.RAW.LINES = RAISED.RECORD
 *
+    $IFDEF DATABASE.UV
         RAISED.RECORD = RAISE(HISTORY.STACK<NEST.LEVEL>)
+    $ENDIF
+    $IFDEF DATABASE.D3
+        RAISED.RECORD =HISTORY.STACK<NEST.LEVEL>
+        CONVERT @VM:@SVM:@TM TO @AM:@VM:@SVM IN RAISED.RECORD
+    $ENDIF
 *
     HISTORY = RAISED.RECORD
 *
+    $IFDEF DATABASE.UV
         RAISED.RECORD = RAISE(HISTORY.X.Y.STACK<NEST.LEVEL>)
+    $ENDIF
+    $IFDEF DATABASE.D3
+        RAISED.RECORD = HISTORY.X.Y.STACK<NEST.LEVEL>
+        CONVERT @VM:@SVM:@TM TO @AM:@VM:@SVM IN RAISED.RECORD
+    $ENDIF
 *
     HISTORY.X.Y = RAISED.RECORD
 *
@@ -1994,15 +2126,30 @@ DISPLAY.LINES.FROM.TO:NULL
 PROCESS.ESCAPE.KEY:NULL
 *
     ESCAPE.SEQUENCE = ''
+    $IFDEF DATABASE.UV
         CHR = KEYIN()
+    $ENDIF
+    $IFDEF DATABASE.D3
+        INPUT CHR,0
+    $ENDIF
     ESCAPE.SEQUENCE = CHR
 *
     IF SEQ(CHR) = SEQ('O') THEN
+        $IFDEF DATABASE.UV
             CHR = KEYIN()
+        $ENDIF
+        $IFDEF DATABASE.D3
+            INPUT CHR,0
+        $ENDIF
         ESCAPE.SEQUENCE = ESCAPE.SEQUENCE : CHR
     END ELSE IF CHR = '[' THEN
         LOOP
+            $IFDEF DATABASE.UV
                 CHR = KEYIN()
+            $ENDIF
+            $IFDEF DATABASE.D3
+                INPUT CHR,0
+            $ENDIF
             ESCAPE.SEQUENCE = ESCAPE.SEQUENCE : CHR
         UNTIL NOT(NUM(CHR)) DO REPEAT
     END ELSE
@@ -2185,7 +2332,12 @@ PROCESS.EDITOR.COMMAND:NULL
             ID.OK = FALSE
             SEQ = 0
             LOOP
+                $IFDEF DATABASE.UV
                     ARCHIVE.ID = ARCHIVE.DATE : '*' : RECORD.ID
+                $ENDIF
+                $IFDEF DATABASE.D3
+                    ARCHIVE.ID = FILENAME : '*' : ARCHIVE.DATE : '*' : RECORD.ID
+                $ENDIF
                 IF SEQ # 0 THEN ARCHIVE.ID = ARCHIVE.ID : '*' : SEQ
                 READV ANYTHING FROM ARCHIVE.FILE, ARCHIVE.ID, 1 ELSE ID.OK = TRUE
             UNTIL ID.OK DO
@@ -2597,7 +2749,13 @@ PROCESS.EDITOR.COMMAND:NULL
     END ELSE IF EDITOR.COMMAND = 'ev' THEN
         GOSUB PUSH.EXPLODE
 *
+        $IFDEF DATABASE.UV
             RAISED.RECORD = RAISE(RAW.LINES<REAL.LINE.NUMBER>)
+        $ENDIF
+        $IFDEF DATABASE.D3
+            RAISED.RECORD = RAW.LINES<REAL.LINE.NUMBER>
+            CONVERT @VM:@SVM:@TM TO @AM:@VM:@SVM IN RAISED.RECORD
+        $ENDIF
         RAW.LINES = RAISED.RECORD
 *
         ORIGINAL.RAW.LINES = RAW.LINES
@@ -2882,7 +3040,12 @@ PROCESS.INPUT:NULL
     INPUT.HISTORY.POS = DCOUNT(INPUT.HISTORY,@VM) + 1
 *
     LOOP WHILE TRUE DO
+        $IFDEF DATABASE.UV
             CHR = KEYIN()
+        $ENDIF
+        $IFDEF DATABASE.D3
+            INPUT CHR,0
+        $ENDIF
 *
         ASCII.CODE = SEQ(CHR)
 *
@@ -3047,7 +3210,12 @@ PROCESS.DELETE.LINE:NULL
     EDITOR.COMMAND = 'd'
 *
     LOOP
+        $IFDEF DATABASE.UV
             CHR = KEYIN()
+        $ENDIF
+        $IFDEF DATABASE.D3
+            INPUT CHR,0
+        $ENDIF
         ASCII.CODE = SEQ(CHR)
     UNTIL ASCII.CODE = SEQ(KEY.CARRIAGE.RETURN) OR NOT(NUM(CHR)) DO
         EDITOR.COMMAND = EDITOR.COMMAND : CHR
@@ -3070,7 +3238,12 @@ PROCESS.INSERT:NULL
     PRINT @(X.POS,Y.POS) :
 *
     LOOP WHILE TRUE DO
+        $IFDEF DATABASE.UV
             CHR = KEYIN()
+        $ENDIF
+        $IFDEF DATABASE.D3
+            INPUT CHR,0
+        $ENDIF
         ASCII.CODE = SEQ(CHR)
 *
         IF CHR = '`' THEN
@@ -3257,7 +3430,7 @@ PROCESS.INSERT:NULL
                     RAW.LINES<REAL.LINE.NUMBER> = L
                     INSERT.POS = REAL.LINE.NUMBER
                     FOR CC.LINE.CTR = 2 TO DCOUNT(CC.STRUCTURE,@SVM)
-                    INSERT.POS = INSERT.POS + 1
+                        INSERT.POS = INSERT.POS + 1
                         INSERT.LINE = SPACE(NUMBER.OF.SPACES) : CC.STRUCTURE<1,1,CC.LINE.CTR>
 *
                         UNDO.OP = 'INSERT.LINE'
@@ -3442,7 +3615,12 @@ PROCESS.DELETE.CHARACTER:NULL
 *
 PROCESS.REPLACE.CHARACTER:NULL
 *
+    $IFDEF DATABASE.UV
         CHR = KEYIN()
+    $ENDIF
+    $IFDEF DATABASE.D3
+        INPUT CHR,0
+    $ENDIF
 *
     REAL.LINE.NUMBER = LINE.NUMBERS<CURRENT.LINE>
     RAW.LINE = RAW.LINES<REAL.LINE.NUMBER>
@@ -3493,8 +3671,14 @@ SCROLL.UP:NULL
         LINE = LINES<CURRENT.LINE>
         LINE.NUMBER = LINE.NUMBERS<CURRENT.LINE>
 *
+        $IFDEF DATABASE.UV
             PRINT @(-49) :
             GOSUB PRINT.CURRENT.LINE
+        $ENDIF
+        $IFDEF DATABASE.D3
+            PRINT @(-106) 
+            GOSUB PRINT.CURRENT.LINE
+        $ENDIF
     END
 *
     GOSUB SET.X.POS
@@ -3532,8 +3716,15 @@ SCROLL.DOWN:NULL
         LINE = LINES<CURRENT.LINE>
         LINE.NUMBER = LINE.NUMBERS<CURRENT.LINE>
 *
+        $IFDEF DATABASE.UV
             PRINT @(-48) :
             GOSUB PRINT.CURRENT.LINE
+        $ENDIF
+        $IFDEF DATABASE.D3
+            PRINT 
+            PRINT
+            GOSUB PRINT.CURRENT.LINE
+        $ENDIF
     END
 *
     GOSUB SET.X.POS
@@ -3606,8 +3797,14 @@ SAVE.FILE:NULL
         UNDO.STACK.MATRIX = ''
 *
         FOR UNDO.CTR = 1 TO UNDO.PTR
+            $IFDEF DATABASE.UV
                 LOWERED.RECORD = LOWER(UNDO.STACK(UNDO.CTR))
+            $ENDIF
 *
+            $IFDEF DATABASE.D3
+                LOWERED.RECORD = UNDO.STACK(UNDO.CTR)
+                CONVERT @AM:@VM:@SVM:@TM TO @VM:@SVM:@TM:@STM IN LOWERED.RECORD
+            $ENDIF
             UNDO.STACK.MATRIX<-1> = LOWERED.RECORD
         NEXT UNDO.CTR
 *
@@ -3616,7 +3813,12 @@ SAVE.FILE:NULL
         ORIGINAL.CHECKSUM = CURRENT.CHECKSUM
         READ CHECK.LINES FROM FILE,RECORD.ID ELSE CHECK.LINES = ''
 *
+        $IFDEF DATABASE.UV
             DIRTY.CHECKSUM = CHECKSUM(CHECK.LINES)
+        $ENDIF
+        $IFDEF DATABASE.D3
+            DIRTY.CHECKSUM = OCONV(CHECK.LINES,'u001e')
+        $ENDIF
 *
         IF ORIGINAL.CHECKSUM # DIRTY.CHECKSUM THEN
             PRINT BOTTOM : CLEAR.REST.OF.LINE :
@@ -3631,7 +3833,12 @@ SAVE.FILE:NULL
 *
 * SAVE CHECKSUM AND UNDO.STACK
 *
+        $IFDEF DATABASE.UV
             CURRENT.CHECKSUM = CHECKSUM(RAW.LINES)
+        $ENDIF
+        $IFDEF DATABASE.D3
+            CURRENT.CHECKSUM = OCONV(RAW.LINES,'u001e')
+        $ENDIF
 *
         READ CHECKSUM.MATRIX FROM EVA.HISTORY.FILE,'CHECKSUM' ELSE CHECKSUM.MATRIX = ''
 *
@@ -3665,8 +3872,13 @@ COMPILE.FILE:NULL
 *
     IF FILETYPE # 'BASIC' THEN RETURN
 *
+    $IFDEF DATABASE.UV
         EXECUTE 'BASIC ' : FILENAME : ' ' : RECORD.ID CAPTURING RESULTS
+    $ENDIF
 *
+    $IFDEF DATABASE.D3
+        EXECUTE 'COMPILE ' : FILENAME : ' ' : RECORD.ID CAPTURING RESULTS
+    $ENDIF
 *
     IF RESULTS<3> = '' THEN
         PRINT BOTTOM : MESSAGE.COLOR : CLEAR.REST.OF.LINE :
@@ -3874,6 +4086,7 @@ ADD.AUTO.COMPLETE:NULL
 *
 ADD.SNIPPETS:NULL
 *
+    $IFDEF DATABASE.UV
         OPENSEQ PATH TO SNIPPETS.FILE ELSE
             RETURN
         END
@@ -3907,6 +4120,7 @@ ADD.SNIPPETS:NULL
             END
 *
         REPEAT
+    $ENDIF
 *
     RETURN
 *
@@ -3917,7 +4131,12 @@ BUILD.DICTIONARY:NULL
     MAX.DICT.SIZE = 1
 *
     OPEN 'DICT',FILENAME TO DICT.FILE THEN
+        $IFDEF DATABASE.UV
             EXECUTE 'SELECT DICT ' : FILENAME : ' WITH F1 = "A"'
+        $ENDIF
+        $IFDEF DATABASE.D3
+            EXECUTE 'SELECT DICT ' : FILENAME : ' WITH A1 = "A"'
+        $ENDIF
 *
         DICT.LINES = ''
         DICT.NUMBERS = ''
@@ -5107,4 +5326,3 @@ ADD.DEFAULT.SNIPPETS:NULL
 * END OF PROGRAM
 *
     END
-
