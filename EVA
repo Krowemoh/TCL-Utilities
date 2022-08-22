@@ -4388,6 +4388,7 @@ BUILD.HELP.LINES:NULL
     HELP.LINES<-1> = '*'
     HELP.LINES<-1> = '## Editor Mode Commands'
     HELP.LINES<-1> = '    :help - Display the help  '
+    HELP.LINES<-1> = '    :^ - Enter up-arrow mode to view non-printable characters  '
     HELP.LINES<-1> = '    :syntax={BASIC,PROC,DATA} - Change the syntax highlighting  '
     HELP.LINES<-1> = '    :{lineNumber} - This will put the cursor on that line number  '
     HELP.LINES<-1> = '*'
