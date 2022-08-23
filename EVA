@@ -276,11 +276,9 @@
 *
 * READ IN COMMAND
 *
-    COMMAND = SENTENCE()
+    GOSUB GET.ARGUMENTS
 *
-    COMMAND = CHANGE(COMMAND,' TRAP','')
-*
-    NUMBER.OF.ARGUMENTS = DCOUNT(COMMAND,' ')
+    NUMBER.OF.ARGUMENTS = DCOUNT(ARGUMENTS,@AM)
 *
     QUIT.ALL.FLAG = FALSE
     VIEW.NUMBERS = TRUE
@@ -289,48 +287,8 @@
 *
 * OPEN FILE AND GO TO MAIN:
 *
-    IF NUMBER.OF.ARGUMENTS = 2 THEN
-        FILENAME = FIELD(COMMAND,' ',2)
-        OPEN '',FILENAME TO FILE ELSE
-            PRINT 'Unable to open file: ' : FILENAME : ' - Press RETURN':
-            INPUT ANYTHING
-            STOP
-        END
-*
-        LOOP
-            READNEXT RECORD.ID ELSE RECORD.ID = ''
-        UNTIL RECORD.ID = '' DO
-            PRINT RECORD.ID
-            READU RAW.LINES FROM FILE,RECORD.ID LOCKED
-                PRINT 'Record is locked: ' : RECORD.ID : ' - Press RETURN':
-                INPUT ANYTHING :
-            END ELSE RAW.LINES = ''
-*
-            GOSUB MAIN
-*
-            RELEASE FILE,RECORD.ID
-*
-            IF QUIT.ALL.FLAG THEN
-                EXIT
-            END
-        REPEAT
-*
-    END ELSE IF NUMBER.OF.ARGUMENTS = 3 THEN
-        FILENAME = FIELD(COMMAND,' ',2)
-*
-        OPEN '',FILENAME TO FILE ELSE
-            PRINT 'Unable to open file: ' : FILENAME : ' - Press RETURN':
-            INPUT ANYTHING
-            STOP
-        END
-*
-        RECORD.ID = FIELD(COMMAND,' ',3)
-        GOSUB READ.RECORD
-*
-        GOSUB MAIN
-*
-    END ELSE IF NUMBER.OF.ARGUMENTS = 4 THEN
-        FILENAME = FIELD(COMMAND,' ',3)
+    IF ARGUMENTS<2> = 'DICT' THEN
+        FILENAME = ARGUMENTS<3>
 *
         OPEN 'DICT',FILENAME TO FILE ELSE
             PRINT 'Unable to open dict file: ' : FILENAME : ' - Press RETURN':
@@ -340,17 +298,97 @@
 *
         IS.DICTIONARY = TRUE
 *
-        RECORD.ID = FIELD(COMMAND,' ',4)
-        GOSUB READ.RECORD
+    END ELSE
+        FILENAME = ARGUMENTS<2>
+        OPEN '',FILENAME TO FILE ELSE
+            PRINT 'Unable to open file: ' : FILENAME : ' - Press RETURN':
+            INPUT ANYTHING
+            STOP
+        END
+    END
+*
+    IF NOT(IS.DICTIONARY) AND NUMBER.OF.ARGUMENTS > 2 THEN
+        LIST.OF.FILES = ''
+*
+        FOR I = 3 TO NUMBER.OF.ARGUMENTS
+            LIST.OF.FILES<-1> = ARGUMENTS<I>
+        NEXT I
+*
+        SELECT LIST.OF.FILES
+    END
+*
+    IF IS.DICTIONARY AND NUMBER.OF.ARGUMENTS > 3 THEN
+        LIST.OF.FILES = ''
+*
+        FOR I = 4 TO NUMBER.OF.ARGUMENTS
+            LIST.OF.FILES<-1> = ARGUMENTS<I>
+        NEXT I
+*
+        SELECT LIST.OF.FILES
+    END
+*
+    LOOP
+        READNEXT RECORD.ID ELSE RECORD.ID = ''
+    UNTIL RECORD.ID = '' DO
+        IF RECORD.ID[1,1] = '"' AND RECORD.ID[LEN(RECORD.ID),1] = '"' THEN
+            RECORD.ID = RECORD.ID[2,LEN(RECORD.ID)-2]
+        END
+*
+        PRINT RECORD.ID
+*
+        READU RAW.LINES FROM FILE,RECORD.ID LOCKED
+            PRINT 'Record is locked: ' : RECORD.ID : ' - Press RETURN':
+            INPUT ANYTHING :
+        END ELSE RAW.LINES = ''
 *
         GOSUB MAIN
 *
-    END ELSE
-        PRINT 'Invalid number of arguments.'
-        STOP
-    END
+        RELEASE FILE,RECORD.ID
+*
+        IF QUIT.ALL.FLAG THEN
+            EXIT
+        END
+    REPEAT
 *
     STOP
+*
+*********************  S U B R O U T I N E  *********************
+*
+GET.ARGUMENTS:NULL
+*
+    COMMAND = SENTENCE()
+*
+    ARGUMENTS = ''
+    TOKEN = ''
+*
+    FOR LETTER.CTR = 1 TO LEN(COMMAND)
+        CHARACTER = COMMAND[LETTER.CTR,1]
+        IF CHARACTER = ' ' THEN
+            IF TOKEN # '' THEN ARGUMENTS<-1> = TOKEN
+            TOKEN = ''
+*
+        END ELSE IF CHARACTER = '"' THEN
+            IF TOKEN # '' THEN ARGUMENTS<-1> = TOKEN
+            TOKEN = ''
+*
+            LOOP
+                LETTER.CTR = LETTER.CTR + 1
+                CHARACTER = COMMAND[LETTER.CTR,1]
+            UNTIL CHARACTER = '"' OR LETTER.CTR > LEN(COMMAND) DO
+                TOKEN = TOKEN : CHARACTER
+            REPEAT
+*
+            IF TOKEN # '' THEN ARGUMENTS<-1> = TOKEN
+            TOKEN = ''
+*
+        END ELSE
+            TOKEN = TOKEN : CHARACTER
+        END
+    NEXT LETTER.CTR
+*
+    IF TOKEN # '' THEN ARGUMENTS<-1> = TOKEN
+*
+    RETURN
 *
 *********************  S U B R O U T I N E  *********************
 *
@@ -474,7 +512,7 @@ MAIN:NULL
     READ ANYTHING FROM MD.FILE,FILENAME:'.O' THEN
         FILETYPE = 'BASIC'
 *
-    END ELSE IF FILENAME[LEN(FILENAME)-1,2] = 'BP' OR FILENAME = 'MPROCLIB' THEN
+    END ELSE IF FILENAME[LEN(FILENAME)-1,2] = 'BP' OR FILENAME = 'MPROCLIB' OR FILENAME = 'WIN.PROGS' THEN
         FILETYPE = 'BASIC'
 *
     END ELSE IF IS.DICTIONARY THEN
