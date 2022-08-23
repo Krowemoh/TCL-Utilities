@@ -30,7 +30,7 @@
 *
 * VERSION
 *
-    VERSION = '7'
+    VERSION = '8'
 *
     @USER1 = 'EVA'
     @USER2 = 'EVA'
@@ -387,18 +387,6 @@ GET.ARGUMENTS:NULL
     NEXT LETTER.CTR
 *
     IF TOKEN # '' THEN ARGUMENTS<-1> = TOKEN
-*
-    RETURN
-*
-*********************  S U B R O U T I N E  *********************
-*
-READ.RECORD:NULL
-*
-    READU RAW.LINES FROM FILE,RECORD.ID LOCKED
-        PRINT 'Record is locked: ' : RECORD.ID : ' - Press RETURN':
-        INPUT ANYTHING
-        STOP
-    END ELSE RAW.LINES = ''
 *
     RETURN
 *
