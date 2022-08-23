@@ -3671,7 +3671,7 @@ PROCESS.INSERT:NULL
                 NEXT LIST.CTR
             END
 *
-            IF DCOUNT(CC.LIST,@AM) > 0 THEN
+            IF DCOUNT(CC.LIST,@AM) > 0 AND Y.POS < (VIEW.HEIGHT+MARGIN.TOP - DCOUNT(CC.LIST,@AM)-MARGIN.BOTTOM) THEN
                 CC.LIST.OPEN = TRUE
                 CC.POS = 1
                 CC.START.LINE = 1
