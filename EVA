@@ -1007,6 +1007,13 @@ SYNTAX.INIT.BASIC:NULL
     SPECIALS = SPECIALS : ' ' : '@SENTENCE'
     SPECIALS = SPECIALS : ' ' : '@SELECTED'
     SPECIALS = SPECIALS : ' ' : '@TTY'
+    SPECIALS = SPECIALS : ' ' : '@USER1'
+    SPECIALS = SPECIALS : ' ' : '@USER2'
+    SPECIALS = SPECIALS : ' ' : '@PATH'
+    SPECIALS = SPECIALS : ' ' : '@WHO'
+    SPECIALS = SPECIALS : ' ' : '@ACCOUNT'
+    SPECIALS = SPECIALS : ' ' : '@USER'
+    SPECIALS = SPECIALS : ' ' : '@USERNO'
 *
     CONVERT ' ' TO @AM IN SPECIALS
 *
@@ -5112,7 +5119,7 @@ ADD.DEFAULT.SNIPPETS:NULL
     SNIPPETS<200,1> = 'OPEN'
     SNIPPETS<200,2> = 'Use the OPEN statement to open a UniVerse file for use by BASIC programs.'
     SNIPPETS<200,3,1> = "OPEN '','' TO .FILE ELSE"
-    SNIPPETS<200,3,2> = "PRINT 'Unable to open file: ' : .FILE : ' - Press RETURN':"
+    SNIPPETS<200,3,2> = "PRINT 'Unable to open file: -FILE - Press RETURN':"
     SNIPPETS<200,3,3> = "INPUT ANYTHING"
     SNIPPETS<200,3,4> = "STOP"
     SNIPPETS<200,3,5> = "END"
