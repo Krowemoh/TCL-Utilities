@@ -353,6 +353,7 @@
         READU RAW.LINES FROM FILE,RECORD.ID LOCKED
             PRINT 'Record is locked: ' : RECORD.ID : ' - Press RETURN':
             INPUT ANYTHING :
+            EXIT
         END ELSE RAW.LINES = ''
 *
         GOSUB MAIN
@@ -1746,13 +1747,13 @@ TOKENIZE.LINE.BASIC:NULL
             TOKENS<-1> = ';'
             TOKEN = ''
 *
-        END ELSE IF CHARACTER = '*' THEN
+        END ELSE IF CHARACTER = '*' OR CHARACTER = '!' THEN
             IF TOKEN # '' THEN CREATED.FIRST.TOKEN = TRUE
             GOSUB COLORIZE.TOKEN
             TOKENS<-1> = TOKEN
 *
             IF CREATED.FIRST.TOKEN AND HIT.SEMICOLON = FALSE THEN
-                TOKEN = '*'
+                TOKEN = CHARACTER
                 GOSUB COLORIZE.TOKEN
                 TOKENS<-1> = TOKEN
                 TOKEN = ''
@@ -2088,7 +2089,7 @@ DISPLAY.LINES:NULL
 *
         GOSUB TOKENIZE.LINE
 *
-        IF RAW.LINES<LINE.NUMBER>[1,1] = '*' THEN
+        IF RAW.LINES<LINE.NUMBER>[1,1] = '*' OR RAW.LINES<LINE.NUMBER>[1,1] = '!' THEN
             LINE.FOREGROUND.COLOR = COMMENT.COLOR
         END ELSE
             LINE.FOREGROUND.COLOR = FOREGROUND.COLOR
@@ -5508,3 +5509,4 @@ ADD.DEFAULT.SNIPPETS:NULL
 * END OF PROGRAM
 *
     END
+
