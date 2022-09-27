@@ -1,6 +1,6 @@
 *
     GIT.FILENAME = 'EVA'
-    GIT.REPO = 'https://github.com/Krowemoh/eva.git'
+     GIT.REPO= 'https://github.com/Krowemoh/eva.git'
 *
 * COMPILER DIRECTIVES
 *
@@ -638,7 +638,7 @@ MAIN:NULL
             GOSUB PROCESS.ESCAPE.KEY
             GOSUB PROCESS.BASE.ESCAPE.KEY
 *
-        END ELSE IF ASCII.CODE = SEQ(KEY.BACKSPACE) THEN
+        END ELSE IF ASCII.CODE = SEQ(KEY.BACKSPACE) OR ASCII.CODE = SEQ(KEY.DELETE) THEN
             IF X.POS > MARGIN.LEFT THEN
                 ORIGINAL.X.POS = 0
                 X.POS = X.POS - 1
@@ -739,6 +739,8 @@ MAIN:NULL
             GOSUB REDO.HISTORY
 *
         END ELSE IF CHR = 'v' THEN
+            V.DELETE = FALSE
+*
             ORIGINAL.X.POS = X.POS
             START.COPY.POS = X.POS - MARGIN.LEFT
             HIGHLIGHTED.CHARS = 1
@@ -762,6 +764,7 @@ MAIN:NULL
 *
                 IF ASCII.CODE = SEQ(KEY.ESCAPE) THEN
                     GOSUB PROCESS.ESCAPE.KEY
+*
                     IF ESCAPE.SEQUENCE = LEFT.ARROW THEN
                         IF X.POS > ORIGINAL.X.POS THEN
                             X.POS = X.POS - 1
@@ -782,7 +785,23 @@ MAIN:NULL
                     PRINT @(X.POS,Y.POS) :
 *
                 END ELSE
-                    EXIT
+                    IF ASCII.CODE = SEQ('$') THEN
+                        HIGHLIGHTED.CHARS = LINE.LEN - START.COPY.POS + 1
+                        X.POS = LINE.LEN + MARGIN.LEFT
+*
+                        LINE = LINES<CURRENT.LINE>
+                        LINE = LINE[1,START.COPY.POS] : BACKGROUND.CYAN : LINE[START.COPY.POS+1,HIGHLIGHTED.CHARS] : RESET.COLOR : LINE[START.COPY.POS+HIGHLIGHTED.CHARS+1,9999]
+*
+                        PRINT @(MARGIN.LEFT,Y.POS) : LINE
+                        PRINT @(X.POS,Y.POS) :
+*
+                    END ELSE IF ASCII.CODE = SEQ('d') THEN
+                        V.DELETE = TRUE
+                        EXIT
+*
+                    END ELSE
+                        EXIT
+                    END
                 END
             REPEAT
 *
@@ -790,8 +809,15 @@ MAIN:NULL
             YANKED.LINES = LINES<CURRENT.LINE>[START.COPY.POS+1,HIGHLIGHTED.CHARS]
             IF EVA.HISTORY.OPENED THEN WRITEV YANKED.LINES ON EVA.HISTORY.FILE,EVA.HISTORY.NAME,EVA.YANKED.ATTRIBUTE
 *
-            GOSUB PRINT.CURRENT.LINE
-            PRINT @(X.POS,Y.POS) :
+            IF V.DELETE THEN
+                X.POS = ORIGINAL.X.POS
+                FOR V.CTR = 1 TO HIGHLIGHTED.CHARS
+                    GOSUB PROCESS.DELETE.CHARACTER
+                NEXT V.CTR
+            END ELSE
+                GOSUB PRINT.CURRENT.LINE
+                PRINT @(X.POS,Y.POS) :
+            END
 *
             X.POS = ORIGINAL.X.POS
             PRINT @(X.POS,Y.POS) :
@@ -3295,7 +3321,7 @@ PROCESS.INPUT:NULL
         END ELSE IF ASCII.CODE = SEQ(KEY.CARRIAGE.RETURN) THEN
             EXIT
 *
-        END ELSE IF ASCII.CODE = SEQ(KEY.BACKSPACE) THEN
+        END ELSE IF ASCII.CODE = SEQ(KEY.BACKSPACE) OR ASCII.CODE = SEQ(KEY.DELETE) THEN
             IF INPUT.X.POS <= 0 THEN
                 EXIT
 *
@@ -3501,7 +3527,7 @@ PROCESS.INSERT:NULL
             PRINT @(X.POS,Y.POS) :
             
 *
-        END ELSE IF ASCII.CODE = SEQ(KEY.BACKSPACE) THEN
+        END ELSE IF ASCII.CODE = SEQ(KEY.BACKSPACE) OR ASCII.CODE = SEQ(KEY.DELETE) THEN
             IF X.POS > MARGIN.LEFT THEN
                 REAL.LINE.NUMBER = LINE.NUMBERS<CURRENT.LINE>
                 RAW.LINE = RAW.LINES<REAL.LINE.NUMBER>
@@ -5509,4 +5535,4 @@ ADD.DEFAULT.SNIPPETS:NULL
 * END OF PROGRAM
 *
     END
-
+    
