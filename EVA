@@ -1,32 +1,16 @@
 *
     GIT.FILENAME = 'EVA'
-     GIT.REPO= 'https://github.com/Krowemoh/eva.git'
+    GIT.REPO= 'https://github.com/Krowemoh/eva.git'
+*
+* SET TERMINAL TYPE
+*
+    EXECUTE 'TERM xterm'
 *
 * COMPILER DIRECTIVES
 *
     $DEFINE DATABASE.UV
     $DEFINE PLATFORM.LINUX
 *
-*ASI********************************************************************
-*                                                                      *
-* Copyright 2022 - Asynchron Systems Inc.                              *
-*                                                                      *
-* THIS PROGRAM IS THE EXCLUSIVE PROPERTY OF ASYNCHRON SYSTEMS INC. IT  *
-* MAY NOT BE USED, SOLD, DISTRIBUTED OR REPRODUCED BY ANY MEANS WITHOUT*
-* THE EXPRESS WRITTEN CONSENT OF ASYNCHRON SYSTEMS INC.                *
-*                                                                      *
-* Create Date  Req#  Who  Description                                  *
-* 10 JUL 2022  N/A   NT   Editor v2                                    *
-*                                                                      *
-************************************************************************
-* Special Instructions                                                 *
-*                                                                      *
-************************************************************************
-* Change History                                                       *
-*                                                                      *
-* Change Date  Req#  Who  Description                                  *
-*                                                                      *
-************************************************************************
 *
 * VERSION
 *
