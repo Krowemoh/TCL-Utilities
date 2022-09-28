@@ -816,39 +816,7 @@ MAIN:NULL
             PRINT @(X.POS,Y.POS) :
 *
         END ELSE IF CHR = 'p' THEN
-            IF PASTE.NEWLINE THEN
-                NUMBER.OF.YANKED.LINES = DCOUNT(YANKED.LINES,@VM)
-*
-                FOR PASTE.CTR = 1 TO NUMBER.OF.YANKED.LINES
-                    INSERT.LINE = YANKED.LINES<1,PASTE.CTR>
-                    GOSUB PROCESS.INSERT.LINE
-                NEXT PASTE.CTR
-*
-                IF Y.POS > VIEW.HEIGHT THEN
-                    LINE.START = LINE.START + PASTE.CTR - 1
-                    Y.POS = VIEW.HEIGHT
-                END
-*
-                GOSUB DISPLAY.LINES
-                PRINT @(X.POS,Y.POS) :
-*
-            END ELSE
-                REAL.LINE.NUMBER = LINE.NUMBERS<CURRENT.LINE>
-                RAW.LINE = RAW.LINES<REAL.LINE.NUMBER>
-*
-                UNDO.OP = 'CHANGE'
-                GOSUB PUSH.HISTORY
-*
-                GOSUB GET.INSERT.CHAR.POS
-*
-                RAW.LINE = RAW.LINE[1,INSERT.CHAR.POSITION+1] : YANKED.LINES : RAW.LINE[INSERT.CHAR.POSITION+2,9999]
-                RAW.LINES<REAL.LINE.NUMBER> = RAW.LINE
-*
-                GOSUB UPDATE.LINE
-                GOSUB DISPLAY.LINES
-*
-                PRINT @(X.POS,Y.POS) :
-            END
+            GOSUB PASTE.BLOCK
 *
         END ELSE IF CHR = '/' OR ASCII.CODE = SEQ(KEY.CTRL.F) THEN
             GOSUB PROCESS.SEARCH.INPUT
@@ -2669,44 +2637,12 @@ PROCESS.EDITOR.COMMAND:NULL
         END
 *
     END ELSE IF EDITOR.COMMAND = 'drop' THEN
-        IF BLOCK.END < BLOCK.START THEN
-            PRINT BOTTOM : CLEAR.REST.OF.LINE : MESSAGE.COLOR :
-            PRINT 'Cannot drop from ' : BLOCK.START : ' to ' : BLOCK.END : '.' :
-            PRINT @(X.POS,Y.POS) :
-            RETURN
-        END
+        GOSUB DROP.BLOCK
+        EDITOR.COMMAND = ''
 *
-        LOCATE(BLOCK.START,LINE.NUMBERS;REAL.BLOCK.START) ELSE REAL.BLOCK.START = 1
-        LOCATE(BLOCK.END,LINE.NUMBERS;REAL.BLOCK.END) ELSE REAL.BLOCK.END = 1
-*
-        FOR EDITOR.CTR = REAL.BLOCK.START TO REAL.BLOCK.END
-            IF DCOUNT(RAW.LINES,@AM) = 0 THEN
-                PRINT BOTTOM : CLEAR.REST.OF.LINE :
-                PRINT @(X.POS,Y.POS) :
-*
-            END ELSE
-                REAL.LINE.NUMBER = LINE.NUMBERS<REAL.BLOCK.START>
-                RAW.LINE = RAW.LINES<REAL.LINE.NUMBER>
-*
-                UNDO.OP = 'DELETE.LINE'
-                GOSUB PUSH.HISTORY
-*
-                RAW.LINES = DELETE(RAW.LINES,REAL.LINE.NUMBER)
-*
-                IF DCOUNT(RAW.LINES,@AM) = 0 THEN
-                    RAW.LINES<-1> = ''
-                    LINES = ''
-                    LINE.NUMBERS = 1
-                END
-            END
-        NEXT EDITOR.CTR
-*
-        GOSUB CONVERT.RAW.LINES
-        GOSUB DISPLAY.LINES
-*
-        X.POS = MARGIN.LEFT
-        PRINT @(X.POS,Y.POS) :
-*
+    END ELSE IF EDITOR.COMMAND = 'm' THEN
+        GOSUB DROP.BLOCK
+        GOSUB PASTE.BLOCK
         EDITOR.COMMAND = ''
 *
     END ELSE IF EDITOR.COMMAND[1,2] = 'dt' THEN
@@ -3967,6 +3903,95 @@ SCROLL.LEFT:NULL
 *
 *********************  S U B R O U T I N E  *********************
 *
+PASTE.BLOCK:NULL
+*
+    IF PASTE.NEWLINE THEN
+        NUMBER.OF.YANKED.LINES = DCOUNT(YANKED.LINES,@VM)
+*
+        FOR PASTE.CTR = 1 TO NUMBER.OF.YANKED.LINES
+            INSERT.LINE = YANKED.LINES<1,PASTE.CTR>
+            GOSUB PROCESS.INSERT.LINE
+        NEXT PASTE.CTR
+*
+        IF Y.POS > VIEW.HEIGHT THEN
+            LINE.START = LINE.START + PASTE.CTR - 1
+            Y.POS = VIEW.HEIGHT
+        END
+*
+        GOSUB DISPLAY.LINES
+        PRINT @(X.POS,Y.POS) :
+*
+    END ELSE
+        REAL.LINE.NUMBER = LINE.NUMBERS<CURRENT.LINE>
+        RAW.LINE = RAW.LINES<REAL.LINE.NUMBER>
+*
+        UNDO.OP = 'CHANGE'
+        GOSUB PUSH.HISTORY
+*
+        GOSUB GET.INSERT.CHAR.POS
+*
+        RAW.LINE = RAW.LINE[1,INSERT.CHAR.POSITION+1] : YANKED.LINES : RAW.LINE[INSERT.CHAR.POSITION+2,9999]
+        RAW.LINES<REAL.LINE.NUMBER> = RAW.LINE
+*
+        GOSUB UPDATE.LINE
+        GOSUB DISPLAY.LINES
+*
+        PRINT @(X.POS,Y.POS) :
+    END
+*
+    RETURN
+*
+*
+*********************  S U B R O U T I N E  *********************
+*
+DROP.BLOCK:NULL
+*
+    IF BLOCK.END < BLOCK.START THEN
+        PRINT BOTTOM : CLEAR.REST.OF.LINE : MESSAGE.COLOR :
+        PRINT 'Cannot drop from ' : BLOCK.START : ' to ' : BLOCK.END : '.' :
+        PRINT @(X.POS,Y.POS) :
+        RETURN
+    END
+*
+    LOCATE(BLOCK.START,LINE.NUMBERS;REAL.BLOCK.START) ELSE REAL.BLOCK.START = 1
+    LOCATE(BLOCK.END,LINE.NUMBERS;REAL.BLOCK.END) ELSE REAL.BLOCK.END = 1
+*
+    FOR EDITOR.CTR = REAL.BLOCK.START TO REAL.BLOCK.END
+        IF DCOUNT(RAW.LINES,@AM) = 0 THEN
+            PRINT BOTTOM : CLEAR.REST.OF.LINE :
+            PRINT @(X.POS,Y.POS) :
+*
+        END ELSE
+            REAL.LINE.NUMBER = LINE.NUMBERS<REAL.BLOCK.START>
+            RAW.LINE = RAW.LINES<REAL.LINE.NUMBER>
+*
+            UNDO.OP = 'DELETE.LINE'
+            GOSUB PUSH.HISTORY
+*
+            RAW.LINES = DELETE(RAW.LINES,REAL.LINE.NUMBER)
+            IF Y.POS > 1 THEN
+                Y.POS = Y.POS - 1
+                CURRENT.LINE = CURRENT.LINE - 1
+            END
+*
+            IF DCOUNT(RAW.LINES,@AM) = 0 THEN
+                RAW.LINES<-1> = ''
+                LINES = ''
+                LINE.NUMBERS = 1
+            END
+        END
+    NEXT EDITOR.CTR
+*
+    GOSUB CONVERT.RAW.LINES
+    GOSUB DISPLAY.LINES
+*
+    X.POS = MARGIN.LEFT
+    PRINT @(X.POS,Y.POS) :
+*
+    RETURN
+*
+*********************  S U B R O U T I N E  *********************
+*
 SAVE.FILE:NULL
 *
     IF UP.CARET.MODE THEN
@@ -4454,6 +4479,8 @@ BUILD.HELP.LINES:NULL
     HELP.LINES<-1> = '    i - enter Insert mode, you can edit and insert characters  '
     HELP.LINES<-1> = '    : - Command Mode  '
     HELP.LINES<-1> = '    v - Enter visual mode and copy part of a line  '
+    HELP.LINES<-1> = '    v -> $ - Inside Visual mode, you can use $ to go to the end of a line  '
+    HELP.LINES<-1> = '    v -> d - Inside Visual mode, you can use d to delete a portion of the a line  '
     HELP.LINES<-1> = '*'
     HELP.LINES<-1> = '    / - Enter search mode and type in a string to search for  '
     HELP.LINES<-1> = '    ctrl+f - Enter search mode and type in a string to search for  '
@@ -4520,6 +4547,7 @@ BUILD.HELP.LINES:NULL
     HELP.LINES<-1> = '    :dt{lineNumber} - Delete to a specific line number  '
     HELP.LINES<-1> = '    :d{number} - Delete the next number of lines  '
     HELP.LINES<-1> = '    :drop - Delete a block that has been marked  '
+    HELP.LINES<-1> = '    :d - Move a block that has been marked  '
     HELP.LINES<-1> = '*'
     HELP.LINES<-1> = '    :ev - Explode into a multivalue line  '
     HELP.LINES<-1> = '*'
