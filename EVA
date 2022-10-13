@@ -680,6 +680,18 @@ MAIN:NULL
 *
             PRINT @(X.POS,Y.POS) :
 *
+        END ELSE IF CHR = 's' THEN
+            INSERT.LINE = '*********************  S U B R O U T I N E  *********************'
+            GOSUB PROCESS.INSERT.LINE
+*
+            IF Y.POS > VIEW.HEIGHT THEN
+                LINE.START = LINE.START + 1
+                Y.POS = VIEW.HEIGHT
+            END
+*
+            GOSUB DISPLAY.LINES
+            PRINT @(X.POS,Y.POS) :
+*
         END ELSE IF CHR = 'e' THEN
             INSERT.LINE = '*'
             GOSUB PROCESS.INSERT.LINE
