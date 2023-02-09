@@ -550,7 +550,7 @@ MAIN:NULL
         END ELSE IF RAW.LINES<1> = 'PQ' THEN
             FILETYPE = 'PROC'
 *
-        END ELSE IF RECORD.ID[LEN(RECORD.ID)-1,5] = '.HTML' THEN
+        END ELSE IF RECORD.ID[LEN(RECORD.ID)-4,5] = '.HTML' THEN
             FILETYPE = 'HTML'
 *
         END ELSE
@@ -2976,6 +2976,21 @@ PROCESS.EDITOR.COMMAND:NULL
             END
         END
 *
+    END ELSE IF EDITOR.COMMAND = 'lint' THEN
+        EXECUTE 'LINT ' : FILENAME : ' ' : RECORD.ID CAPTURING RESULTS
+*
+        PRINT CLEAR.SCREEN :
+        PRINT @(0,MARGIN.TOP) :
+        PRINT OCONV(TIME(),'MTS') : ': ' :
+*
+        FOR J = 1 TO DCOUNT(RESULTS,@AM)
+            PRINT RESULTS<J>
+        NEXT J
+        INPUT ANYTHING :
+*
+        GOSUB DISPLAY.LINES
+        PRINT @(X.POS,Y.POS) :
+*
     END ELSE IF EDITOR.COMMAND[1,1] = 'w' THEN
         GOSUB SAVE.FILE
         GOSUB COMPILE.FILE
@@ -5318,7 +5333,25 @@ ADD.DEFAULT.SNIPPETS:NULL
     SNIPPETS<203,3,1> = "OPENPATH pathname [TO file.variable] [ON ERROR statements] {THEN"
     SNIPPETS<204,1> = 'OPENSEQ'
     SNIPPETS<204,2> = 'Use the OPENSEQ statement to open a file for sequential processing.'
-    SNIPPETS<204,3,1> = "OPENSEQ  TO "
+    SNIPPETS<204,3,1> = "PATH = '/home/export/'"
+    SNIPPETS<204,3,2> = "FLAT.FILE.NAME = 'Something.cvs'"
+    SNIPPETS<204,3,3> = "*"
+    SNIPPETS<204,3,4> = "FULL.PATH = PATH : FLAT.FILE.NAME"
+    SNIPPETS<204,3,5> = "*"
+    SNIPPETS<204,3,6> = "OPENSEQ FULL.PATH TO FLAT.FILE ELSE"
+    SNIPPETS<204,3,7> = "CREATE FLAT.FILE ELSE"
+    SNIPPETS<204,3,8> = "JUNK = 'Unable to open/create ' : FULL.PATH"
+    SNIPPETS<204,3,9> = "PRINT JUNK"
+    SNIPPETS<204,3,10> = "RETURN"
+    SNIPPETS<204,3,11> = "END"
+    SNIPPETS<204,3,12> = "END"
+    SNIPPETS<204,3,13> = "*"
+    SNIPPETS<204,3,14> = "WEOFSEQ FLAT.FILE"
+    SNIPPETS<204,3,15> = "*"
+    SNIPPETS<204,3,16> = "WRITESEQ BUFFER ON FLAT.FILE ELSE NULL"
+    SNIPPETS<204,3,17> = "*"
+    SNIPPETS<204,3,18> = "FLUSH FLAT.FILE ELSE NULL"
+    SNIPPETS<204,3,19> = "CLOSESEQ FLAT.FILE"
     SNIPPETS<205,1> = 'ORS'
     SNIPPETS<205,2> = 'Use the ORS function to create a dynamic array of the logical OR of corresponding elements of two dynamic arrays.'
     SNIPPETS<205,3,1> = "ORS(, )"
