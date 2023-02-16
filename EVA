@@ -5222,8 +5222,8 @@ ADD.DEFAULT.SNIPPETS:NULL
     SNIPPETS<169,1> = 'LOOP'
     SNIPPETS<169,2> = 'Use the LOOP statement to start a LOOPREPEAT program loop.'
     SNIPPETS<169,3,1> = "LOOP"
-    SNIPPETS<169,3,2> = "READNEXT  ELSE  = ''"
-    SNIPPETS<169,3,3> = "UNTIL  = '' DO"
+    SNIPPETS<169,3,2> = "READNEXT ITEM.ID ELSE ITEM.ID = ''"
+    SNIPPETS<169,3,3> = "UNTIL ITEM.ID = '' DO"
     SNIPPETS<169,3,4> = "REPEAT"
     SNIPPETS<170,1> = 'LOWER'
     SNIPPETS<170,2> = 'Use the LOWER function to return a value equal to expression, except that system delimiters which appear in expression are converted to the next lower-level delimiter: field marks are changed to value marks, value marks are changed to subvalue marks, and so on.'
@@ -5352,6 +5352,9 @@ ADD.DEFAULT.SNIPPETS:NULL
     SNIPPETS<204,3,17> = "*"
     SNIPPETS<204,3,18> = "FLUSH FLAT.FILE ELSE NULL"
     SNIPPETS<204,3,19> = "CLOSESEQ FLAT.FILE"
+    SNIPPETS<204,3,20> = "*"
+    SNIPPETS<204,3,21> = "PRINT ERROR.POSITION : BELL : 'Exported to: ' : FULL.PATH : ' - Press RETURN' :"
+    SNIPPETS<204,3,22> = "INPUT ANYTHING :"
     SNIPPETS<205,1> = 'ORS'
     SNIPPETS<205,2> = 'Use the ORS function to create a dynamic array of the logical OR of corresponding elements of two dynamic arrays.'
     SNIPPETS<205,3,1> = "ORS(, )"
