@@ -269,25 +269,64 @@
 *
     IS.DICTIONARY = FALSE
 *
+    IS.UNIVERSE.FILE = TRUE
+    IS.OS.FILE = FALSE
+    CREATE.NEW.OS.FILE = FALSE
+*
 * OPEN FILE AND GO TO MAIN:
 *
     IF ARGUMENTS<2> = 'DICT' THEN
         FILENAME = ARGUMENTS<3>
 *
         OPEN 'DICT',FILENAME TO FILE ELSE
-            PRINT 'Unable to open dict file: ' : FILENAME : ' - Press RETURN':
-            INPUT ANYTHING
+            PRINT 'Unable to open dict file: ' : FILENAME
             STOP
         END
 *
         IS.DICTIONARY = TRUE
 *
     END ELSE
-        FILENAME = ARGUMENTS<2>
+        FILENAME = TRIM(ARGUMENTS<2>)
+*
         OPEN '',FILENAME TO FILE ELSE
-            PRINT 'Unable to open file: ' : FILENAME : ' - Press RETURN':
-            INPUT ANYTHING
-            STOP
+            OPENSEQ FILENAME TO FLAT.FILE ELSE
+                EXECUTE 'SH -c "file ' : FILENAME  : '"' CAPTURING RESULTS
+*
+                IS.DIRECTORY = FALSE
+                IF INDEX(RESULTS,': directory',1) THEN
+                    IS.DIRECTORY = TRUE
+                END
+*
+                IF IS.DIRECTORY THEN
+                    PRINT 'Unable to open directory: ' : FILENAME
+                    STOP
+*
+                END ELSE IF FILENAME[1,1] = '/' THEN
+                    CREATE.NEW.OS.FILE = TRUE
+*
+                END ELSE
+                    PRINT 'Unable to open OS file: ' : FILENAME
+                    STOP
+                END
+            END
+*
+            IS.OS.FILE = TRUE
+            IS.UNIVERSE.FILE = FALSE
+*
+            IF CREATE.NEW.OS.FILE THEN
+                FILE.LINES = ''
+*
+            END ELSE
+                READBLK FILE.LINES FROM FLAT.FILE, 100000000 THEN
+                    RELEASE FLAT.FILE
+                    CLOSESEQ FLAT.FILE
+                END
+                LAST.CHAR = FILE.LINES[LEN(FILE.LINES),1]
+                IF LAST.CHAR = CHAR(10) THEN
+                    FILE.LINES = FILE.LINES[1,LEN(FILE.LINES)-1]
+                END
+                FILE.LINES = CHANGE(FILE.LINES,CHAR(10),@AM)
+            END
         END
     END
 *
@@ -320,34 +359,41 @@
         $ENDIF
     END
 *
-    LOOP
-        $IFDEF DATABASE.UV
-            READNEXT RECORD.ID ELSE RECORD.ID = ''
-        $ENDIF
-        $IFDEF DATABASE.D3
-            READNEXT RECORD.ID FROM ACTIVE.LIST ELSE RECORD.ID = ''
-        $ENDIF
-    UNTIL RECORD.ID = '' DO
-        IF RECORD.ID[1,1] = '"' AND RECORD.ID[LEN(RECORD.ID),1] = '"' THEN
-            RECORD.ID = RECORD.ID[2,LEN(RECORD.ID)-2]
-        END
+    IF IS.UNIVERSE.FILE THEN
+        LOOP
+            $IFDEF DATABASE.UV
+                READNEXT RECORD.ID ELSE RECORD.ID = ''
+            $ENDIF
+            $IFDEF DATABASE.D3
+                READNEXT RECORD.ID FROM ACTIVE.LIST ELSE RECORD.ID = ''
+            $ENDIF
+        UNTIL RECORD.ID = '' DO
+            IF RECORD.ID[1,1] = '"' AND RECORD.ID[LEN(RECORD.ID),1] = '"' THEN
+                RECORD.ID = RECORD.ID[2,LEN(RECORD.ID)-2]
+            END
 *
-        PRINT RECORD.ID
+            PRINT RECORD.ID
 *
-        READU RAW.LINES FROM FILE,RECORD.ID LOCKED
-            PRINT 'Record is locked: ' : RECORD.ID : ' - Press RETURN':
-            INPUT ANYTHING :
-            EXIT
-        END ELSE RAW.LINES = ''
+            READU RAW.LINES FROM FILE,RECORD.ID LOCKED
+                PRINT 'Record is locked: ' : RECORD.ID : ' - Press RETURN':
+                INPUT ANYTHING :
+                EXIT
+            END ELSE RAW.LINES = ''
 *
+            GOSUB MAIN
+*
+            RELEASE FILE,RECORD.ID
+*
+            IF QUIT.ALL.FLAG THEN
+                EXIT
+            END
+        REPEAT
+*
+    END ELSE
+        RAW.LINES = FILE.LINES
         GOSUB MAIN
 *
-        RELEASE FILE,RECORD.ID
-*
-        IF QUIT.ALL.FLAG THEN
-            EXIT
-        END
-    REPEAT
+    END
 *
     STOP
 *
@@ -419,7 +465,11 @@ MAIN:NULL
     UNDO.PTR = 0
     REDO.PTR = 0
 *
-    FULL.NAME = ACCOUNT.NAME : '_' : FILENAME : '_' : RECORD.ID
+    IF IS.UNIVERSE.FILE THEN
+        FULL.NAME = ACCOUNT.NAME : '_' : FILENAME : '_' : RECORD.ID
+    END ELSE
+        FULL.NAME = ACCOUNT.NAME : '_' : FILENAME
+    END
 *
     READ CHECKSUM.MATRIX FROM EVA.HISTORY.FILE,'CHECKSUM' ELSE CHECKSUM.MATRIX = ''
 *
@@ -489,8 +539,7 @@ MAIN:NULL
     END
 *
     OPEN '','MD' TO MD.FILE ELSE
-        PRINT 'Unable to open file:  - Press RETURN':
-        INPUT ANYTHING
+        PRINT 'Unable to open file: MD - Press RETURN'
         STOP
     END
 *
@@ -540,22 +589,35 @@ MAIN:NULL
     END
 *
     IF FILETYPE = '' THEN
-        IF FILENAME[LEN(FILENAME)-1,2] = 'BP' OR FILENAME = 'MPROCLIB' OR FILENAME = 'WIN.PROGS' THEN
-            FILETYPE = 'BASIC'
+        IF IS.UNIVERSE.FILE THEN
+            IF FILENAME[LEN(FILENAME)-1,2] = 'BP' OR FILENAME = 'MPROCLIB' OR FILENAME = 'WIN.PROGS' THEN
+                FILETYPE = 'BASIC'
 *
-        END ELSE IF IS.DICTIONARY THEN
-            FILETYPE = 'DICT'
-            GOSUB TOGGLE.DICTIONARY
+            END ELSE IF IS.DICTIONARY THEN
+                FILETYPE = 'DICT'
+                GOSUB TOGGLE.DICTIONARY
 *
-        END ELSE IF RAW.LINES<1> = 'PQ' THEN
-            FILETYPE = 'PROC'
+            END ELSE IF RAW.LINES<1> = 'PQ' THEN
+                FILETYPE = 'PROC'
 *
-        END ELSE IF RECORD.ID[LEN(RECORD.ID)-4,5] = '.HTML' THEN
-            FILETYPE = 'HTML'
+            END ELSE IF OCONV(RECORD.ID[LEN(RECORD.ID)-4,5],'MCU') = '.HTML' THEN
+                FILETYPE = 'HTML'
+*
+            END ELSE
+                FILETYPE = 'DATA'
+                GOSUB TOGGLE.DICTIONARY
+            END
 *
         END ELSE
-            FILETYPE = 'DATA'
-            GOSUB TOGGLE.DICTIONARY
+            IF OCONV(FILENAME[LEN(FILENAME)-4,5],'MCU') = '.JSON' THEN
+                FILETYPE = 'JSON'
+*
+            END ELSE IF OCONV(FILENAME[LEN(FILENAME)-4,5],'MCU') = '.HTML' THEN
+                FILETYPE = 'HTML'
+*
+            END ELSE
+                FILETYPE = 'TXT'
+            END
         END
     END
 *
@@ -962,7 +1024,7 @@ SYNTAX.INIT.BASIC:NULL
     STATEMENTS = STATEMENTS : ' ' : 'MAT MATBUILD MATPARSE MATREAD MATREADL MATREADU MATWRITE MATWRITEU'
     STATEMENTS = STATEMENTS : ' ' : 'NAP NEXT NOBUF NOW'
     STATEMENTS = STATEMENTS : ' ' : 'OFF ON OPEN OPENDEV OPENPATH OPENSEQ'
-    STATEMENTS = STATEMENTS : ' ' : 'PAGE PERFORM PRECISION PRINT PRINTER PRINTERR PROCREAD PROCWRITE PROGRAM PROMPT '
+    STATEMENTS = STATEMENTS : ' ' : 'PAGE PASSLIST PERFORM PRECISION PRINT PRINTER PRINTERR PROCREAD PROCWRITE PROGRAM PROMPT '
     STATEMENTS = STATEMENTS : ' ' : 'RANDOMIZE READ READBLK READL READLIST READNEXT READSEQ READT READU READV READVL READVU RELEASE'
     STATEMENTS = STATEMENTS : ' ' : 'REPEAT RESET RETURN RETURNING REVREMOVE REWIND ROLLBACK'
     STATEMENTS = STATEMENTS : ' ' : 'SELECT SELECTE SELECTINDEX SELECTINFO SEND SET SETREM SLEEP SSELECT START STOP SUBROUTINE'
@@ -1535,7 +1597,13 @@ DISPLAY.HEADER:NULL
     PRINT @(MARGIN.LEFT,0) :
     PRINT CLEAR.REST.OF.LINE :
     PRINT HEADER.COLOR :
-    PRINT FILENAME : ' ' : RECORD.ID :
+*
+    IF IS.UNIVERSE.FILE THEN
+        PRINT FILENAME : ' ' : RECORD.ID :
+    END ELSE
+        PRINT FILENAME :
+    END
+*
     PRINT ' C: ' : CURRENT.LINE :
     PRINT ' L: ' : LINE.NUMBERS<CURRENT.LINE> :
     PRINT ' X: ' : X.POS :
@@ -2457,6 +2525,12 @@ PROCESS.EDITOR.COMMAND:NULL
         PRINT @(X.POS,Y.POS) :
 *
     END ELSE IF EDITOR.COMMAND = 'archive' THEN
+        IF IS.OS.FILE THEN
+            PRINT BOTTOM : MESSAGE.COLOR : CLEAR.REST.OF.LINE :
+            PRINT 'Unable to archive OS file.'
+            RETURN
+        END
+*
         IF ARCHIVE.OPENED THEN
             ARCHIVE.DATE = OCONV(DATE(),'D')
             CONVERT ' ' TO '' IN ARCHIVE.DATE
@@ -2508,6 +2582,13 @@ PROCESS.EDITOR.COMMAND:NULL
         GOSUB TOGGLE.DICTIONARY
 *
     END ELSE IF EDITOR.COMMAND = 'dict' THEN
+        IF IS.OS.FILE THEN
+            PRINT BOTTOM : MESSAGE.COLOR : CLEAR.REST.OF.LINE :
+            PRINT 'Unable to open dictionary on OS file.' :
+            PRINT @(X.POS,Y.POS) :
+            RETURN
+        END
+*
         GOSUB PUSH.EXPLODE
         INSIDE.VIEW.BUFFER = TRUE
 *
@@ -2581,6 +2662,13 @@ PROCESS.EDITOR.COMMAND:NULL
         PRINT @(X.POS,Y.POS) :
 *
     END ELSE IF EDITOR.COMMAND = 'vlist' THEN
+        IF IS.OS.FILE THEN
+            PRINT BOTTOM : MESSAGE.COLOR : CLEAR.REST.OF.LINE :
+            PRINT 'Unable to open vlist on OS file.' :
+            PRINT @(X.POS,Y.POS) :
+            RETURN
+        END
+*
         EXECUTE 'VLIST ' : FILENAME : ' ' : RECORD.ID CAPTURING RESULTS
 *
         GOSUB PUSH.EXPLODE
@@ -2614,6 +2702,13 @@ PROCESS.EDITOR.COMMAND:NULL
         GOSUB PUT.CURSOR.TOP.LEFT
 *
     END ELSE IF EDITOR.COMMAND = 'r' THEN
+        IF IS.OS.FILE THEN
+            PRINT BOTTOM : MESSAGE.COLOR : CLEAR.REST.OF.LINE :
+            PRINT 'Unable to open run OS file.' :
+            PRINT @(X.POS,Y.POS) :
+            RETURN
+        END
+*
         IF FILETYPE # 'BASIC' THEN RETURN
 *
         GOSUB SAVE.FILE
@@ -2977,6 +3072,13 @@ PROCESS.EDITOR.COMMAND:NULL
         END
 *
     END ELSE IF EDITOR.COMMAND = 'lint' THEN
+        IF IS.OS.FILE THEN
+            PRINT BOTTOM : MESSAGE.COLOR : CLEAR.REST.OF.LINE :
+            PRINT 'Unable to run the linter on an OS file.' :
+            PRINT @(X.POS,Y.POS) :
+            RETURN
+        END
+*
         EXECUTE 'LINT ' : FILENAME : ' ' : RECORD.ID CAPTURING RESULTS
 *
         PRINT CLEAR.SCREEN :
@@ -3000,6 +3102,13 @@ PROCESS.EDITOR.COMMAND:NULL
         END
 *
     END ELSE IF EDITOR.COMMAND = 'fd' THEN
+        IF IS.OS.FILE THEN
+            PRINT BOTTOM : MESSAGE.COLOR : CLEAR.REST.OF.LINE :
+            PRINT 'Unable to open delete an OS file.' :
+            PRINT @(X.POS,Y.POS) :
+            RETURN
+        END
+*
         PRINT BOTTOM : CLEAR.REST.OF.LINE : MESSAGE.COLOR :
         PRINT 'You are trying to delete the entire record. Are you sure? (y/n) ' :
 *
@@ -4139,7 +4248,24 @@ SAVE.FILE:NULL
 * CHECK IF FILE HAS CHANGED SINCE OPENING
 *
         ORIGINAL.CHECKSUM = CURRENT.CHECKSUM
-        READ CHECK.LINES FROM FILE,RECORD.ID ELSE CHECK.LINES = ''
+*
+        IF IS.UNIVERSE.FILE THEN
+            READ CHECK.LINES FROM FILE,RECORD.ID ELSE CHECK.LINES = ''
+*
+        END ELSE
+            IF CREATE.NEW.OS.FILE THEN
+                CHECK.LINES = ''
+            END ELSE
+                OPENSEQ FILENAME TO FLAT.FILE THEN
+                    READBLK CHECK.LINES FROM FLAT.FILE, 100000000 THEN
+                        RELEASE FLAT.FILE
+                        CLOSESEQ FLAT.FILE
+                    END
+                    CHECK.LINES = CHECK.LINES[1,LEN(CHECK.LINES)-1]
+                    CHECK.LINES = CHANGE(CHECK.LINES,CHAR(10),@AM)
+                END
+            END
+        END
 *
         $IFDEF DATABASE.UV
             DIRTY.CHECKSUM = CHECKSUM(CHECK.LINES)
@@ -4183,11 +4309,38 @@ SAVE.FILE:NULL
 * SAVE FILE
 *
         ORIGINAL.RAW.LINES = RAW.LINES
-        WRITEU RAW.LINES ON FILE, RECORD.ID
+*
+        IF IS.UNIVERSE.FILE THEN
+            WRITEU RAW.LINES ON FILE, RECORD.ID
+*
+        END ELSE
+            OPENSEQ FILENAME TO FLAT.FILE ELSE
+                CREATE FLAT.FILE ELSE
+                    PRINT BOTTOM : CLEAR.REST.OF.LINE :
+                    PRINT MESSAGE.COLOR :
+                    PRINT 'Unable to open/create OS file: ' : FILENAME :
+                    PRINT @(X.POS,Y.POS) :
+                    RETURN
+                END
+            END
+*
+            WEOFSEQ FLAT.FILE
+*
+            FILE.LINES = CHANGE(RAW.LINES,@AM,CHAR(10))
+            WRITESEQ FILE.LINES ON FLAT.FILE ELSE NULL
+*
+            FLUSH FLAT.FILE ELSE NULL
+            CLOSESEQ FLAT.FILE
+        END
 *
         PRINT BOTTOM : CLEAR.REST.OF.LINE :
         PRINT MESSAGE.COLOR :
-        PRINT FILENAME : ' ' : RECORD.ID : ' saved.' : CLEAR.REST.OF.LINE :
+*
+        IF IS.UNIVERSE.FILE THEN
+            PRINT FILENAME : ' ' : RECORD.ID : ' saved.' : CLEAR.REST.OF.LINE :
+        END ELSE
+            PRINT FILENAME : ' saved.' : CLEAR.REST.OF.LINE :
+        END
 *
         PRINT @(X.POS,Y.POS) :
     END
@@ -4850,7 +5003,7 @@ ADD.DEFAULT.SNIPPETS:NULL
     SNIPPETS<45,3,1> = "COMPARE(, )"
     SNIPPETS<46,1> = 'CONVERT'
     SNIPPETS<46,2> = 'Use the CONVERT statement to replace every occurrence of specific characters in a string with other characters.'
-    SNIPPETS<46,3,1> = "CONVERT TO IN "
+    SNIPPETS<46,3,1> = "CONVERT S TO R IN XX"
     SNIPPETS<47,1> = 'COS'
     SNIPPETS<47,2> = 'Use the COS function to return the trigonometric cosine of an angle.'
     SNIPPETS<47,3,1> = "COS()"
@@ -5405,7 +5558,10 @@ ADD.DEFAULT.SNIPPETS:NULL
     SNIPPETS<220,3,1> = "READ  FROM , ITEM.ID ELSE = ''"
     SNIPPETS<221,1> = 'READBLK'
     SNIPPETS<221,2> = 'Use the READBLK statement to read a block of data of a specified length from a file opened for sequential processing and assign it to a variable.'
-    SNIPPETS<221,3,1> = "READBLK FROM THEN "
+    SNIPPETS<221,3,1> = "READBLK XX FROM FLAT.FILE, 100000000 THEN"
+    SNIPPETS<221,3,2> = "RELEASE FLAT.FIL"
+    SNIPPETS<221,3,3> = "CLOSESEQ FLAT.FILE"
+    SNIPPETS<221,3,4> = "END"
     SNIPPETS<222,1> = 'READLIST'
     SNIPPETS<222,2> = 'Use the READLIST statement to read the remainder of an active select list into a dynamic array.'
     SNIPPETS<222,3,1> = "READLIST FROM "
