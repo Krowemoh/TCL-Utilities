@@ -7,7 +7,10 @@
     $DEFINE DATABASE.UV
     $DEFINE PLATFORM.LINUX
 *
-    EXECUTE 'SH -c "echo $TERM"' CAPTURING ORIGINAL.TERM.TYPE
+    $IFDEF PLATFORM.LINUX
+        EXECUTE 'SH -c "echo $TERM"' CAPTURING ORIGINAL.TERM.TYPE
+    $ENDIF
+*
     EXECUTE 'TERM xterm'
 *
 * VERSION
@@ -361,44 +364,51 @@
         FILENAME = TRIM(ARGUMENTS<2>)
 *
         OPEN '',FILENAME TO FILE ELSE
-            OPENSEQ FILENAME TO FLAT.FILE ELSE
-                EXECUTE 'SH -c "file ' : FILENAME  : '"' CAPTURING RESULTS
+            $IFDEF PLATFORM.LINUX
+                OPENSEQ FILENAME TO FLAT.FILE ELSE
+                    EXECUTE 'SH -c "file ' : FILENAME  : '"' CAPTURING RESULTS
 *
-                IS.DIRECTORY = FALSE
-                IF INDEX(RESULTS,': directory',1) THEN
-                    IS.DIRECTORY = TRUE
+                    IS.DIRECTORY = FALSE
+                    IF INDEX(RESULTS,': directory',1) THEN
+                        IS.DIRECTORY = TRUE
+                    END
+*
+                    IF IS.DIRECTORY THEN
+                        PRINT 'Unable to open directory: ' : FILENAME
+                        STOP
+*
+                    END ELSE IF FILENAME[1,1] = '/' THEN
+                        CREATE.NEW.OS.FILE = TRUE
+*
+                    END ELSE
+                        PRINT 'Unable to open OS file: ' : FILENAME
+                        STOP
+                    END
                 END
 *
-                IF IS.DIRECTORY THEN
-                    PRINT 'Unable to open directory: ' : FILENAME
-                    STOP
+                IS.OS.FILE = TRUE
+                IS.UNIVERSE.FILE = FALSE
 *
-                END ELSE IF FILENAME[1,1] = '/' THEN
-                    CREATE.NEW.OS.FILE = TRUE
+                IF CREATE.NEW.OS.FILE THEN
+                    FILE.LINES = ''
 *
                 END ELSE
-                    PRINT 'Unable to open OS file: ' : FILENAME
-                    STOP
+                    READBLK FILE.LINES FROM FLAT.FILE, 100000000 THEN
+                        RELEASE FLAT.FILE
+                        CLOSESEQ FLAT.FILE
+                    END
+                    LAST.CHAR = FILE.LINES[LEN(FILE.LINES),1]
+                    IF LAST.CHAR = CHAR(10) THEN
+                        FILE.LINES = FILE.LINES[1,LEN(FILE.LINES)-1]
+                    END
+                    FILE.LINES = CHANGE(FILE.LINES,CHAR(10),@AM)
                 END
-            END
+            $ENDIF
 *
-            IS.OS.FILE = TRUE
-            IS.UNIVERSE.FILE = FALSE
-*
-            IF CREATE.NEW.OS.FILE THEN
-                FILE.LINES = ''
-*
-            END ELSE
-                READBLK FILE.LINES FROM FLAT.FILE, 100000000 THEN
-                    RELEASE FLAT.FILE
-                    CLOSESEQ FLAT.FILE
-                END
-                LAST.CHAR = FILE.LINES[LEN(FILE.LINES),1]
-                IF LAST.CHAR = CHAR(10) THEN
-                    FILE.LINES = FILE.LINES[1,LEN(FILE.LINES)-1]
-                END
-                FILE.LINES = CHANGE(FILE.LINES,CHAR(10),@AM)
-            END
+            $IFDEF PLATFORM.WINDOWS
+                PRINT 'Unable to open file: ' FILENAME
+                STOP
+            $ENDIF
         END
     END
 *
@@ -477,7 +487,7 @@
         GOSUB MAIN
     END
 *
-    EXECUTE 'TERM ' : ORIGINAL.TERM.TYPE 
+    EXECUTE 'TERM ' : ORIGINAL.TERM.TYPE
 *
     IF WINTEGRATE.FLAG THEN
         WINTEGRATE.TERM.TYPE = ORIGINAL.WINTEGRATE.TERM.TYPE
