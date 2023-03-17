@@ -1,6 +1,6 @@
 *
     GIT.FILENAME = 'EVA'
-    GIT.REPO= 'https://github.com/Krowemoh/eva.git'
+    GIT.REPO = 'https://github.com/Krowemoh/eva.git'
 *
 * COMPILER DIRECTIVES
 *
@@ -11,7 +11,7 @@
         EXECUTE 'SH -c "echo $TERM"' CAPTURING ORIGINAL.TERM
     $ENDIF
 *
-    EXECUTE 'TERM xterm'
+    EXECUTE 'TERM xterm' CAPTURING RESULTS
 *
 * VERSION
 *
@@ -80,6 +80,7 @@
     MAGENTA = ''
     CYAN = ''
     WHITE = ''
+    RAW.WHITE = ''
 *
     BRIGHTBLACK = ''
     BRIGHTRED = ''
@@ -830,6 +831,12 @@ MAIN:NULL
 *
         END ELSE IF CHR = 's' THEN
             INSERT.LINE = '*********************  S U B R O U T I N E  *********************'
+            GOSUB PROCESS.INSERT.LINE
+*
+            INSERT.LINE = '*'
+            GOSUB PROCESS.INSERT.LINE
+*
+            INSERT.LINE = ':NULL'
             GOSUB PROCESS.INSERT.LINE
 *
             IF Y.POS > VIEW.HEIGHT THEN
@@ -4352,18 +4359,20 @@ SAVE.FILE:NULL
             READ CHECK.LINES FROM FILE,RECORD.ID ELSE CHECK.LINES = ''
 *
         END ELSE
-            IF CREATE.NEW.OS.FILE THEN
-                CHECK.LINES = ''
-            END ELSE
-                OPENSEQ FILENAME TO FLAT.FILE THEN
-                    READBLK CHECK.LINES FROM FLAT.FILE, 100000000 THEN
-                        RELEASE FLAT.FILE
-                        CLOSESEQ FLAT.FILE
+            $IFDEF PLATFORM.LINUX
+                IF CREATE.NEW.OS.FILE THEN
+                    CHECK.LINES = ''
+                END ELSE
+                    OPENSEQ FILENAME TO FLAT.FILE THEN
+                        READBLK CHECK.LINES FROM FLAT.FILE, 100000000 THEN
+                            RELEASE FLAT.FILE
+                            CLOSESEQ FLAT.FILE
+                        END
+                        CHECK.LINES = CHECK.LINES[1,LEN(CHECK.LINES)-1]
+                        CHECK.LINES = CHANGE(CHECK.LINES,CHAR(10),@AM)
                     END
-                    CHECK.LINES = CHECK.LINES[1,LEN(CHECK.LINES)-1]
-                    CHECK.LINES = CHANGE(CHECK.LINES,CHAR(10),@AM)
                 END
-            END
+            $ENDIF
         END
 *
         $IFDEF DATABASE.UV
@@ -4413,23 +4422,25 @@ SAVE.FILE:NULL
             WRITEU RAW.LINES ON FILE, RECORD.ID
 *
         END ELSE
-            OPENSEQ FILENAME TO FLAT.FILE ELSE
-                CREATE FLAT.FILE ELSE
-                    PRINT BOTTOM : CLEAR.REST.OF.LINE :
-                    PRINT MESSAGE.COLOR :
-                    PRINT 'Unable to open/create OS file: ' : FILENAME :
-                    PRINT @(X.POS,Y.POS) :
-                    RETURN
+            $IFDEF PLATFORM.LINUX
+                OPENSEQ FILENAME TO FLAT.FILE ELSE
+                    CREATE FLAT.FILE ELSE
+                        PRINT BOTTOM : CLEAR.REST.OF.LINE :
+                        PRINT MESSAGE.COLOR :
+                        PRINT 'Unable to open/create OS file: ' : FILENAME :
+                        PRINT @(X.POS,Y.POS) :
+                        RETURN
+                    END
                 END
-            END
 *
-            WEOFSEQ FLAT.FILE
+                WEOFSEQ FLAT.FILE
 *
-            FILE.LINES = CHANGE(RAW.LINES,@AM,CHAR(10))
-            WRITESEQ FILE.LINES ON FLAT.FILE ELSE NULL
+                FILE.LINES = CHANGE(RAW.LINES,@AM,CHAR(10))
+                WRITESEQ FILE.LINES ON FLAT.FILE ELSE NULL
 *
-            FLUSH FLAT.FILE ELSE NULL
-            CLOSESEQ FLAT.FILE
+                FLUSH FLAT.FILE ELSE NULL
+                CLOSESEQ FLAT.FILE
+            $ENDIF
         END
 *
         PRINT BOTTOM : CLEAR.REST.OF.LINE :
@@ -4834,30 +4845,29 @@ CHECK.WINTEGRATE:NULL
 *
     WINTEGRATE.FLAG = 0
 *
-    PROMPT ''
+    $IFDEF DATABASE.D3
+        WINTEGRATE.FLAG = 1
+    $ENDIF
 *
-    PRINT @(-42): ; * lock keyboard
-*
-    ECHO OFF
-*
-    PRINT COM.START : "enter stx" : COM.END :
-*
-    MS = 0
-*
-    LOOP MS += 1 WHILE MS < 500 DO
-        INPUTIF BUFFER THEN
-            IF INDEX(BUFFER, STX, 1) THEN
-                WINTEGRATE.FLAG= TRUE
-                ECHO ON
-                PRINT @(-43): ; * unlock keyboard
-                RETURN
-            END
-        END ELSE NAP 1
-    REPEAT
-*
-    ECHO ON
-*
-    PRINT @(-43): ; * unlock keyboard
+    $IFDEF DATABASE.UV
+        PROMPT ''
+        PRINT @(-42): ; * lock keyboard
+        ECHO OFF
+        PRINT COM.START : "enter stx" : COM.END :
+        MS = 0
+        LOOP MS += 1 WHILE MS < 500 DO
+            INPUTIF BUFFER THEN
+                IF INDEX(BUFFER, STX, 1) THEN
+                    WINTEGRATE.FLAG= TRUE
+                    ECHO ON
+                    PRINT @(-43): ; * unlock keyboard
+                    RETURN
+                END
+            END ELSE NAP 1
+        REPEAT
+        ECHO ON
+        PRINT @(-43): ; * unlock keyboard
+    $ENDIF
 *
     RETURN
 *
@@ -4928,21 +4938,41 @@ SETUP.WINTEGRATE:NULL
     WINT.VALUE = '\e[6~'
     GOSUB SET.WINTEGRATE.VALUE
 *
-    WINT.KEY = 'Key_UpArrow'
-    WINT.VALUE = '\eOA'
-    GOSUB SET.WINTEGRATE.VALUE
+    $IFDEF DATABASE.UV
+        WINT.KEY = 'Key_UpArrow'
+        WINT.VALUE = '\eOA'
+        GOSUB SET.WINTEGRATE.VALUE
 *
-    WINT.KEY = 'Key_DownArrow'
-    WINT.VALUE = '\eOB'
-    GOSUB SET.WINTEGRATE.VALUE
+        WINT.KEY = 'Key_DownArrow'
+        WINT.VALUE = '\eOB'
+        GOSUB SET.WINTEGRATE.VALUE
 *
-    WINT.KEY = 'Key_LeftArrow'
-    WINT.VALUE = '\eOD'
-    GOSUB SET.WINTEGRATE.VALUE
+        WINT.KEY = 'Key_LeftArrow'
+        WINT.VALUE = '\eOD'
+        GOSUB SET.WINTEGRATE.VALUE
 *
-    WINT.KEY = 'Key_RightArrow'
-    WINT.VALUE = '\eOC'
-    GOSUB SET.WINTEGRATE.VALUE
+        WINT.KEY = 'Key_RightArrow'
+        WINT.VALUE = '\eOC'
+        GOSUB SET.WINTEGRATE.VALUE
+    $ENDIF
+*
+    $IFDEF DATABASE.D3
+        WINT.KEY = 'Key_UpArrow'
+        WINT.VALUE = '\e[A'
+        GOSUB SET.WINTEGRATE.VALUE
+*
+        WINT.KEY = 'Key_DownArrow'
+        WINT.VALUE = '\e[B'
+        GOSUB SET.WINTEGRATE.VALUE
+*
+        WINT.KEY = 'Key_LeftArrow'
+        WINT.VALUE = '\e[D'
+        GOSUB SET.WINTEGRATE.VALUE
+*
+        WINT.KEY = 'Key_RightArrow'
+        WINT.VALUE = '\e[C'
+        GOSUB SET.WINTEGRATE.VALUE
+    $ENDIF
 *
     RETURN
 *
