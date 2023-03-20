@@ -4612,19 +4612,21 @@ SAVE.FILE:NULL
             READ CHECK.LINES FROM FILE,RECORD.ID ELSE CHECK.LINES = ''
 *
         END ELSE
-            $IFDEF PLATFORM.LINUX
-                IF CREATE.NEW.OS.FILE THEN
-                    CHECK.LINES = ''
-                END ELSE
-                    OPENSEQ FILENAME TO FLAT.FILE THEN
-                        READBLK CHECK.LINES FROM FLAT.FILE, 100000000 THEN
-                            RELEASE FLAT.FILE
-                            CLOSESEQ FLAT.FILE
+            $IFDEF DATABASE.UV
+                $IFDEF PLATFORM.LINUX
+                    IF CREATE.NEW.OS.FILE THEN
+                        CHECK.LINES = ''
+                    END ELSE
+                        OPENSEQ FILENAME TO FLAT.FILE THEN
+                            READBLK CHECK.LINES FROM FLAT.FILE, 100000000 THEN
+                                RELEASE FLAT.FILE
+                                CLOSESEQ FLAT.FILE
+                            END
+                            CHECK.LINES = CHECK.LINES[1,LEN(CHECK.LINES)-1]
+                            CHECK.LINES = CHANGE(CHECK.LINES,CHAR(10),@AM)
                         END
-                        CHECK.LINES = CHECK.LINES[1,LEN(CHECK.LINES)-1]
-                        CHECK.LINES = CHANGE(CHECK.LINES,CHAR(10),@AM)
                     END
-                END
+                $ENDIF
             $ENDIF
         END
 *
@@ -4675,24 +4677,26 @@ SAVE.FILE:NULL
             WRITEU RAW.LINES ON FILE, RECORD.ID
 *
         END ELSE
-            $IFDEF PLATFORM.LINUX
-                OPENSEQ FILENAME TO FLAT.FILE ELSE
-                    CREATE FLAT.FILE ELSE
-                        PRINT BOTTOM : CLEAR.REST.OF.LINE :
-                        PRINT MESSAGE.COLOR :
-                        PRINT 'Unable to open/create OS file: ' : FILENAME :
-                        PRINT @(X.POS,Y.POS) :
-                        RETURN
+            $IFDEF DATABASE.UV
+                $IFDEF PLATFORM.LINUX
+                    OPENSEQ FILENAME TO FLAT.FILE ELSE
+                        CREATE FLAT.FILE ELSE
+                            PRINT BOTTOM : CLEAR.REST.OF.LINE :
+                            PRINT MESSAGE.COLOR :
+                            PRINT 'Unable to open/create OS file: ' : FILENAME :
+                            PRINT @(X.POS,Y.POS) :
+                            RETURN
+                        END
                     END
-                END
 *
-                WEOFSEQ FLAT.FILE
+                    WEOFSEQ FLAT.FILE
 *
-                FILE.LINES = CHANGE(RAW.LINES,@AM,CHAR(10))
-                WRITESEQ FILE.LINES ON FLAT.FILE ELSE NULL
+                    FILE.LINES = CHANGE(RAW.LINES,@AM,CHAR(10))
+                    WRITESEQ FILE.LINES ON FLAT.FILE ELSE NULL
 *
-                FLUSH FLAT.FILE ELSE NULL
-                CLOSESEQ FLAT.FILE
+                    FLUSH FLAT.FILE ELSE NULL
+                    CLOSESEQ FLAT.FILE
+                $ENDIF
             $ENDIF
         END
 *
