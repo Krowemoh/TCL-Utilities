@@ -351,51 +351,59 @@
             IS.OS.FILE = FALSE
 *
         END ELSE
-            $IFDEF PLATFORM.LINUX
-                OPENSEQ FILENAME TO FLAT.FILE ELSE
-                    EXECUTE 'SH -c "file ' : FILENAME  : '"' CAPTURING RESULTS
-*
-                    IS.DIRECTORY = FALSE
-                    IF INDEX(RESULTS,': directory',1) THEN
-                        IS.DIRECTORY = TRUE
-                    END
-*
-                    IF IS.DIRECTORY THEN
-                        PRINT 'Unable to open directory: ' : FILENAME
-                        STOP
-*
-                    END ELSE IF FILENAME[1,1] = '/' THEN
-                        CREATE.NEW.OS.FILE = TRUE
-*
-                    END ELSE
-                        PRINT 'Unable to open file: ' : FILENAME
-                        STOP
-                    END
-                END
-*
-                IS.OS.FILE = TRUE
-                IS.UNIVERSE.FILE = FALSE
-*
-                IF CREATE.NEW.OS.FILE THEN
-                    FILE.LINES = ''
-*
-                END ELSE
-                    READBLK FILE.LINES FROM FLAT.FILE, 100000000 THEN
-                        RELEASE FLAT.FILE
-                        CLOSESEQ FLAT.FILE
-                    END
-                    LAST.CHAR = FILE.LINES[LEN(FILE.LINES),1]
-                    IF LAST.CHAR = CHAR(10) THEN
-                        FILE.LINES = FILE.LINES[1,LEN(FILE.LINES)-1]
-                    END
-                    FILE.LINES = CHANGE(FILE.LINES,CHAR(10),@AM)
-                END
-            $ENDIF
-*
-            $IFDEF PLATFORM.WINDOWS
+            $IFDEF DATABASE.D3
                 PRINT 'Unable to open file: ' FILENAME
                 STOP
             $ENDIF
+*
+            $IFDEF DATABASE.UV
+                $IFDEF PLATFORM.LINUX
+                    OPENSEQ FILENAME TO FLAT.FILE ELSE
+                        EXECUTE 'SH -c "file ' : FILENAME  : '"' CAPTURING RESULTS
+*
+                        IS.DIRECTORY = FALSE
+                        IF INDEX(RESULTS,': directory',1) THEN
+                            IS.DIRECTORY = TRUE
+                        END
+*
+                        IF IS.DIRECTORY THEN
+                            PRINT 'Unable to open directory: ' : FILENAME
+                            STOP
+*
+                        END ELSE IF FILENAME[1,1] = '/' THEN
+                            CREATE.NEW.OS.FILE = TRUE
+*
+                        END ELSE
+                            PRINT 'Unable to open file: ' : FILENAME
+                            STOP
+                        END
+                    END
+*
+                    IS.OS.FILE = TRUE
+                    IS.UNIVERSE.FILE = FALSE
+*
+                    IF CREATE.NEW.OS.FILE THEN
+                        FILE.LINES = ''
+*
+                    END ELSE
+                        READBLK FILE.LINES FROM FLAT.FILE, 100000000 THEN
+                            RELEASE FLAT.FILE
+                            CLOSESEQ FLAT.FILE
+                        END
+                        LAST.CHAR = FILE.LINES[LEN(FILE.LINES),1]
+                        IF LAST.CHAR = CHAR(10) THEN
+                            FILE.LINES = FILE.LINES[1,LEN(FILE.LINES)-1]
+                        END
+                        FILE.LINES = CHANGE(FILE.LINES,CHAR(10),@AM)
+                    END
+                $ENDIF
+*
+                $IFDEF PLATFORM.WINDOWS
+                    PRINT 'Unable to open file: ' FILENAME
+                    STOP
+                $ENDIF
+            $ENDIF
+*
         END
     END
 *
