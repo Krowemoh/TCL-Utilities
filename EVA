@@ -232,6 +232,11 @@
         VOC = 'MD'
     $ENDIF
 *
+    OPEN '',VOC TO VOC.FILE ELSE
+        PRINT 'Failed to open: VOC'
+        STOP
+    END
+*
 * OPEN EVA-HISTORY-FILE
 *
     EQU EVA.SEARCH.ATTRIBUTE TO 1
@@ -3063,6 +3068,7 @@ PROCESS.EDITOR.COMMAND:NULL
         IF FILETYPE # 'BASIC' THEN RETURN
 *
         GOSUB SAVE.FILE
+*
         EXECUTE 'BASIC ' : FILENAME : ' ' : RECORD.ID CAPTURING RESULTS
 *
         IF RESULTS<3> = '' THEN
@@ -3111,6 +3117,136 @@ PROCESS.EDITOR.COMMAND:NULL
 *
         PRINT BOTTOM : MESSAGE.COLOR : CLEAR.REST.OF.LINE :
         PRINT 'Formatted file.' :
+        PRINT @(X.POS,Y.POS) :
+*
+    END ELSE IF EDITOR.COMMAND = 'dec' OR EDITOR.COMMAND = 'decompile' THEN
+        IF FILETYPE # 'BASIC' THEN
+            PRINT BOTTOM : MESSAGE.COLOR : CLEAR.REST.OF.LINE :
+            PRINT 'This file is not a BASIC file.' :
+            PRINT @(X.POS,Y.POS) :
+            RETURN
+        END
+*
+        READ ANYTHING FROM VOC.FILE,'DECOMPILE' ELSE
+            PRINT BOTTOM : MESSAGE.COLOR : CLEAR.REST.OF.LINE :
+            PRINT 'DECOMPILE is not available.' :
+            PRINT @(X.POS,Y.POS) :
+            RETURN
+        END
+*
+        GOSUB SAVE.FILE
+*
+        EXECUTE 'DECOMPILE ' : FILENAME : ' ' : RECORD.ID
+*
+        READU RAW.LINES FROM FILE,RECORD.ID ELSE
+            PRINT BOTTOM : MESSAGE.COLOR : CLEAR.REST.OF.LINE :
+            PRINT 'Error reading file after pre-processing.' :
+            PRINT @(X.POS,Y.POS) :
+            RETURN
+        END
+*
+        GOSUB CONVERT.RAW.LINES
+        GOSUB DISPLAY.LINES
+*
+        $IFDEF DATABASE.UV
+            CURRENT.CHECKSUM = CHECKSUM(RAW.LINES)
+        $ENDIF
+        $IFDEF DATABASE.D3
+            CURRENT.CHECKSUM = OCONV(RAW.LINES,'u001e')
+        $ENDIF
+*
+        PRINT BOTTOM : MESSAGE.COLOR : CLEAR.REST.OF.LINE :
+        PRINT 'Decompiled file.' :
+*
+        GOTO.LINE = 1
+        GOSUB GOTO.LINE.POSITION
+*
+        X.POS = MARGIN.LEFT
+        PRINT @(X.POS,Y.POS) :
+*
+    END ELSE IF EDITOR.COMMAND = 'prec' OR EDITOR.COMMAND = 'precompile' THEN
+        IF FILETYPE # 'BASIC' THEN
+            PRINT BOTTOM : MESSAGE.COLOR : CLEAR.REST.OF.LINE :
+            PRINT 'This file is not a BASIC file.' :
+            PRINT @(X.POS,Y.POS) :
+            RETURN
+        END
+*
+        READ ANYTHING FROM VOC.FILE,'PRECOMPILE' ELSE
+            PRINT BOTTOM : MESSAGE.COLOR : CLEAR.REST.OF.LINE :
+            PRINT 'PRECOMPILE is not available.' :
+            PRINT @(X.POS,Y.POS) :
+            RETURN
+        END
+*
+        GOSUB SAVE.FILE
+*
+        EXECUTE 'PRECOMPILE ' : FILENAME : ' ' : RECORD.ID : ' (A'
+*
+        READU RAW.LINES FROM FILE,RECORD.ID ELSE
+            PRINT BOTTOM : MESSAGE.COLOR : CLEAR.REST.OF.LINE :
+            PRINT 'Error reading file after pre-processing.' :
+            PRINT @(X.POS,Y.POS) :
+            RETURN
+        END
+*
+        GOSUB CONVERT.RAW.LINES
+        GOSUB DISPLAY.LINES
+*
+        $IFDEF DATABASE.UV
+            CURRENT.CHECKSUM = CHECKSUM(RAW.LINES)
+        $ENDIF
+        $IFDEF DATABASE.D3
+            CURRENT.CHECKSUM = OCONV(RAW.LINES,'u001e')
+        $ENDIF
+*
+        GOSUB FORMAT.BASIC
+*
+        PRINT BOTTOM : MESSAGE.COLOR : CLEAR.REST.OF.LINE :
+        PRINT 'Precompiled file.' :
+        PRINT @(X.POS,Y.POS) :
+*
+    END ELSE IF EDITOR.COMMAND = 'comp' THEN
+        IF FILETYPE # 'BASIC' THEN
+            PRINT BOTTOM : MESSAGE.COLOR : CLEAR.REST.OF.LINE :
+            PRINT 'This file is not a BASIC file.' :
+            PRINT @(X.POS,Y.POS) :
+            RETURN
+        END
+*
+        READ ANYTHING FROM VOC.FILE,'DECOMPILE' ELSE
+            PRINT BOTTOM : MESSAGE.COLOR : CLEAR.REST.OF.LINE :
+            PRINT 'DECOMPILE is not available.' :
+            PRINT @(X.POS,Y.POS) :
+            RETURN
+        END
+*
+        GOSUB SAVE.FILE
+*
+        EXECUTE 'DECOMPILE ' : FILENAME : ' ' : RECORD.ID
+        EXECUTE 'PRECOMPILE ' : FILENAME : ' ' : RECORD.ID : ' (A'
+*
+        READU RAW.LINES FROM FILE,RECORD.ID ELSE
+            PRINT BOTTOM : MESSAGE.COLOR : CLEAR.REST.OF.LINE :
+            PRINT 'Error reading file after pre-processing.' :
+            PRINT @(X.POS,Y.POS) :
+            RETURN
+        END
+*
+        GOSUB CONVERT.RAW.LINES
+        GOSUB DISPLAY.LINES
+*
+        $IFDEF DATABASE.UV
+            CURRENT.CHECKSUM = CHECKSUM(RAW.LINES)
+        $ENDIF
+        $IFDEF DATABASE.D3
+            CURRENT.CHECKSUM = OCONV(RAW.LINES,'u001e')
+        $ENDIF
+*
+        GOSUB FORMAT.BASIC
+*
+        PRINT BOTTOM : MESSAGE.COLOR : CLEAR.REST.OF.LINE :
+        PRINT 'Decompiled and precompiled file.' :
         PRINT @(X.POS,Y.POS) :
 *
     END ELSE IF EDITOR.COMMAND[1,1] = 'a' THEN
@@ -5248,7 +5384,7 @@ BUILD.HELP.LINES:NULL
     HELP.LINES<-1> = '*'
     HELP.LINES<-1> = '# EVA Editor'
     HELP.LINES<-1> = '*'
-    HELP.LINES<-1> = 'EVA is a modal editor for UniVerse and D3. It is multivalue aware and can be used to edit BASIC programs, PROCs, multivalue records and any other files that you can access from UniVerse and D3.'
+    HELP.LINES<-1> = 'EVA is a modal editor for UniVerse and D3. It is multivalue aware and can be used to edit BASIC programs, PROCs, multivalue records and any other files that you can access from UniVerse and D3. It can also edit files on the Linux filesystem directly.'
     HELP.LINES<-1> = '*'
     HELP.LINES<-1> = 'Commands starting with : are commands you can run in command mode. You can enter this mode by press shift and the : key in normal mode.'
     HELP.LINES<-1> = '*'
@@ -5262,22 +5398,23 @@ BUILD.HELP.LINES:NULL
     HELP.LINES<-1> = '    :help - Help'
     HELP.LINES<-1> = '*'
     HELP.LINES<-1> = '## Features'
-    HELP.LINES<-1> = '    1. Persistent Undo History'
-    HELP.LINES<-1> = '    2. Syntax Highlighting for BASIC and PROCs'
-    HELP.LINES<-1> = '    3. BASIC code formatter'
-    HELP.LINES<-1> = '    4. Auto Complete based on the current file'
-    HELP.LINES<-1> = '    5. BASIC snippets for commonly used functions like MATREAD and LOCATE'
-    HELP.LINES<-1> = '    6. Natively handle multivalue data and encoding'
-    HELP.LINES<-1> = '    7. Explode, edit and view multivalue data easily'
-    HELP.LINES<-1> = '    8. Simple searching and replacing'
-    HELP.LINES<-1> = '    9. View dictionaries alongside record data'
+    HELP.LINES<-1> = '    01. Persistent Undo History'
+    HELP.LINES<-1> = '    02. Syntax Highlighting for BASIC and PROCs'
+    HELP.LINES<-1> = '    03. BASIC code formatter'
+    HELP.LINES<-1> = '    04. Auto Complete based on the current file'
+    HELP.LINES<-1> = '    05. BASIC snippets for commonly used functions like MATREAD and LOCATE'
+    HELP.LINES<-1> = '    06. Natively handle multivalue data and encoding'
+    HELP.LINES<-1> = '    07. Explode, edit and view multivalue data easily'
+    HELP.LINES<-1> = '    08. Simple searching and replacing'
+    HELP.LINES<-1> = '    09. View dictionaries alongside record data'
+    HELP.LINES<-1> = '    10. Open linux file paths and write out linux files'
     HELP.LINES<-1> = '*'
     HELP.LINES<-1> = '## Modes'
-    HELP.LINES<-1> = '    1. Normal Mode - This is the default mode  '
-    HELP.LINES<-1> = '    2. Insert Mode - Press "i" to enter insert mode, this is how you edit things  '
-    HELP.LINES<-1> = '    3. Command Mode - Press ":" to enter command mode, here you can type in commands to run  '
-    HELP.LINES<-1> = '    4. Visual Mode -  Press "v" to copy text from a single line  '
-    HELP.LINES<-1> = '    5. Search Mode - Press "/" to enter search mode  '
+    HELP.LINES<-1> = '    01. Normal Mode - This is the default mode  '
+    HELP.LINES<-1> = '    02. Insert Mode - Press "i" to enter insert mode, this is how you edit things  '
+    HELP.LINES<-1> = '    03. Command Mode - Press ":" to enter command mode, here you can type in commands to run  '
+    HELP.LINES<-1> = '    04. Visual Mode -  Press "v" to copy text from a single line  '
+    HELP.LINES<-1> = '    05. Search Mode - Press "/" to enter search mode  '
     HELP.LINES<-1> = '*'
     HELP.LINES<-1> = '## Opening Files'
     HELP.LINES<-1> = '    EVA BP SOME.FILE - This will open a file inside BP.  '
@@ -5299,6 +5436,8 @@ BUILD.HELP.LINES:NULL
     HELP.LINES<-1> = '*'
     HELP.LINES<-1> = '    c - Add "* TEMP" to the beginning of a line  '
     HELP.LINES<-1> = '    e - Add a new line containing just "*" after the cursor  '
+    HELP.LINES<-1> = '    s - Add a internal subroutine template '
+    HELP.LINES<-1> = '*'
     HELP.LINES<-1> = '    d - This command can be followed by another "d" or a number to delete that many lines  '
     HELP.LINES<-1> = '    o - Insert a blank new line and enter insert mode  '
     HELP.LINES<-1> = '    x - Delete the character at the cursor  '
@@ -5319,6 +5458,7 @@ BUILD.HELP.LINES:NULL
     HELP.LINES<-1> = '*'
     HELP.LINES<-1> = '    Backspace - Will move the cursor to the right  '
     HELP.LINES<-1> = '    Enter - Will move the cursor down  '
+    HELP.LINES<-1> = '    Enter GOSUB - Enter on GOSUB will take you to the internal subroutine'
     HELP.LINES<-1> = '*'
     HELP.LINES<-1> = '    h - Move the cursor left    '
     HELP.LINES<-1> = '    j - Move the cursor down    '
@@ -5329,12 +5469,16 @@ BUILD.HELP.LINES:NULL
     HELP.LINES<-1> = '    $ - Place the cursor at the end of the line  '
     HELP.LINES<-1> = '    0 - Place the cursor at the beginning of the line  '
     HELP.LINES<-1> = '*'
+    HELP.LINES<-1> = '    " - Enclose a word in double quotes  '
+    HELP.LINES<-1> = "    ' - Enclose a word in single quotes "
+    HELP.LINES<-1> = '*'
     HELP.LINES<-1> = '## Editor Mode Commands'
     HELP.LINES<-1> = '    :help - Display the help  '
     HELP.LINES<-1> = '    :h - Display the help  '
     HELP.LINES<-1> = '    :^ - Enter up-arrow mode to view non-printable characters  '
     HELP.LINES<-1> = '    :syntax={BASIC,PROC,DATA} - Change the syntax highlighting  '
     HELP.LINES<-1> = '    :{lineNumber} - This will put the cursor on that line number  '
+    HELP.LINES<-1> = '    :gf - Typing gf on a CALL SUBROUTINE will open the subroutine in a view only buffer '
     HELP.LINES<-1> = '*'
     HELP.LINES<-1> = '    :invert - This will inverse the case of a line  '
     HELP.LINES<-1> = '    :lower - Transform the line to lowercase  '
@@ -5342,7 +5486,13 @@ BUILD.HELP.LINES:NULL
     HELP.LINES<-1> = '*'
     HELP.LINES<-1> = '    :numbers - Toggle the line numbers   '
     HELP.LINES<-1> = '    :f - Format the file  '
+    HELP.LINES<-1> = '*'
+    HELP.LINES<-1> = '    :dec - Decompile a file - ASI  '
+    HELP.LINES<-1> = '    :prec - Precompile a file - ASI  '
+    HELP.LINES<-1> = '    :comp - Decompile and Precompile a file - ASI  '
+    HELP.LINES<-1> = '    :lint - Lint a BASIC program  '
     HELP.LINES<-1> = '    :archive - Archive a record in a file, creates a copy to ARCHIVE-{FILE} with a datestamp  '
+    HELP.LINES<-1> = '*'
     HELP.LINES<-1> = '    :vlist - View the object code source of a BASIC program  '
     HELP.LINES<-1> = '*'
     HELP.LINES<-1> = '    :fa - Toggle the file attributes, only works in dictionaries  '
