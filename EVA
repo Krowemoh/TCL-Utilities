@@ -352,6 +352,7 @@
     IS.UNIVERSE.FILE = TRUE
     IS.OS.FILE = FALSE
     CREATE.NEW.OS.FILE = FALSE
+    OPEN.READONLY = FALSE
 *
 * OPEN FILE AND GO TO MAIN:
 *
@@ -471,7 +472,6 @@
                 RECORD.ID = RECORD.ID[2,LEN(RECORD.ID)-2]
             END
 *
-            OPEN.READONLY = FALSE
 *
             READU RAW.LINES FROM FILE,RECORD.ID LOCKED
                 PRINT 'Record is locked: ' : RECORD.ID : ' - View Only? (Y/n) ':
@@ -1913,6 +1913,8 @@ DISPLAY.HEADER:NULL
         PRINT FILENAME :
     END
 *
+    RETURN
+*
     PRINT ' C: ' : CURRENT.LINE :
     PRINT ' L: ' : LINE.NUMBERS<CURRENT.LINE> :
     PRINT ' X: ' : X.POS :
@@ -1920,6 +1922,7 @@ DISPLAY.HEADER:NULL
     PRINT ' LS: ' : LINE.START :
     PRINT ' LE: ' : LINE.END :
     PRINT ' CH: ' : X.POS - MARGIN.LEFT + 1 :
+*
     RETURN
 *
 *********************  S U B R O U T I N E  *********************
@@ -6561,3 +6564,4 @@ ADD.DEFAULT.SNIPPETS:NULL
 *
     END
 *
+    
