@@ -648,6 +648,7 @@ MAIN:NULL
     END ELSE IF NUMBER.OF.RAW.LINES < 10 THEN
         PADDING.LEFT = 'R#2 '
         MARGIN.LEFT = 2 + 1
+*
     END ELSE
         PADDING.LEFT = 'R#' : LEN(NUMBER.OF.RAW.LINES) : ' '
         MARGIN.LEFT = LEN(NUMBER.OF.RAW.LINES) + 1
@@ -721,6 +722,9 @@ MAIN:NULL
             END ELSE IF OCONV(RECORD.ID[LEN(RECORD.ID)-4,5],'MCU') = '.HTML' THEN
                 FILETYPE = 'HTML'
 *
+            END ELSE IF OCONV(RECORD.ID[LEN(RECORD.ID)-2,5],'MCU') = '.MD' THEN
+                FILETYPE = 'MARKDOWN'
+*
             END ELSE
                 FILETYPE = 'DATA'
                 GOSUB TOGGLE.DICTIONARY
@@ -733,9 +737,20 @@ MAIN:NULL
             END ELSE IF OCONV(FILENAME[LEN(FILENAME)-4,5],'MCU') = '.HTML' THEN
                 FILETYPE = 'HTML'
 *
+            END ELSE IF OCONV(FILENAME[LEN(FILENAME)-2,3],'MCU') = '.MD' THEN
+                FILETYPE = 'MARKDOWN'
+*
             END ELSE
                 FILETYPE = 'TXT'
             END
+        END
+    END
+*
+    IF FILETYPE = 'MARKDOWN' THEN
+        IF TERM.WIDTH > 80 THEN
+            MARGIN.RIGHT = TERM.WIDTH - 80
+            VIEW.WIDTH = SCREEN.WIDTH - MARGIN.LEFT - MARGIN.RIGHT
+            VIEW.NUMBERS = FALSE
         END
     END
 *
@@ -781,12 +796,14 @@ MAIN:NULL
     SNIPPETS = ''
     SNIPPET.HEADERS = ''
 *
-    GOSUB ADD.DEFAULT.SNIPPETS
+    IF FILETYPE = 'BASIC' THEN
+        GOSUB ADD.DEFAULT.SNIPPETS
+    END
 *
     PATH = '/home/usr/nivethan/.vim/UltiSnips/all.snippets'
     GOSUB ADD.SNIPPETS
 *
-    IF DCOUNT(RAW.LINES,@AM) < 3000 THEN
+    IF DCOUNT(RAW.LINES,@AM) < 3000 AND FILETYPE = 'BASIC' THEN
         GOSUB ADD.AUTO.COMPLETE
     END
 *
@@ -2472,11 +2489,19 @@ DISPLAY.LINES:NULL
     IF NUMBER.OF.LINES = 0 THEN NUMBER.OF.LINES = 1
 *
     IF NUMBER.OF.LINES < 10 THEN
-        PADDING.LEFT = 'R#2 '
-        MARGIN.LEFT = 2 + 1
+        IF MARGIN.LEFT < 3 THEN
+            PADDING.LEFT = 'R#2 '
+            MARGIN.LEFT = 2 + 1
+        END ELSE
+            PADDING.LEFT = 'R#' : MARGIN.LEFT - 1 : ' '
+        END
     END ELSE
-        PADDING.LEFT = 'R#' : LEN(NUMBER.OF.LINES) : ' '
-        MARGIN.LEFT = LEN(NUMBER.OF.LINES) + 1
+        IF MARGIN.LEFT < LEN(NUMBER.OF.LINES) THEN
+            PADDING.LEFT = 'R#' : LEN(NUMBER.OF.LINES) : ' '
+            MARGIN.LEFT = LEN(NUMBER.OF.LINES) + 1
+        END ELSE
+            PADDING.LEFT = 'R#' : MARGIN.LEFT - 1 : ' '
+        END
     END
 *
     IF LINE.START < 1 THEN LINE.START = 1
@@ -2519,6 +2544,8 @@ DISPLAY.LINES:NULL
 *
         IF VIEW.NUMBERS THEN
             PRINT LINE.NUMBER.COLOR : LINE.NUMBER PADDING.LEFT :
+        END ELSE
+            PRINT '' PADDING.LEFT :
         END
 *
         PRINT LINE.FOREGROUND.COLOR : LINE : CLEAR.REST.OF.LINE
@@ -2577,8 +2604,11 @@ PRINT.CURRENT.LINE:NULL
     GOSUB TOKENIZE.LINE
 *
     PRINT @(0,Y.POS) : CLEAR.REST.OF.LINE :
+*
     IF VIEW.NUMBERS THEN
         PRINT LINE.NUMBER.COLOR : LINE.NUMBER PADDING.LEFT :
+    END ELSE
+        PRINT '' PADDING.LEFT :
     END
 *
     PRINT FOREGROUND.COLOR : LINE
@@ -2621,10 +2651,13 @@ DISPLAY.LINES.FROM.TO:NULL
 *
         PRINT @(0,LINE.Y.POS+LINES.FROM.CTR) : CLEAR.REST.OF.LINE :
         GOSUB TOKENIZE.LINE
-        
+*
         IF VIEW.NUMBERS THEN
             PRINT LINE.NUMBER.COLOR : LINE.NUMBER PADDING.LEFT :
+        END ELSE
+            PRINT '' PADDING.LEFT :
         END
+*
         PRINT FOREGROUND.COLOR : LINE :
         PREV.LINE.NUMBER = LINE.NUMBER
 *
@@ -2823,14 +2856,20 @@ PROCESS.EDITOR.COMMAND:NULL
 *
         IF VIEW.NUMBERS THEN
             IF NUMBER.OF.RAW.LINES < 10 THEN
-                PADDING.LEFT = 'R#2 '
-                MARGIN.LEFT = 2 + 1
+                IF MARGIN.LEFT < 3 THEN
+                    PADDING.LEFT = 'R#2 '
+                    MARGIN.LEFT = 2 + 1
+                END ELSE
+                    PADDING.LEFT = 'R#' : MARGIN.LEFT - 1 : ' '
+                END
             END ELSE
-                PADDING.LEFT = 'R#' : LEN(NUMBER.OF.RAW.LINES) : ' '
-                MARGIN.LEFT = LEN(NUMBER.OF.RAW.LINES) + 1
+                IF MARGIN.LEFT < LEN(NUMBER.OF.RAW.LINES) THEN
+                    PADDING.LEFT = 'R#' : LEN(NUMBER.OF.RAW.LINES) : ' '
+                    MARGIN.LEFT = LEN(NUMBER.OF.RAW.LINES) + 1
+                END ELSE
+                    PADDING.LEFT = 'R#' : MARGIN.LEFT - 1 : ' '
+                END
             END
-        END ELSE
-            MARGIN.LEFT = 0
         END
 *
         GOSUB DISPLAY.LINES
