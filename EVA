@@ -748,7 +748,8 @@ MAIN:NULL
 *
     IF FILETYPE = 'MARKDOWN' THEN
         IF TERM.WIDTH > 80 THEN
-            MARGIN.RIGHT = TERM.WIDTH - 80
+            MARGIN.RIGHT = INT((TERM.WIDTH - 80) / 2)
+            MARGIN.LEFT = MARGIN.RIGHT
             VIEW.WIDTH = SCREEN.WIDTH - MARGIN.LEFT - MARGIN.RIGHT
             VIEW.NUMBERS = FALSE
         END
@@ -4137,19 +4138,7 @@ PROCESS.INSERT:NULL
         $ENDIF
         ASCII.CODE = SEQ(CHR)
 *
-        IF CHR = '`' THEN
-            IF CC.LIST.OPEN THEN
-                CC.LIST.OPEN = FALSE
-                GOSUB DISPLAY.LINES
-            END
-*
-            INPUT.AVAILABLE = FALSE
-            PROCESS.CHAR = ''
-            PRINT BOTTOM : CLEAR.REST.OF.LINE :
-            PRINT @(X.POS,Y.POS) :
-            EXIT
-*
-        END ELSE IF ASCII.CODE = SEQ(KEY.CTRL.S) THEN
+        IF ASCII.CODE = SEQ(KEY.CTRL.S) THEN
             IF OPEN.READONLY THEN
                 PRINT BOTTOM : MESSAGE.COLOR : CLEAR.REST.OF.LINE :
                 PRINT 'This file is read only.' :
@@ -4410,10 +4399,13 @@ PROCESS.INSERT:NULL
             GOSUB UPDATE.LINE
 *
             X.POS = X.POS + 1
+            FORCE.REDRAW = FALSE
+*
             IF X.POS > SCREEN.WIDTH - MARGIN.RIGHT THEN
                 X.POS = MARGIN.LEFT + 1
                 Y.POS = Y.POS + 1
                 CURRENT.LINE = CURRENT.LINE + 1
+                FORCE.REDRAW = TRUE
             END
 *
             LINE = LINES<CURRENT.LINE>
@@ -4467,6 +4459,10 @@ PROCESS.INSERT:NULL
 *
             END ELSE
                 GOSUB PRINT.CURRENT.LINE
+*
+                IF FORCE.REDRAW THEN
+                    GOSUB DISPLAY.LINES
+                END
             END
 *
             PRINT BOTTOM : MESSAGE.COLOR : CLEAR.REST.OF.LINE : '-- INSERT --' :
