@@ -28,7 +28,7 @@
 *
 * VERSION
 *
-    VERSION = '8'
+    VERSION = '9'
 *
     @USER1 = 'EVA'
     @USER2 = 'EVA'
@@ -1265,13 +1265,13 @@ MAIN:NULL
             X.POS = MARGIN.LEFT
             PRINT @(X.POS,Y.POS) :
 *
-        END ELSE IF CHR = '<' THEN
+        END ELSE IF CHR = '1' THEN
             BLOCK.START = LINE.NUMBERS<CURRENT.LINE>
             PRINT BOTTOM : CLEAR.REST.OF.LINE : MESSAGE.COLOR :
             PRINT 'Block started from line ' : BLOCK.START : '.' :
             PRINT @(X.POS,Y.POS) :
 *
-        END ELSE IF CHR = '>' THEN
+        END ELSE IF CHR = '`' THEN
             BLOCK.END = LINE.NUMBERS<CURRENT.LINE>
 *
             IF BLOCK.END < BLOCK.START THEN
@@ -5519,8 +5519,8 @@ BUILD.HELP.LINES:NULL
     HELP.LINES<-1> = '*'
     HELP.LINES<-1> = '    y - Yank the current line  '
     HELP.LINES<-1> = '    p - Paste the current buffer  '
-    HELP.LINES<-1> = '    < - Place a starting mark, the will be the starting line for a block  '
-    HELP.LINES<-1> = '    > - Place an ending mark, this will be the end of a block  '
+    HELP.LINES<-1> = '    1 - Place a starting mark, the will be the starting line for a block  '
+    HELP.LINES<-1> = '    ` - Place an ending mark, this will be the end of a block  '
     HELP.LINES<-1> = '*'
     HELP.LINES<-1> = '    up-arrow - Move the cursor up  '
     HELP.LINES<-1> = '    down-arrow - Move the cursor down  '
@@ -6603,3 +6603,4 @@ ADD.DEFAULT.SNIPPETS:NULL
 *
     END
 *
+    
