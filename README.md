@@ -58,9 +58,12 @@ Commands starting with `:` are commands you can run in command mode. You can ent
 `ctrl+r` - Redo the last undo  
 
 `y` - Yank the current line  
-`p` - Paste the current buffer  
-`\`` - Place a starting mark, the will be the starting line for a block  
-`1` - Place an ending mark, this will be the end of a block  
+`p` - Paste the current buffer 
+
+```
+` - Place a starting mark, the will be the starting line for a block  
+1 - Place an ending mark, this will be the end of a block  
+```
 
 `up-arrow` - Move the cursor up  
 `down-arrow` - Move the cursor down  
