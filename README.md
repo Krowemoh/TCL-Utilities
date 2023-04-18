@@ -59,7 +59,7 @@ Commands starting with `:` are commands you can run in command mode. You can ent
 
 `y` - Yank the current line  
 `p` - Paste the current buffer  
-'`' - Place a starting mark, the will be the starting line for a block  
+`\`` - Place a starting mark, the will be the starting line for a block  
 `1` - Place an ending mark, this will be the end of a block  
 
 `up-arrow` - Move the cursor up  
