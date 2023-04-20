@@ -48,6 +48,9 @@
         PRINT '    LIST - List available packages'
         PRINT '        NPM LIST'
         PRINT
+        PRINT '    INIT - Install all available packages'
+        PRINT '        NPM INIT BP'
+        PRINT
         STOP
     END
 *
