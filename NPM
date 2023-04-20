@@ -1,0 +1,353 @@
+*
+    GIT.FILENAME = 'NPM'
+    GIT.REPO = 'https://github.com/Krowemoh/npm.git'
+*
+* VERSION
+*
+    VERSION = '1'
+*
+    @USER1 = 'NPM'
+    @USER2 = 'NPM'
+*
+    EQU TRUE TO 1
+    EQU FALSE TO 0
+*
+    PACKAGES = ''
+    PACKAGES<1,1> = 'EVA'
+    PACKAGES<1,2> = 'NPM'
+    PACKAGES<1,3> = 'NSH'
+*
+    PACKAGES<2,1> = 'Text Editor'
+    PACKAGES<2,2> = 'Package Manager'
+    PACKAGES<2,3> = 'Shell'
+*
+    PACKAGES<3,1> = 'https://raw.githubusercontent.com/Krowemoh/eva/main/EVA'
+    PACKAGES<3,2> = 'https://raw.githubusercontent.com/Krowemoh/npm/main/NPM'
+    PACKAGES<3,3> = 'https://raw.githubusercontent.com/Krowemoh/nsh/main/NSH'
+*
+    CHECK.OVERWRITE = FALSE
+*
+    ARGUMENTS = SENTENCE()
+    CONVERT ' ' TO @AM IN ARGUMENTS
+    ARG.LEN = DCOUNT(ARGUMENTS,@AM)
+*
+    IF ARG.LEN = 1 THEN
+        PRINT 'NPM - Nova Package Manager'
+        PRINT
+        PRINT '    INFO - Get system information'
+        PRINT
+        PRINT '    GET - Get a file'
+        PRINT '        NPM GET <FILE> <RECORD> <URL>'
+        PRINT
+        PRINT '    COMPILE - Compile a file with conditional compilation'
+        PRINT '        NPM COMPILE <FILE> <RECORD>'
+        PRINT
+        PRINT '    INSTALL - GET and COMPILE and CATALOG'
+        PRINT '        NPM INSTALL <FILE> <RECORD> <URL>'
+        PRINT
+        PRINT '    LIST - List available packages'
+        PRINT '        NPM LIST'
+        PRINT
+        STOP
+    END
+*
+    OPEN '','VOC' TO VOC.FILE ELSE
+        OPEN '','MD' TO VOC.FILE ELSE
+            PRINT 'Unable to open file: VOC'
+            STOP
+        END
+    END
+*
+    GOSUB SYSTEM.INFO
+*
+    VERB = ARGUMENTS<2>
+*
+    IF VERB = 'INFO' THEN
+        PRINT 'OS: ' : OS
+        PRINT 'MV: ' : MV
+*
+    END ELSE IF VERB = 'GET' THEN
+        GOSUB GET.HANDLER
+        PRINT 'Saved ' : FILENAME : ' ' : RECORD.ID
+*
+    END ELSE IF VERB = 'COMPILE' THEN
+        GOSUB COMPILE.HANDLER
+*
+    END ELSE IF VERB = 'INSTALL' THEN
+        GOSUB GET.HANDLER
+        GOSUB COMPILE.HANDLER
+*
+    END ELSE IF VERB = 'LIST' THEN
+        GOSUB LIST.PACKAGES
+*
+    END ELSE
+        PRINT 'Invalid NPM command.'
+    END
+*
+    STOP
+*
+*********************  S U B R O U T I N E  *********************
+*
+SYSTEM.INFO:NULL
+*
+    MV = ''
+    OS = ''
+*
+    READ ANYTHING FROM VOC.FILE,'RELLEVEL' THEN
+        MV = 'UV'
+*
+        TEMP.DIR = SYSTEM(38)
+*
+        IF TEMP.DIR[1,1] = '/' THEN
+            OS = 'LINUX'
+        END ELSE
+            OS = 'WINDOWS'
+        END
+*
+    END ELSE
+        MV = 'D3'
+*
+        SYS.INFO = SYSTEM(100)
+*
+        IF FIELD(SYS.INFO,';',2) = 'Windows' THEN
+            OS = 'WINDOWS'
+        END ELSE
+            OS = 'LINUX'
+        END
+    END
+*
+    RETURN
+*
+*********************  S U B R O U T I N E  *********************
+*
+GET.HANDLER:NULL
+*
+    IF ARG.LEN = 2 THEN
+        PRINT
+        PRINT '    GET - Get a file'
+        PRINT '        NPM GET <FILE> <RECORD> <URL>'
+        PRINT
+        STOP
+    END
+*
+    FILENAME = ARGUMENTS<3>
+    OPEN '',FILENAME TO FILE ELSE
+        PRINT 'Unable to open file: ' : FILENAME
+        STOP
+    END
+*
+    RECORD.ID = TRIM(ARGUMENTS<4>)
+    URL = ARGUMENTS<5>
+*
+    IF URL = '' THEN
+        LOCATE(RECORD.ID,PACKAGES<1>,1;PACKAGE.POS) THEN
+            URL = PACKAGES<3,PACKAGE.POS>
+*
+            PRINT 'URL: ' : URL
+            PRINT 'Download package: (y/N) ' :
+*
+            INPUT ANS
+            IF ANS # 'Y' THEN
+                PRINT 'Did not download package.'
+                STOP
+            END
+*
+        END ELSE
+            PRINT 'URL cannot be blank.'
+            STOP
+        END
+    END
+*
+    IF OS = 'LINUX' THEN
+        CURL.COMMAND = 'curl --silent --insecure ' : URL
+*
+        PRINT 'Retrieving ' : URL
+*
+        IF MV = 'UV' THEN
+            EXECUTE "SH -c '" : CURL.COMMAND : "'"  CAPTURING RESULTS
+*
+        END ELSE IF MV = 'D3' THEN
+            EXECUTE '!' : CURL.COMMAND CAPTURING RESULTS
+        END
+*
+        IF RESULTS<1,1> # '*' THEN
+            PRINT RESULTS
+            STOP
+        END
+*
+        RESPONSE = RESULTS
+*
+    END ELSE IF OS = 'WINDOWS' THEN
+        CURL.COMMAND = 'curl --silent --insecure ' : URL : ' | unix2dos'
+*
+        PRINT 'Retrieving ' : URL
+*
+        EXECUTE '!' : CURL.COMMAND CAPTURING RESULTS
+*
+        IF RESULTS<1,1> # '*' THEN
+            PRINT RESULTS
+            STOP
+        END
+*
+        RESPONSE = RESULTS
+*
+    END ELSE
+        PRINT 'Invalid OS: ' : OS : ' - fetch is not implemented.'
+        STOP
+    END
+*
+    READ ANYTHING FROM FILE,RECORD.ID THEN
+        IF CHECK.OVERWRITE THEN
+            PRINT FILENAME : ' ' : RECORD.ID  : ' already exists, do you want to overwrite? (y/N) ' :
+            INPUT ANS
+*
+            IF ANS # 'Y' THEN
+                PRINT 'Did nothing.'
+                STOP
+            END
+        END
+    END
+*
+    WRITE RESPONSE ON FILE,RECORD.ID
+*
+    RETURN
+*
+*********************  S U B R O U T I N E  *********************
+*
+COMPILE.HANDLER:NULL
+*
+    IF ARG.LEN = 2 THEN
+        PRINT
+        PRINT '    COMPILE - Compile a file with conditional compilation'
+        PRINT '        NPM COMPILE <FILE> <RECORD>'
+        PRINT
+        STOP
+*
+    END ELSE IF DCOUNT(ARGUMENTS,@AM) < 4 THEN
+        PRINT 'COMPILE: There are missing arguments.'
+        STOP
+    END
+*
+    FILENAME = ARGUMENTS<3>
+    OPEN '',FILENAME TO FILE ELSE
+        PRINT 'Unable to open file: ' : FILENAME
+        STOP
+    END
+*
+    RECORD.ID = ARGUMENTS<4>
+    READ ANYTHING FROM FILE,RECORD.ID ELSE
+        PRINT 'File does not exist: ' : FILENAME : ' ' : RECORD.ID
+        STOP
+    END
+*
+    RAW.CODE = ''
+    CLEAN.CODE = ''
+*
+    READ RAW.CODE FROM FILE,RECORD.ID THEN
+        GOSUB UNDEF
+    END
+*
+    WRITE CLEAN.CODE ON FILE,RECORD.ID
+*
+    EXECUTE 'BASIC ' : FILENAME : ' ' : RECORD.ID
+*
+    WRITE RAW.CODE ON FILE, RECORD.ID
+*
+    RETURN
+*
+*********************  S U B R O U T I N E  *********************
+*
+LIST.PACKAGES:NULL
+*
+    PRINT 'The following packages are available to be installed:'
+    PRINT
+*
+    FOR I = 1 TO DCOUNT(PACKAGES<1>,@VM)
+        PRINT '    ' : PACKAGES<1,I> : ' - ' : PACKAGES<2,I>
+    NEXT I
+*
+    PRINT
+*
+    RETURN
+*
+*********************  S U B R O U T I N E  *********************
+*
+UNDEF:NULL
+*
+    NUMBER.OF.LINES = DCOUNT(RAW.CODE,@AM)
+*
+    SYMBOLS = ''
+    CTR = 1
+*
+    LOOP UNTIL CTR > NUMBER.OF.LINES DO
+        LINE = RAW.CODE<CTR>
+        CTR = CTR + 1
+*
+        IF INDEX(LINE,'$DEFINE',1) # 0 AND INDEX(LINE,'"',1) = 0 AND INDEX(LINE,"'",1) = 0 THEN
+            IF MV = 'D3' THEN
+                LINE = CHANGE(LINE,'DATABASE.UV','DATABASE.D3')
+            END
+*
+            IF OS = 'WINDOWS' THEN
+                LINE = CHANGE(LINE,'PLATFORM.LINUX','PLATFORM.WINDOWS')
+            END
+*
+            CLEAN.CODE<-1> = '*UNDEF ' : LINE
+*
+            LINE = TRIM(LINE)
+            SYMBOL = FIELD(LINE,' ',2)
+            SYMBOLS<-1> = SYMBOL
+*
+            CONTINUE
+        END
+*
+        IF INDEX(LINE,'$IFDEF',1) # 0 AND INDEX(LINE,'"',1) = 0 AND INDEX(LINE,"'",1) = 0 THEN
+            CLEAN.CODE<-1> = '*UNDEF ' : LINE
+*
+            LINE = TRIM(LINE)
+            SYMBOL = FIELD(LINE,' ',2)
+*
+            LOCATE(SYMBOL,SYMBOLS;ANYPOS) THEN
+                CONTINUE
+            END
+*
+            LINE = RAW.CODE<CTR>
+            CLEAN.CODE<-1> = '*UNDEF ' : LINE
+*
+            STACK = 1
+*
+            LOOP UNTIL STACK = 0 DO
+                IF INDEX(LINE,'$IFDEF',1) # 0 AND INDEX(LINE,'"',1) = 0 AND INDEX(LINE,"'",1) = 0 THEN
+                    STACK = STACK + 1
+                END
+*
+                IF INDEX(LINE,'$ENDIF',1) # 0 AND INDEX(LINE,'"',1) = 0 AND INDEX(LINE,"'",1) = 0 THEN
+                    STACK = STACK - 1
+                END
+*
+                CTR = CTR + 1
+                LINE = RAW.CODE<CTR>
+*
+                IF STACK # 0 THEN
+                    CLEAN.CODE<-1> = '*UNDEF ' : LINE
+                END
+            REPEAT
+*
+            CONTINUE
+        END
+*
+        IF INDEX(LINE,'$ENDIF',1) # 0 AND INDEX(LINE,'"',1) = 0 AND INDEX(LINE,"'",1) = 0 THEN
+            CLEAN.CODE<-1> = '*UNDEF ' : LINE
+            CONTINUE
+        END
+*
+        CLEAN.CODE<-1> = LINE
+*
+    REPEAT
+*
+    RETURN
+*
+* END OF PROGRAM
+*
+    END
+*
