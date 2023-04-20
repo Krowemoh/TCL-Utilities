@@ -61,10 +61,31 @@
     GOSUB SYSTEM.INFO
 *
     VERB = ARGUMENTS<2>
+    FILENAME = ARGUMENTS<3>
+    RECORD.ID = ARGUMENTS<4>
+    URL = ARGUMENTS<5>
 *
     IF VERB = 'INFO' THEN
         PRINT 'OS: ' : OS
         PRINT 'MV: ' : MV
+*
+    END ELSE IF VERB = 'ALL' THEN
+        PRINT 'Get all packages? (y/N) ' :
+*
+        INPUT ANS
+*
+        IF ANS # 'Y' THEN
+            PRINT 'Did nothing.'
+            STOP
+        END
+*
+        FOR I = 1 TO DCOUNT(PACKAGES<1>,@VM)
+            RECORD.ID = PACKAGES<1,I>
+            URL = PACKAGES<3,I>
+*
+            GOSUB GET.HANDLER
+            GOSUB COMPILE.HANDLER
+        NEXT I
 *
     END ELSE IF VERB = 'GET' THEN
         GOSUB GET.HANDLER
@@ -122,7 +143,7 @@ SYSTEM.INFO:NULL
 *
 GET.HANDLER:NULL
 *
-    IF ARG.LEN = 2 THEN
+    IF ARG.LEN = 2 AND VERB # 'ALL' THEN
         PRINT
         PRINT '    GET - Get a file'
         PRINT '        NPM GET <FILE> <RECORD> <URL>'
@@ -130,14 +151,10 @@ GET.HANDLER:NULL
         STOP
     END
 *
-    FILENAME = ARGUMENTS<3>
     OPEN '',FILENAME TO FILE ELSE
         PRINT 'Unable to open file: ' : FILENAME
         STOP
     END
-*
-    RECORD.ID = TRIM(ARGUMENTS<4>)
-    URL = ARGUMENTS<5>
 *
     IF URL = '' THEN
         LOCATE(RECORD.ID,PACKAGES<1>,1;PACKAGE.POS) THEN
@@ -216,25 +233,19 @@ GET.HANDLER:NULL
 *
 COMPILE.HANDLER:NULL
 *
-    IF ARG.LEN = 2 THEN
+    IF ARG.LEN = 2 AND VERB # 'ALL' THEN
         PRINT
         PRINT '    COMPILE - Compile a file with conditional compilation'
         PRINT '        NPM COMPILE <FILE> <RECORD>'
         PRINT
         STOP
-*
-    END ELSE IF DCOUNT(ARGUMENTS,@AM) < 4 THEN
-        PRINT 'COMPILE: There are missing arguments.'
-        STOP
     END
 *
-    FILENAME = ARGUMENTS<3>
     OPEN '',FILENAME TO FILE ELSE
         PRINT 'Unable to open file: ' : FILENAME
         STOP
     END
 *
-    RECORD.ID = ARGUMENTS<4>
     READ ANYTHING FROM FILE,RECORD.ID ELSE
         PRINT 'File does not exist: ' : FILENAME : ' ' : RECORD.ID
         STOP
