@@ -6299,7 +6299,7 @@ ADD.DEFAULT.SNIPPETS:NULL
     SNIPPETS<221,1> = 'READBLK'
     SNIPPETS<221,2> = 'Use the READBLK statement to read a block of data of a specified length from a file opened for sequential processing and assign it to a variable.'
     SNIPPETS<221,3,1> = "READBLK XX FROM FLAT.FILE, 100000000 THEN"
-    SNIPPETS<221,3,2> = "RELEASE FLAT.FIL"
+    SNIPPETS<221,3,2> = "RELEASE FLAT.FILE"
     SNIPPETS<221,3,3> = "CLOSESEQ FLAT.FILE"
     SNIPPETS<221,3,4> = "END"
     SNIPPETS<222,1> = 'READLIST'
