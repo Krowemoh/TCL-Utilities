@@ -4464,6 +4464,10 @@ PROCESS.INSERT:NULL
             IF X.POS > SCREEN.WIDTH - MARGIN.RIGHT THEN
                 X.POS = MARGIN.LEFT + 1
                 Y.POS = Y.POS + 1
+                IF Y.POS > VIEW.HEIGHT THEN
+                    LINE.START = LINE.START + 1
+                    Y.POS = VIEW.HEIGHT
+                END
                 CURRENT.LINE = CURRENT.LINE + 1
                 FORCE.REDRAW = TRUE
             END
