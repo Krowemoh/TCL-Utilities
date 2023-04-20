@@ -60,6 +60,8 @@
 *
     GOSUB SYSTEM.INFO
 *
+    ALL.FLAG = FALSE
+*
     VERB = ARGUMENTS<2>
     FILENAME = ARGUMENTS<3>
     RECORD.ID = ARGUMENTS<4>
@@ -69,7 +71,8 @@
         PRINT 'OS: ' : OS
         PRINT 'MV: ' : MV
 *
-    END ELSE IF VERB = 'ALL' THEN
+    END ELSE IF VERB = 'INIT' THEN
+        ALL.FLAG = TRUE
         PRINT 'Get all packages? (y/N) ' :
 *
         INPUT ANS
@@ -143,7 +146,7 @@ SYSTEM.INFO:NULL
 *
 GET.HANDLER:NULL
 *
-    IF ARG.LEN = 2 AND VERB # 'ALL' THEN
+    IF ARG.LEN = 2 AND NOT(ALL.FLAG) THEN
         PRINT
         PRINT '    GET - Get a file'
         PRINT '        NPM GET <FILE> <RECORD> <URL>'
@@ -233,7 +236,7 @@ GET.HANDLER:NULL
 *
 COMPILE.HANDLER:NULL
 *
-    IF ARG.LEN = 2 AND VERB # 'ALL' THEN
+    IF ARG.LEN = 2 AND NOT(ALL.FLAG) THEN
         PRINT
         PRINT '    COMPILE - Compile a file with conditional compilation'
         PRINT '        NPM COMPILE <FILE> <RECORD>'
@@ -362,3 +365,4 @@ UNDEF:NULL
 *
     END
 *
+
