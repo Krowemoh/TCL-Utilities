@@ -4249,8 +4249,9 @@ PROCESS.INSERT:NULL
 *
                 RAW.LINES<REAL.LINE.NUMBER> = RAW.LINE
 *
+*TEMP                     GOSUB CONVERT.RAW.LINES
+*TEMP                     GOSUB DISPLAY.LINES
                 GOSUB UPDATE.LINE
-*
                 GOSUB PRINT.CURRENT.LINE
 *
             END ELSE IF Y.POS > 1 THEN
@@ -4278,7 +4279,12 @@ PROCESS.INSERT:NULL
 *
                     NUMBER.OF.LINES = INT(LEN(PREV.LINE) / VIEW.WIDTH)
 *
-                    X.POS = (LEN(PREV.LINE) - (NUMBER.OF.LINES * VIEW.WIDTH)) + MARGIN.LEFT
+                    IF NUMBER.OF.LINES = 1 THEN
+                        X.POS = SCREEN.WIDTH - MARGIN.RIGHT 
+                    END ELSE
+                        X.POS = (LEN(PREV.LINE) - (NUMBER.OF.LINES * VIEW.WIDTH)) + MARGIN.LEFT
+                    END
+*
                     Y.POS = Y.POS - 1
                     CURRENT.LINE = CURRENT.LINE - 1
 *
@@ -6604,4 +6610,3 @@ ADD.DEFAULT.SNIPPETS:NULL
     END
 *
     
-
