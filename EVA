@@ -3576,6 +3576,15 @@ PROCESS.EDITOR.COMMAND:NULL
 *
         EDITOR.COMMAND = ''
 *
+    END ELSE IF EDITOR.COMMAND = 'e' THEN
+        SEARCH.STRING = '%END'
+        GOSUB PROCESS.SEARCH
+*
+        IF SEARCH.RESULTS.EXIST THEN
+            FORWARD.SEARCH = TRUE
+            GOSUB GOTO.SEARCH.RESULT
+        END
+*
     END ELSE IF EDITOR.COMMAND[1,2] = '%s' THEN
         VALUE = EDITOR.COMMAND[3,999]
 *
@@ -5654,6 +5663,7 @@ BUILD.HELP.LINES:NULL
     HELP.LINES<-1> = '    :^ - Enter up-arrow mode to view non-printable characters  '
     HELP.LINES<-1> = '    :syntax={BASIC,PROC,DATA} - Change the syntax highlighting  '
     HELP.LINES<-1> = '    :{lineNumber} - This will put the cursor on that line number  '
+    HELP.LINES<-1> = '    :e - Go to %END'
     HELP.LINES<-1> = '    :gf - Typing gf on a CALL SUBROUTINE will open the subroutine in a view only buffer '
     HELP.LINES<-1> = '*'
     HELP.LINES<-1> = '    :invert - This will inverse the case of a line  '
