@@ -2756,33 +2756,45 @@ DISPLAY.LINES.FROM.TO:NULL
 *
 PROCESS.ESCAPE.KEY:NULL
 *
+    PRINT BOTTOM : MESSAGE.COLOR : CLEAR.REST.OF.LINE :
+    PRINT @(X.POS,Y.POS) :
+*
     ESCAPE.SEQUENCE = ''
+*
     $IFDEF DATABASE.UV
         CHR = KEYIN()
     $ENDIF
+*
     $IFDEF DATABASE.D3
         INPUT CHR,0
     $ENDIF
+*
     ESCAPE.SEQUENCE = CHR
 *
     IF SEQ(CHR) = SEQ('O') THEN
         $IFDEF DATABASE.UV
             CHR = KEYIN()
         $ENDIF
+*
         $IFDEF DATABASE.D3
             INPUT CHR,0
         $ENDIF
+*
         ESCAPE.SEQUENCE = ESCAPE.SEQUENCE : CHR
+*
     END ELSE IF CHR = '[' THEN
         LOOP
             $IFDEF DATABASE.UV
                 CHR = KEYIN()
             $ENDIF
+*
             $IFDEF DATABASE.D3
                 INPUT CHR,0
             $ENDIF
+*
             ESCAPE.SEQUENCE = ESCAPE.SEQUENCE : CHR
         UNTIL NOT(NUM(CHR)) DO REPEAT
+*
     END ELSE
         INPUT.AVAILABLE = TRUE
         PROCESS.CHAR = CHR
@@ -4029,6 +4041,7 @@ PROCESS.INPUT:NULL
 *
         IF ASCII.CODE = SEQ(KEY.ESCAPE) THEN
             GOSUB PROCESS.ESCAPE.KEY
+*
             IF ESCAPE.SEQUENCE = LEFT.ARROW THEN
                 IF INPUT.X.POS > 0 THEN
                     INPUT.X.POS = INPUT.X.POS - 1
@@ -4238,21 +4251,25 @@ PROCESS.INSERT:NULL
             GOSUB PROCESS.ESCAPE.KEY
 *
             IF ESCAPE.SEQUENCE = UP.ARROW THEN
+                PRINT BOTTOM : MESSAGE.COLOR : CLEAR.REST.OF.LINE : '-- INSERT --' :
                 GOSUB SCROLL.UP
                 PRINT @(X.POS,Y.POS) :
                 CONTINUE
 *
             END ELSE IF ESCAPE.SEQUENCE = DOWN.ARROW THEN
+                PRINT BOTTOM : MESSAGE.COLOR : CLEAR.REST.OF.LINE : '-- INSERT --' :
                 GOSUB SCROLL.DOWN
                 PRINT @(X.POS,Y.POS) :
                 CONTINUE
 *
             END ELSE IF ESCAPE.SEQUENCE = LEFT.ARROW THEN
+                PRINT BOTTOM : MESSAGE.COLOR : CLEAR.REST.OF.LINE : '-- INSERT --' :
                 GOSUB PRINT.CURRENT.LINE
                 GOSUB SCROLL.LEFT
                 PRINT @(X.POS,Y.POS) :
 *
             END ELSE IF ESCAPE.SEQUENCE = RIGHT.ARROW THEN
+                PRINT BOTTOM : MESSAGE.COLOR : CLEAR.REST.OF.LINE : '-- INSERT --' :
                 GOSUB PRINT.CURRENT.LINE
                 GOSUB SCROLL.RIGHT
                 PRINT @(X.POS,Y.POS) :
@@ -4335,8 +4352,6 @@ PROCESS.INSERT:NULL
 *
                 RAW.LINES<REAL.LINE.NUMBER> = RAW.LINE
 *
-*TEMP                     GOSUB CONVERT.RAW.LINES
-*TEMP                     GOSUB DISPLAY.LINES
                 GOSUB UPDATE.LINE
                 GOSUB PRINT.CURRENT.LINE
 *
@@ -4563,8 +4578,8 @@ PROCESS.INSERT:NULL
 *
             PRINT BOTTOM : MESSAGE.COLOR : CLEAR.REST.OF.LINE : '-- INSERT --' :
             PRINT @(X.POS,Y.POS) :
-*
         END
+*
     REPEAT
 *
     RETURN
