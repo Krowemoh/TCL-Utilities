@@ -39,6 +39,30 @@
 *
     OS.DEST = FALSE
 *
+    SOURCE.IS.DICT = FALSE
+    DEST.IS.DICT = FALSE
+*
+    IF ARGS<2> = 'DICT' THEN
+        SOURCE.IS.DICT = TRUE
+        ARGS = DELETE(ARGS,2)
+    END
+*
+    LOCATE('DICT',ARGS;ANYPOS) THEN
+        DEST.IS.DICT = TRUE
+        ARGS = DELETE(ARGS,ANYPOS)
+    END
+*
+    SOURCE.DICT = ''
+    DEST.DICT = ''
+*
+    IF SOURCE.IS.DICT THEN
+        SOURCE.DICT = 'DICT'
+    END
+*
+    IF DEST.IS.DICT THEN
+        DEST.DICT = 'DICT'
+    END
+*
     ARGS.LEN = DCOUNT(ARGS,@AM)
 *
     IF ARGS.LEN = 2 THEN
@@ -69,14 +93,15 @@
         SELECT SOURCE.RECORD.ID
     END
 *
-    OPEN '',SOURCE TO SOURCE.FILE ELSE
+    OPEN SOURCE.DICT,SOURCE TO SOURCE.FILE ELSE
         PRINT 'Unable to open source: ' : SOURCE
         STOP
     END
 *
-    OPEN '',DEST TO DEST.FILE ELSE
+    OPEN DEST.DICT,DEST TO DEST.FILE ELSE
         IF DEST[1,1] # '/' THEN
-            PRINT 'Failed to destination: ' : DEST
+        DEBUG
+            PRINT 'Failed to open destination: ' : DEST
             STOP
         END
 *
