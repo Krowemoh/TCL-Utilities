@@ -100,7 +100,6 @@
 *
     OPEN DEST.DICT,DEST TO DEST.FILE ELSE
         IF DEST[1,1] # '/' THEN
-        DEBUG
             PRINT 'Failed to open destination: ' : DEST
             STOP
         END
