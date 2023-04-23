@@ -1,3 +1,4 @@
+    SUBROUTINE MOVE.FILES(ARGS,DELETE.FLAG)
 *
     GIT.FILENAME = 'MOVE.FILES'
     GIT.REPO = 'https://github.com/Krowemoh/TCL-Utilities.git'
@@ -11,8 +12,8 @@
 *
     VERSION = '1'
 *
-    @USER1 = 'MOVE'
-    @USER2 = 'MOVE'
+    @USER1 = 'MOVE.FILES'
+    @USER2 = 'MOVE.FILES'
 *
     $IFDEF DATABASE.UV
         USER.NAME = @ACCOUNT
@@ -38,31 +39,9 @@
 *
     OS.DEST = FALSE
 *
-    ARGS = SENTENCE()
-    CONVERT ' ' TO @AM IN ARGS
     ARGS.LEN = DCOUNT(ARGS,@AM)
 *
-    IF ARGS.LEN = 1 THEN
-        PRINT 'MOVE - Move Command'
-        PRINT
-        PRINT '    Move a file:'
-        PRINT '        MOVE {SRC.FILE} {SRC.RECORD} {DEST.FILE} {DEST.RECORD}'
-        PRINT
-        PRINT '    Move a file without renaming:'
-        PRINT '        MOVE {SRC.FILE} {SRC.RECORD} {DEST.FILE}'
-        PRINT
-        PRINT '    Move files using an active list:'
-        PRINT '        MOVE {SRC.FILE} {DEST.FILE}'
-        PRINT
-        PRINT '    Move a file to the underlying OS:'
-        PRINT '        MOVE {SRC.FILE} {SRC.RECORD} {/tmp/} {new-name.txt}'
-        PRINT
-        PRINT '    Move an active list to a folder:'
-        PRINT '        MOVE {SRC.FILE} {/tmp/backups/}'
-        PRINT
-        STOP
-*
-    END ELSE IF ARGS.LEN = 2 THEN
+    IF ARGS.LEN = 2 THEN
         PRINT 'Invalid option.'
         STOP
 *
@@ -101,7 +80,6 @@
             STOP
         END
 *
-        OS.DEST = TRUE
         DEST.ENTRY.ID = USER.NAME : '.' : PORT.NUMBER : '.MOVE.DEST'
 *
         DEST.ENTRY = ''
@@ -163,8 +141,10 @@
         END
 *
         WRITE ITEM ON DEST.FILE,DEST.RECORD.ID THEN
-            DELETE SOURCE.FILE,ITEM.ID ELSE
-                PRINT 'Failed to delete: ' : SOURCE : ' ' : ITEM.ID
+            IF DELETE.FLAG THEN
+                DELETE SOURCE.FILE,ITEM.ID ELSE
+                    PRINT 'Failed to delete: ' : SOURCE : ' ' : ITEM.ID
+                END
             END
 *
         END ELSE
