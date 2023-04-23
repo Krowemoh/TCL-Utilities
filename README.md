@@ -3,4 +3,6 @@ Helpful Commands for PICK TCL
 
 ## Commands
 
-MOVE - Move Command
+MOVE - Move command
+
+CLONE - Copy command
