@@ -22,19 +22,19 @@
         PRINT 'CLONE - Copy Command'
         PRINT
         PRINT '    Copy a file:'
-        PRINT '        CLONE {SRC.FILE} {SRC.RECORD} {DEST.FILE} {DEST.RECORD}'
+        PRINT '        CLONE [DICT] {SRC.FILE} {SRC.RECORD} [DICT] {DEST.FILE} {DEST.RECORD}'
         PRINT
         PRINT '    Copy a file without renaming:'
-        PRINT '        CLONE {SRC.FILE} {SRC.RECORD} {DEST.FILE}'
+        PRINT '        CLONE [DICT] {SRC.FILE} {SRC.RECORD} [DICT] {DEST.FILE}'
         PRINT
         PRINT '    Copy files using an active list:'
-        PRINT '        CLONE {SRC.FILE} {DEST.FILE}'
+        PRINT '        CLONE [DICT] {SRC.FILE} [DICT] {DEST.FILE}'
         PRINT
         PRINT '    Copy a file to the underlying OS:'
-        PRINT '        CLONE {SRC.FILE} {SRC.RECORD} {/tmp/} {new-name.txt}'
+        PRINT '        CLONE [DICT] {SRC.FILE} {SRC.RECORD} {/tmp/} {new-name.txt}'
         PRINT
         PRINT '    Copy an active list to a folder:'
-        PRINT '        CLONE {SRC.FILE} {/tmp/backups/}'
+        PRINT '        CLONE [DICT] {SRC.FILE} {/tmp/backups/}'
         PRINT
         STOP
     END
