@@ -31,10 +31,10 @@
         PRINT '        MOVE [DICT] {SRC.FILE} [DICT] {DEST.FILE}'
         PRINT
         PRINT '    Move a file to the underlying OS:'
-        PRINT '        MOVE {SRC.FILE} {SRC.RECORD} {/tmp/} {new-name.txt}'
+        PRINT '        MOVE [DICT] {SRC.FILE} {SRC.RECORD} {/tmp/} {new-name.txt}'
         PRINT
         PRINT '    Move an active list to a folder:'
-        PRINT '        MOVE {SRC.FILE} {/tmp/backups/}'
+        PRINT '        MOVE [DICT] {SRC.FILE} {/tmp/backups/}'
         PRINT
         STOP
     END
