@@ -6,3 +6,5 @@ Helpful Commands for PICK TCL
 MOVE - Move command
 
 CLONE - Copy command
+
+NEW-FILE - Create a dictionary and file with defaults
