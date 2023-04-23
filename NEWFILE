@@ -1,0 +1,43 @@
+*
+    GIT.FILENAME = 'NEWFILE'
+    GIT.REPO = 'https://github.com/Krowemoh/TCL-Utilities.git'
+*
+* VERSION
+*
+    VERSION = '1'
+*
+    @USER1 = 'NEWFILE'
+    @USER2 = 'NEWFILE'
+*
+    EQU TRUE TO 1
+    EQU FALSE TO 0
+*
+    ARGS = SENTENCE()
+    CONVERT ' ' TO @AM IN ARGS
+*
+    ARGS.LEN = DCOUNT(ARGS,@AM)
+*
+    IF ARGS.LEN = 1 THEN
+        PRINT 'NEWFILE - Create a new PICK file'
+        PRINT
+        PRINT '    NEWFILE {FILE-NAME}'
+        PRINT
+        STOP
+    END ELSE IF ARGS.LEN # 2 THEN
+        PRINT 'Invalid option'
+        STOP
+    END
+*
+    FILE.NAME = ARGS<2>
+*
+    OPEN '',FILE.NAME TO FILE THEN
+        PRINT 'File already exists: ' : FILE.NAME
+        STOP
+    END
+*
+    EXECUTE 'CREATE-FILE ' : FILE.NAME : ' 53,2,6 101,4,18'
+*
+* END OF PROGRAM
+*
+    END
+*
