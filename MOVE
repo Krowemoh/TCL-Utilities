@@ -6,8 +6,8 @@
 *
     VERSION = '1'
 *
-    @USER1 = 'MOVE.FILES'
-    @USER2 = 'MOVE.FILES'
+    @USER1 = 'MOVE'
+    @USER2 = 'MOVE'
 *
     EQU TRUE TO 1
     EQU FALSE TO 0
@@ -22,13 +22,13 @@
         PRINT 'MOVE - Move Command'
         PRINT
         PRINT '    Move a file:'
-        PRINT '        MOVE {SRC.FILE} {SRC.RECORD} {DEST.FILE} {DEST.RECORD}'
+        PRINT '        MOVE [DICT] {SRC.FILE} {SRC.RECORD} [DICT] {DEST.FILE} {DEST.RECORD}'
         PRINT
         PRINT '    Move a file without renaming:'
-        PRINT '        MOVE {SRC.FILE} {SRC.RECORD} {DEST.FILE}'
+        PRINT '        MOVE [DICT] {SRC.FILE} {SRC.RECORD} [DICT] {DEST.FILE}'
         PRINT
         PRINT '    Move files using an active list:'
-        PRINT '        MOVE {SRC.FILE} {DEST.FILE}'
+        PRINT '        MOVE [DICT] {SRC.FILE} [DICT] {DEST.FILE}'
         PRINT
         PRINT '    Move a file to the underlying OS:'
         PRINT '        MOVE {SRC.FILE} {SRC.RECORD} {/tmp/} {new-name.txt}'
