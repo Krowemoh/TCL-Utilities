@@ -33,7 +33,6 @@
 *
     OPEN '',FILE.NAME TO FILE THEN
         PRINT 'File already exists: ' : FILE.NAME
-        INPUT ANYTHING
         STOP
     END
 *
