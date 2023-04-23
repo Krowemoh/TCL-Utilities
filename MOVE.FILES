@@ -1,0 +1,193 @@
+*
+    GIT.FILENAME = 'MOVE.FILES'
+    GIT.REPO = 'https://github.com/Krowemoh/TCL-Utilities.git'
+*
+* COMPILER DIRECTIVES
+*
+    $DEFINE DATABASE.UV
+    $DEFINE PLATFORM.LINUX
+*
+* VERSION
+*
+    VERSION = '1'
+*
+    @USER1 = 'MOVE'
+    @USER2 = 'MOVE'
+*
+    $IFDEF DATABASE.UV
+        USER.NAME = @ACCOUNT
+        PORT.NUMBER = @USERNO
+        ACCOUNT.NAME = @WHO
+    $ENDIF
+*
+    $IFDEF DATABASE.D3
+        USER.NAME = @USER
+        PORT.NUMBER = @USERNO
+        ACCOUNT.NAME = @ACCOUNT
+    $ENDIF
+*
+    EQU TRUE TO 1
+    EQU FALSE TO 0
+*
+    OPEN '','VOC' TO VOC.FILE ELSE
+        OPEN '','MD' TO VOC.FILE ELSE
+            PRINT 'Unable to open file: VOC'
+            STOP
+        END
+    END
+*
+    OS.DEST = FALSE
+*
+    ARGS = SENTENCE()
+    CONVERT ' ' TO @AM IN ARGS
+    ARGS.LEN = DCOUNT(ARGS,@AM)
+*
+    IF ARGS.LEN = 1 THEN
+        PRINT 'MOVE - Move Command'
+        PRINT
+        PRINT '    Move a file:'
+        PRINT '        MOVE {SRC.FILE} {SRC.RECORD} {DEST.FILE} {DEST.RECORD}'
+        PRINT
+        PRINT '    Move a file without renaming:'
+        PRINT '        MOVE {SRC.FILE} {SRC.RECORD} {DEST.FILE}'
+        PRINT
+        PRINT '    Move files using an active list:'
+        PRINT '        MOVE {SRC.FILE} {DEST.FILE}'
+        PRINT
+        PRINT '    Move a file to the underlying OS:'
+        PRINT '        MOVE {SRC.FILE} {SRC.RECORD} {/tmp/} {new-name.txt}'
+        PRINT
+        PRINT '    Move an active list to a folder:'
+        PRINT '        MOVE {SRC.FILE} {/tmp/backups/}'
+        PRINT
+        STOP
+*
+    END ELSE IF ARGS.LEN = 2 THEN
+        PRINT 'Invalid option.'
+        STOP
+*
+    END ELSE IF ARGS.LEN = 3 THEN
+        SOURCE = ARGS<2>
+        DEST = ARGS<3>
+        DEST.RECORD.ID = ''
+*
+    END ELSE IF ARGS.LEN = 4 THEN
+        SOURCE = ARGS<2>
+        SOURCE.RECORD.ID = ARGS<3>
+        DEST = ARGS<4>
+        DEST.RECORD.ID = ''
+*
+        CLEARSELECT
+        SELECT SOURCE.RECORD.ID
+*
+    END ELSE IF ARGS.LEN = 5 THEN
+        SOURCE = ARGS<2>
+        SOURCE.RECORD.ID = ARGS<3>
+        DEST = ARGS<4>
+        DEST.RECORD.ID = ARGS<5>
+*
+        CLEARSELECT
+        SELECT SOURCE.RECORD.ID
+    END
+*
+    OPEN '',SOURCE TO SOURCE.FILE ELSE
+        PRINT 'Unable to open source: ' : SOURCE
+        STOP
+    END
+*
+    OPEN '',DEST TO DEST.FILE ELSE
+        IF DEST[1,1] # '/' THEN
+            PRINT 'Failed to destination: ' : DEST
+            STOP
+        END
+*
+        OS.DEST = TRUE
+        DEST.ENTRY.ID = USER.NAME : '.' : PORT.NUMBER : '.MOVE.DEST'
+*
+        DEST.ENTRY = ''
+        DEST.ENTRY<1> = 'F'
+        DEST.ENTRY<2> = DEST
+        DEST.ENTRY<3> = DEST
+*
+        WRITEU DEST.ENTRY ON VOC.FILE,DEST.ENTRY.ID LOCKED
+            PRINT 'Failed to get lock on destination VOC: ' : DEST
+            STOP
+*
+        END THEN
+            OPEN '',DEST.ENTRY.ID TO DEST.FILE ELSE
+                PRINT 'Failed top open destination: ' : DEST
+            END
+*
+        END ELSE
+            PRINT 'Failed to write destination VOC for: ' : DEST
+            STOP
+        END
+    END
+*
+    CTR = 0
+    TOTAL.CTR = 0
+*
+    LOOP
+        READNEXT ITEM.ID ELSE ITEM.ID = ''
+    UNTIL ITEM.ID = '' DO
+        TOTAL.CTR = TOTAL.CTR + 1
+*
+        PRINT TOTAL.CTR, ITEM.ID
+*
+        IF DEST.RECORD.ID = '' THEN
+            DEST.RECORD.ID = ITEM.ID
+        END
+*
+        READU ITEM FROM SOURCE.FILE,ITEM.ID LOCKED
+            PRINT 'Failed to get a lock for: ' : SOURCE : ' ' : ITEM.ID
+            DEST.RECORD.ID = ''
+            CONTINUE
+*
+        END ELSE
+            PRINT 'Failed to read: ' : SOURCE : ' ' : ITEM.ID
+            DEST.RECORD.ID = ''
+            CONTINUE
+        END
+*
+        READ DEST.ITEM FROM DEST.FILE,DEST.RECORD.ID THEN
+            READU DEST.ITEM FROM DEST.FILE,DEST.RECORD.ID LOCKED
+                PRINT 'Failed to get a lock: ' : DEST : ' ' : DEST.RECORD.ID
+                DEST.RECORD.ID = ''
+                CONTINUE
+*
+            END ELSE
+                PRINT 'Failed to read: ' : DEST : ' ' : DEST.RECORD.ID
+                DEST.RECORD.ID = ''
+                CONTINUE
+            END
+        END
+*
+        WRITE ITEM ON DEST.FILE,DEST.RECORD.ID THEN
+            DELETE SOURCE.FILE,ITEM.ID ELSE
+                PRINT 'Failed to delete: ' : SOURCE : ' ' : ITEM.ID
+            END
+*
+        END ELSE
+            PRINT 'Failed to write: ' : DEST : ' ' : DEST.RECORD.ID
+            DEST.RECORD.ID = ''
+            CONTINUE
+        END
+*
+        CTR = CTR + 1
+*
+        DEST.RECORD.ID = ''
+    REPEAT
+*
+    IF OS.DEST THEN
+        DELETE VOC.FILE,DEST.ENTRY.ID ELSE
+            PRINT 'Failed to delete: ' : DEST.ENTRY.ID
+        END
+    END
+*
+    PRINT
+    PRINT 'Moved ' : CTR : '/' : TOTAL.CTR : ' from ' : SOURCE : ' to ' : DEST
+*
+* END OF PROGRAM
+*
+    END
+*
