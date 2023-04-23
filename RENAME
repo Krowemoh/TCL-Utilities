@@ -21,25 +21,35 @@
     IF ARGS.LEN = 1 THEN
         PRINT 'RENAME - Rename Command'
         PRINT
-        PRINT '    RENAME {FILE} {CURRENT.NAME} {NEW.NAME}'
+        PRINT '    RENAME [DICT] {FILE} {CURRENT.NAME} {NEW.NAME}'
         PRINT
         STOP
 *
-    END ELSE IF ARGS.LEN # 4 THEN
+    END ELSE IF ARGS.LEN # 4 AND ARGS.LEN # 5 THEN
         PRINT 'Invalid option.'
         STOP
     END
 *
-    FILE = ARGS<2>
-    CURRENT.NAME = ARGS<3>
-    NEW.NAME = ARGS<4>
+    IF ARGS<2> = 'DICT' THEN
+        FILE = ARGS<3>
+        CURRENT.NAME = ARGS<4>
+        NEW.NAME = ARGS<5>
+*
+        ARGS = INSERT(ARGS,5;'DICT')
+        ARGS = INSERT(ARGS,6;FILE)
+*
+    END ELSE
+        FILE = ARGS<2>
+        CURRENT.NAME = ARGS<3>
+        NEW.NAME = ARGS<4>
+*
+        ARGS = INSERT(ARGS,4;FILE)
+    END
 *
     IF CURRENT.NAME = NEW.NAME THEN
         PRINT 'Cannot rename to the same name.'
         STOP
     END
-*    
-    ARGS = INSERT(ARGS,4;FILE)
 *
     CLEARSELECT
 *
