@@ -1,0 +1,47 @@
+*
+    GIT.FILENAME = 'CLONE'
+    GIT.REPO = 'https://github.com/Krowemoh/TCL-Utilities.git'
+*
+* VERSION
+*
+    VERSION = '1'
+*
+    @USER1 = 'CLONE'
+    @USER2 = 'CLONE'
+*
+    EQU TRUE TO 1
+    EQU FALSE TO 0
+*
+    ARGS = SENTENCE()
+    CONVERT ' ' TO @AM IN ARGS
+    DELETE.FLAG = FALSE
+*
+    ARGS.LEN = DCOUNT(ARGS,@AM)
+*
+    IF ARGS.LEN = 1 THEN
+        PRINT 'CLONE - Copy Command'
+        PRINT
+        PRINT '    Copy a file:'
+        PRINT '        CLONE {SRC.FILE} {SRC.RECORD} {DEST.FILE} {DEST.RECORD}'
+        PRINT
+        PRINT '    Copy a file without renaming:'
+        PRINT '        CLONE {SRC.FILE} {SRC.RECORD} {DEST.FILE}'
+        PRINT
+        PRINT '    Copy files using an active list:'
+        PRINT '        CLONE {SRC.FILE} {DEST.FILE}'
+        PRINT
+        PRINT '    Copy a file to the underlying OS:'
+        PRINT '        CLONE {SRC.FILE} {SRC.RECORD} {/tmp/} {new-name.txt}'
+        PRINT
+        PRINT '    Copy an active list to a folder:'
+        PRINT '        CLONE {SRC.FILE} {/tmp/backups/}'
+        PRINT
+        STOP
+    END
+*
+    CALL MOVE.FILES(ARGS,DELETE.FLAG)
+*
+* END OF PROGRAM
+*
+    END
+*
