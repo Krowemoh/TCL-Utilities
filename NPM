@@ -18,6 +18,8 @@
     PACKAGES<1,-1> = 'NSH'
 *
     PACKAGES<1,-1> = 'MOVE.FILES'
+    PACKAGES<1,-1> = 'GET.ARGUMENTS'
+*
     PACKAGES<1,-1> = 'CLONE'
     PACKAGES<1,-1> = 'MOVE'
     PACKAGES<1,-1> = 'NEW-FILE'
@@ -28,6 +30,8 @@
     PACKAGES<2,-1> = 'Shell'
 *
     PACKAGES<2,-1> = 'Base program for Clone, Move and Rename'
+    PACKAGES<2,-1> = 'Base program for argument parsing'
+*
     PACKAGES<2,-1> = 'Clone records and dictionaries'
     PACKAGES<2,-1> = 'Move records and dictionaries'
     PACKAGES<2,-1> = 'Create new files with defaults'
@@ -38,6 +42,8 @@
     PACKAGES<3,-1> = 'https://raw.githubusercontent.com/Krowemoh/nsh/main/NSH'
 *
     PACKAGES<3,-1> = 'https://raw.githubusercontent.com/Krowemoh/TCL-Utilities/main/MOVE.FILES'
+    PACKAGES<3,-1> = 'https://raw.githubusercontent.com/Krowemoh/TCL-Utilities/main/GET.ARGUMENTS'
+*
     PACKAGES<3,-1> = 'https://raw.githubusercontent.com/Krowemoh/TCL-Utilities/main/CLONE'
     PACKAGES<3,-1> = 'https://raw.githubusercontent.com/Krowemoh/TCL-Utilities/main/MOVE'
     PACKAGES<3,-1> = 'https://raw.githubusercontent.com/Krowemoh/TCL-Utilities/main/NEW-FILE'
@@ -212,7 +218,7 @@ GET.HANDLER:NULL
         END
 *
         IF RESULTS<1,1> # '*' THEN
-            PRINT RESULTS
+            PRINT 'File needs to start with *'
             STOP
         END
 *
