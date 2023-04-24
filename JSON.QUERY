@@ -1,0 +1,170 @@
+    SUBROUTINE JSON.QUERY(JSON,QUERY,VALUE)
+*
+    GIT.FILENAME = 'JSON.QUERY'
+    GIT.REPO = 'https://github.com/Krowemoh/TCL-Utilities.git'
+*
+* VERSION
+*
+    VERSION = '1'
+*
+    @USER1 = 'JSON.QUERY'
+    @USER2 = 'JSON.QUERY'
+*
+    EQU TRUE TO 1
+    EQU FALSE TO 0
+*
+    EQU KEY.ATTRIBUTE TO 1
+    EQU VALUE.ATTRIBUTE TO 2
+    EQU TYPE.ATTRIBUTE TO 3
+*
+    GOSUB SETUP
+*
+    VALUE = ''
+*
+    QUERY.LEN = LEN(QUERY)
+    DONE = FALSE
+    KEY = ''
+*
+    IN.STATE = JSON
+*
+    FOR I = 1 TO QUERY.LEN
+        RAW.CHAR = QUERY[I,1]
+*
+        IF RAW.CHAR = '.' THEN
+            IF KEY # '' THEN
+                GOSUB JSON.GET
+                IN.STATE = OUT.STATE
+                KEY = ''
+            END
+*
+        END ELSE IF RAW.CHAR = '[' THEN
+            DONE = FALSE
+*
+            IN.ARRAY = TRUE
+            ARRAY.KEY = ''
+*
+            LOOP
+                I = I + 1
+                RAW.CHAR = QUERY[I,1]
+*
+                IF I > QUERY.LEN THEN
+                    DONE = TRUE
+                END ELSE IF RAW.CHAR = ']' THEN
+                    DONE = TRUE
+                END
+            UNTIL DONE DO
+                ARRAY.KEY = ARRAY.KEY : RAW.CHAR
+            REPEAT
+*
+            ARRAY.DATA = ''
+            FUTURE.QUERY = QUERY[I+1,QUERY.LEN]
+*
+            GOSUB JSON.GET
+*
+            NUMBER.OF.KEYS = DCOUNT(OUT.STATE<KEY.ATTRIBUTE>,@VM)
+*
+            IF ARRAY.KEY # '' THEN
+                START.POS = ARRAY.KEY
+                END.POS = ARRAY.KEY
+            END ELSE
+                START.POS = 1
+                END.POS = NUMBER.OF.KEYS
+            END
+*
+            CTR = 1
+            FOR J = START.POS TO END.POS
+                IN.STATE = OUT.STATE<VALUE.ATTRIBUTE,J>
+*
+                INPUT.STRING = IN.STATE
+                GOSUB RAISE
+                IN.STATE = INPUT.STRING
+*
+                INPUT.STRING = IN.STATE
+                GOSUB RAISE
+                IN.STATE = INPUT.STRING
+*
+                IF FUTURE.QUERY = '' THEN
+                    ARRAY.VALUE = IN.STATE
+                END ELSE
+                    CALL JSON.QUERY(IN.STATE,FUTURE.QUERY,ARRAY.VALUE)
+                END
+*
+                INPUT.STRING = ARRAY.VALUE
+                GOSUB LOWER
+                ARRAY.VALUE = INPUT.STRING
+*
+                ARRAY.DATA<CTR> = ARRAY.VALUE
+                CTR = CTR + 1
+            NEXT J
+*
+            KEY = ''
+            OUT.STATE = ARRAY.DATA
+*
+            EXIT
+*
+        END ELSE
+            KEY = KEY : RAW.CHAR
+        END
+    NEXT I
+*
+    IF KEY # '' THEN
+        GOSUB JSON.GET
+    END
+*
+    VALUE = OUT.STATE
+*
+    RETURN
+*
+*********************  S U B R O U T I N E  *********************
+*
+JSON.GET:NULL
+*
+    LOCATE(KEY,IN.STATE,1;POS) THEN
+        OUT.STATE = IN.STATE<VALUE.ATTRIBUTE,POS>
+        TYPE = IN.STATE<TYPE.ATTRIBUTE,POS>
+*
+        IF TYPE = 'ARRAY' OR TYPE = 'OBJECT' THEN
+            INPUT.STRING = OUT.STATE
+            GOSUB RAISE
+            OUT.STATE = INPUT.STRING
+*
+            INPUT.STRING = OUT.STATE
+            GOSUB RAISE
+            OUT.STATE = INPUT.STRING
+        END
+    END ELSE
+        OUT.STATE = ''
+    END
+*
+    RETURN
+*
+*********************  S U B R O U T I N E  *********************
+*
+SETUP:NULL
+*
+    HIGH = CHAR(254):CHAR(253):CHAR(252):CHAR(251):CHAR(250):CHAR(249):CHAR(248):CHAR(247):CHAR(246):CHAR(245):CHAR(244):CHAR(243):CHAR(242):CHAR(241):CHAR(240):CHAR(239):CHAR(238):CHAR(237):CHAR(236):CHAR(235):CHAR(234):CHAR(233):CHAR(232):CHAR(231):CHAR(230):CHAR(229):CHAR(228):CHAR(227):CHAR(226):CHAR(225):CHAR(224):CHAR(223):CHAR(222):CHAR(221):CHAR(220):CHAR(219):CHAR(218):CHAR(217):CHAR(216):CHAR(215):CHAR(214):CHAR(213):CHAR(212):CHAR(211):CHAR(210):CHAR(209):CHAR(208):CHAR(207):CHAR(206):CHAR(205):CHAR(204):CHAR(203):CHAR(202):CHAR(201)
+*
+    LOW = CHAR(253):CHAR(252):CHAR(251):CHAR(250):CHAR(249):CHAR(248):CHAR(247):CHAR(246):CHAR(245):CHAR(244):CHAR(243):CHAR(242):CHAR(241):CHAR(240):CHAR(239):CHAR(238):CHAR(237):CHAR(236):CHAR(235):CHAR(234):CHAR(233):CHAR(232):CHAR(231):CHAR(230):CHAR(229):CHAR(228):CHAR(227):CHAR(226):CHAR(225):CHAR(224):CHAR(223):CHAR(222):CHAR(221):CHAR(220):CHAR(219):CHAR(218):CHAR(217):CHAR(216):CHAR(215):CHAR(214):CHAR(213):CHAR(212):CHAR(211):CHAR(210):CHAR(209):CHAR(208):CHAR(207):CHAR(206):CHAR(205):CHAR(204):CHAR(203):CHAR(202):CHAR(201):CHAR(200)
+*
+    RETURN
+*
+*********************  S U B R O U T I N E  *********************
+*
+RAISE:NULL
+*
+    CONVERT LOW TO HIGH IN INPUT.STRING
+*
+    RETURN
+*
+*********************  S U B R O U T I N E  *********************
+*
+LOWER:NULL
+*
+    CONVERT HIGH TO LOW IN INPUT.STRING
+*
+    RETURN
+*
+* END OF PROGRAM
+*
+    END
+*
