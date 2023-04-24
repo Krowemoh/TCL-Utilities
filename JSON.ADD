@@ -1,0 +1,24 @@
+    SUBROUTINE JSON.ADD(BUFFER,KEY,VALUE)
+*
+    GIT.FILENAME = 'JSON.ADD'
+    GIT.REPO = 'https://github.com/Krowemoh/TCL-Utilities.git'
+*
+* VERSION
+*
+    VERSION = '1'
+*
+    @USER1 = 'JSON.ADD'
+    @USER2 = 'JSON.ADD'
+*
+    IF BUFFER = '' THEN
+        BUFFER = TRIM(KEY) : @VM : TRIM(VALUE)
+    END ELSE
+        BUFFER = BUFFER : @AM : TRIM(KEY) : @VM : TRIM(VALUE)
+    END
+*
+    RETURN
+*
+* END OF PROGRAM
+*
+    END
+*
