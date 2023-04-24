@@ -63,3 +63,20 @@ Rename files and dictionaries:
 RENAME [DICT] {FILE} {CURRENT.NAME} {NEW.NAME}
 ```
 
+## Library Subroutines
+
+### MOVE.FILES
+
+Used as a base for COPY, RENAME and MOVE. The DELETE.FLAG will decide if the source record should be deleted or not.
+
+```
+    SUBROUTINE MOVE.FILES(ARGS,DELETE.FLAG)
+```
+
+### GET.ARGUMENTS
+
+Used for argument parsing, ARGS will be an attribute marked list of what was typed in at TCL.
+
+```
+    CALL GET.ARGUMENTS(ARGS)
+```
