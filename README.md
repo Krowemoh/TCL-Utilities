@@ -65,6 +65,14 @@ RENAME [DICT] {FILE} {CURRENT.NAME} {NEW.NAME}
 
 ## Library Subroutines
 
+### GET.ARGUMENTS
+
+Used for argument parsing, ARGS will be an attribute marked list of what was typed in at TCL.
+
+```
+    CALL GET.ARGUMENTS(ARGS)
+```
+
 ### MOVE.FILES
 
 Used as a base for COPY, RENAME and MOVE. The DELETE.FLAG will decide if the source record should be deleted or not.
@@ -73,10 +81,64 @@ Used as a base for COPY, RENAME and MOVE. The DELETE.FLAG will decide if the sou
     SUBROUTINE MOVE.FILES(ARGS,DELETE.FLAG)
 ```
 
-### GET.ARGUMENTS
+## JSON Subroutines
 
-Used for argument parsing, ARGS will be an attribute marked list of what was typed in at TCL.
+### JSON Creation
+
+#### JSON.ADD
+
+Add keys and values to a multivalue string. This will form the basis of the object.
 
 ```
-    CALL GET.ARGUMENTS(ARGS)
+    BUFFER = ''
+    CALL JSON.ADD(BUFFER,'key','value)
 ```
+
+#### JSON.CREATE.ARRAY
+
+Convert a multivalue list to an array.
+
+```
+    BUFFER = 1 : @AM : 2 : @AM : 3
+    CALL JSON.CREATE.ARRAY(BUFFER)
+```
+
+#### JSON.CREATE.OBJECT
+
+Convert a buffer to an object.
+
+```
+    BUFFER = ''
+    CALL JSON.ADD(BUFFER,'id',123)
+    CALL JSON.ADD(BUFFER,'description','This is a description')
+    CALL JSON.CREATE.OBJECT(BUFFER)
+```
+
+### JSON Parsing
+
+#### JSON.PARSE
+
+Convert a json object to a multivalue string that can be queried.
+
+```
+    CALL JSON.PARSE(RAW.TEXT,JSON)
+```
+
+#### JSON.QUERY
+
+```
+    CALL JSON.QUERY(JSON,'.firstName',FIRST.NAME)
+```
+
+#### Example
+
+```
+    URL = 'https://dummyjson.com/users/1'
+    EXECUTE 'SH -c "curl ' : URL : '"' CAPTURING RAW.TEXT
+*    
+    CALL JSON.PARSE(RAW.TEXT,JSON)
+*    
+    CALL JSON.QUERY(JSON,'.firstName',FIRST.NAME)
+```
+
+
