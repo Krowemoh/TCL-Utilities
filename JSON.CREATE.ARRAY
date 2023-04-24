@@ -1,0 +1,56 @@
+    SUBROUTINE JSON.CREATE.ARRAY(BUFFER)
+*
+    GIT.FILENAME = 'JSON.CREATE.ARRAY'
+    GIT.REPO = 'https://github.com/Krowemoh/TCL-Utilities.git'
+*
+* VERSION
+*
+    VERSION = '1'
+*
+    @USER1 = 'JSON.CREATE.ARRAY'
+    @USER2 = 'JSON.CREATE.ARRAY'
+*
+    NUMBER.OF.KEYS = DCOUNT(BUFFER,@AM)
+    JSON = ''
+*
+    FOR I = 1 TO NUMBER.OF.KEYS
+        VALUE = TRIM(BUFFER<I>)
+*
+        IF VALUE = '' THEN
+            GOSUB QUOTE.VALUE 
+*
+        END ELSE IF VALUE[1,1] = '0' THEN
+            GOSUB QUOTE.VALUE 
+*
+        END ELSE IF VALUE[1,1] = '.' THEN
+            GOSUB QUOTE.VALUE 
+*
+        END ELSE IF (VALUE[1,1] = '[' OR VALUE[1,1] = '{' OR NUM(VALUE)) THEN
+            JSON<-1> = VALUE
+*
+        END ELSE
+            GOSUB QUOTE.VALUE
+        END
+    NEXT I
+*
+    CONVERT @AM TO ',' IN JSON
+*
+    JSON = '[' : JSON : ']'
+*
+    BUFFER = JSON
+*
+    RETURN
+*
+*********************  S U B R O U T I N E  *********************
+*
+QUOTE.VALUE:NULL
+*
+    VALUE = CHANGE(VALUE,'"','\"')
+    JSON<-1> = '"' : VALUE : '"'
+*
+    RETURN
+*
+* END OF PROGRAM
+*
+    END
+*
