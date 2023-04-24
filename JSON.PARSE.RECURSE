@@ -1,0 +1,190 @@
+    SUBROUTINE JSON.PARSE.RECURSE(RAW.TEXT,JSON)
+*
+    GIT.FILENAME = 'JSON.PARSE.RECURSE'
+    GIT.REPO = 'https://github.com/Krowemoh/TCL-Utilities.git'
+*
+* VERSION
+*
+    VERSION = '1'
+*
+    @USER1 = 'JSON.PARSE.RECURSE'
+    @USER2 = 'JSON.PARSE.RECURSE'
+*
+    EQU TRUE TO 1
+    EQU FALSE TO 0
+*
+    EQU KEY.ATTRIBUTE TO 1
+    EQU VALUE.ATTRIBUTE TO 2
+    EQU TYPE.ATTRIBUTE TO 3
+*
+    JSON = ''
+    TEXT = ''
+*
+    GOSUB SETUP
+*
+    RAW.TEXT.LEN = LEN(RAW.TEXT)
+*
+    POS = 1
+    IN.KEY = TRUE
+*
+    FOR I = 1 TO RAW.TEXT.LEN
+        RAW.CHAR = RAW.TEXT[I,1]
+*
+        IF RAW.CHAR = ' ' THEN
+*
+        END ELSE IF RAW.CHAR = '{' THEN
+            STACK = 1
+            DONE = FALSE
+            TEXT = ''
+*
+            LOOP
+                I = I + 1
+                RAW.CHAR = RAW.TEXT[I,1]
+*
+                IF I > RAW.TEXT.LEN THEN
+                    DONE = TRUE
+                END ELSE IF RAW.CHAR = '{' THEN
+                    STACK = STACK + 1
+                END ELSE IF RAW.CHAR = '}' THEN
+                    STACK = STACK - 1
+                END
+*
+                IF STACK = 0 AND RAW.CHAR = '}' THEN
+                    DONE = TRUE
+                END
+            UNTIL DONE DO
+                TEXT = TEXT : RAW.CHAR
+            REPEAT
+*
+            NESTED.JSON = ''
+            CALL JSON.PARSE.RECURSE(TEXT,NESTED.JSON)
+*
+            INPUT.STRING = NESTED.JSON
+            GOSUB LOWER
+            TEXT = INPUT.STRING
+*
+            TYPE = 'OBJECT'
+*
+        END ELSE IF RAW.CHAR = '"' THEN
+            TEXT = ''
+            LOOP
+                I = I + 1
+                RAW.CHAR = RAW.TEXT[I,1]
+            UNTIL RAW.CHAR = '"' OR I > RAW.TEXT.LEN DO
+                TEXT = TEXT : RAW.CHAR
+            REPEAT
+            TYPE = 'STRING'
+*
+        END ELSE IF RAW.CHAR = '[' THEN
+            STACK = 1
+            DONE = FALSE
+            TEXT = ''
+*
+            LOOP
+                I = I + 1
+                RAW.CHAR = RAW.TEXT[I,1]
+*
+                IF I > RAW.TEXT.LEN THEN
+                    DONE = TRUE
+                END ELSE IF RAW.CHAR = '[' THEN
+                    STACK = STACK + 1
+*
+                END ELSE IF RAW.CHAR = ']' THEN
+                    STACK = STACK - 1
+                END
+*
+                IF STACK = 0 AND RAW.CHAR = ']' THEN
+                    DONE = TRUE
+                END
+            UNTIL DONE DO
+                TEXT = TEXT : RAW.CHAR
+            REPEAT
+*
+            NESTED.JSON = ''
+*
+            CALL JSON.PARSE.RECURSE(TEXT,NESTED.JSON)
+*
+            ARRAY.LEN = DCOUNT(NESTED.JSON<TYPE.ATTRIBUTE>,@VM)
+            FOR J = 1 TO ARRAY.LEN
+                NESTED.JSON<KEY.ATTRIBUTE,J> = J
+            NEXT J
+*
+            INPUT.STRING = NESTED.JSON
+            GOSUB LOWER
+            TEXT = INPUT.STRING
+*
+            TYPE = 'ARRAY'
+*
+        END ELSE IF RAW.CHAR = ':' THEN
+            IN.KEY = FALSE
+            JSON<KEY.ATTRIBUTE,POS> = TEXT
+            TEXT = ''
+*
+        END ELSE IF RAW.CHAR = ',' THEN
+            IN.KEY = TRUE
+*
+            INPUT.STRING = TEXT
+            GOSUB LOWER
+            TEXT = INPUT.STRING
+*
+            IF TEXT = 'null' THEN
+                TEXT = ''
+            END ELSE IF TEXT = 'true' THEN
+                TEXT = 1
+            END ELSE IF TEXT = 'false' THEN
+                TEXT = 0
+            END
+*
+            JSON<VALUE.ATTRIBUTE,POS> = TEXT
+            JSON<TYPE.ATTRIBUTE,POS> = TYPE
+            POS = POS + 1
+            TEXT = ''
+*
+        END ELSE
+            TEXT = TEXT : RAW.CHAR
+            TYPE = 'RAW'
+        END
+    NEXT I
+*
+    IF TEXT # '' THEN
+        INPUT.STRING = TEXT
+*
+        IF TEXT = 'null' THEN
+            TEXT = ''
+        END ELSE IF TEXT = 'true' THEN
+            TEXT = 1
+        END ELSE IF TEXT = 'false' THEN
+            TEXT = 0
+        END
+*
+        GOSUB LOWER
+        TEXT = INPUT.STRING
+*
+        JSON<VALUE.ATTRIBUTE,POS> = INPUT.STRING
+        JSON<TYPE.ATTRIBUTE,POS> = TYPE
+    END
+*
+    RETURN
+*
+*********************  S U B R O U T I N E  *********************
+*
+SETUP:NULL
+*
+    HIGH = CHAR(254):CHAR(253):CHAR(252):CHAR(251):CHAR(250):CHAR(249):CHAR(248):CHAR(247):CHAR(246):CHAR(245):CHAR(244):CHAR(243):CHAR(242):CHAR(241):CHAR(240):CHAR(239):CHAR(238):CHAR(237):CHAR(236):CHAR(235):CHAR(234):CHAR(233):CHAR(232):CHAR(231):CHAR(230):CHAR(229):CHAR(228):CHAR(227):CHAR(226):CHAR(225):CHAR(224):CHAR(223):CHAR(222):CHAR(221):CHAR(220):CHAR(219):CHAR(218):CHAR(217):CHAR(216):CHAR(215):CHAR(214):CHAR(213):CHAR(212):CHAR(211):CHAR(210):CHAR(209):CHAR(208):CHAR(207):CHAR(206):CHAR(205):CHAR(204):CHAR(203):CHAR(202):CHAR(201)
+*
+    LOW = CHAR(253):CHAR(252):CHAR(251):CHAR(250):CHAR(249):CHAR(248):CHAR(247):CHAR(246):CHAR(245):CHAR(244):CHAR(243):CHAR(242):CHAR(241):CHAR(240):CHAR(239):CHAR(238):CHAR(237):CHAR(236):CHAR(235):CHAR(234):CHAR(233):CHAR(232):CHAR(231):CHAR(230):CHAR(229):CHAR(228):CHAR(227):CHAR(226):CHAR(225):CHAR(224):CHAR(223):CHAR(222):CHAR(221):CHAR(220):CHAR(219):CHAR(218):CHAR(217):CHAR(216):CHAR(215):CHAR(214):CHAR(213):CHAR(212):CHAR(211):CHAR(210):CHAR(209):CHAR(208):CHAR(207):CHAR(206):CHAR(205):CHAR(204):CHAR(203):CHAR(202):CHAR(201):CHAR(200)
+*
+    RETURN
+*
+*********************  S U B R O U T I N E  *********************
+*
+LOWER:NULL
+*
+    CONVERT HIGH TO LOW IN INPUT.STRING
+*
+    RETURN
+*
+* END OF PROGRAM
+*
+    END
+*
