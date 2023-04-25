@@ -1,4 +1,3 @@
-*
     SUBROUTINE MOVE.FILES(ARGS,DELETE.FLAG)
 *
     GIT.FILENAME = 'MOVE.FILES'
@@ -196,3 +195,4 @@
 *
     END
 *
+
