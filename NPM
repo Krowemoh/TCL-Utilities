@@ -72,8 +72,8 @@
         PRINT '    LIST - List available packages'
         PRINT '        NPM LIST'
         PRINT
-        PRINT '    INIT - Install all available packages'
-        PRINT '        NPM INIT BP'
+        PRINT '    SYNC - Install all available packages'
+        PRINT '        NPM SYNC BP'
         PRINT
         STOP
     END
@@ -98,7 +98,7 @@
         PRINT 'OS: ' : OS
         PRINT 'MV: ' : MV
 *
-    END ELSE IF VERB = 'INIT' THEN
+    END ELSE IF VERB = 'SYNC' THEN
         ALL.FLAG = TRUE
         PRINT 'Get all packages? (y/N) ' :
 *
@@ -430,3 +430,4 @@ UNDEF:NULL
 *
     END
 *
+
