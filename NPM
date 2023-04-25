@@ -72,8 +72,8 @@
         PRINT '    LIST - List available packages'
         PRINT '        NPM LIST'
         PRINT
-        PRINT '    SYNC - Install all available packages'
-        PRINT '        NPM SYNC BP'
+        PRINT '    SYNC - Install all available packages to FILE'
+        PRINT '        NPM SYNC <FILE>'
         PRINT
         STOP
     END
