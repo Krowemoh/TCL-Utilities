@@ -1045,10 +1045,10 @@ MAIN:NULL
                     RAW.LINE = '*TEMP ' : RAW.LINE
                 END
             END ELSE IF FILETYPE = 'PROC' THEN
-                IF RAW.LINE[1,2] = 'C ' THEN
-                    RAW.LINE = CHANGE(RAW.LINE,'C ','',1)
+                IF RAW.LINE[1,8] = 'C *TEMP ' THEN
+                    RAW.LINE = CHANGE(RAW.LINE,'C *TEMP ','',1)
                 END ELSE
-                    RAW.LINE = 'C ' : RAW.LINE
+                    RAW.LINE = 'C *TEMP ' : RAW.LINE
                 END
             END
             
@@ -1082,7 +1082,13 @@ MAIN:NULL
         END ELSE IF CHR = 'e' THEN
             IF INSIDE.VIEW.BUFFER THEN CONTINUE
 *
-            INSERT.LINE = '*'
+            IF FILETYPE = 'BASIC' THEN
+                INSERT.LINE = '*'
+*
+            END ELSE IF FILETYPE = 'PROC' THEN
+                INSERT.LINE = 'C'
+            END
+*
             GOSUB PROCESS.INSERT.LINE
 *
             IF Y.POS > VIEW.HEIGHT THEN
@@ -6720,5 +6726,6 @@ ADD.DEFAULT.SNIPPETS:NULL
 *
     
     
-
-
+    
+    
+    
