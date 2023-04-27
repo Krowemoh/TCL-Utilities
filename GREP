@@ -1,0 +1,107 @@
+*
+    GIT.FILENAME = 'GREP'
+    GIT.REPO = 'https://github.com/Krowemoh/TCL-Utilities.git'
+*
+* VERSION
+*
+    VERSION = '1'
+*
+    @USER1 = 'GREP'
+    @USER2 = 'GREP'
+*
+    EQU TRUE TO 1
+    EQU FALSE TO 0
+*
+    CALL GET.ARGUMENTS(ARGUMENTS)
+*
+    DICT = ''
+*
+    IF ARGUMENTS<2> = 'DICT' THEN
+        ARGUMENTS = DELETE(ARGUMENTS,2)
+        DICT = 'DICT'
+    END
+*
+    ARGS.LEN = DCOUNT(ARGUMENTS,@AM)
+*
+    IF ARGS.LEN = 1 THEN
+        PRINT 'GREP - Regular Expression Search'
+        PRINT
+        PRINT 'GREP [DICT] {FILE} {RECORD.ID} {REGEX}'
+        PRINT
+        STOP
+    END
+*
+    IF ARGS.LEN = 2 THEN
+        PRINT 'Invalid number of args.'
+        STOP
+    END
+*
+    FILE.NAME = ARGUMENTS<2>
+*
+    OPEN DICT,FILE.NAME TO FILE ELSE
+        PRINT 'Unable to open file: ' : FILE.NAME
+        STOP
+    END
+*
+    IF ARGS.LEN = 3 THEN
+        REGEXP = ARGUMENTS<3>
+        SELECT FILE
+*
+    END ELSE IF ARGS.LEN = 4 THEN
+        RECORD.ID = ARGUMENTS<3>
+        REGEXP = ARGUMENTS<4>
+        SELECT RECORD.ID
+    END
+*
+    IF REGEXP[1,1] = '"' AND REGEXP[LEN(REGEXP),1] = '"' THEN
+        REGEXP = REGEXP[2,LEN(REGEXP)-2]
+    END
+*
+    DIM CONTENT(10000)
+    MAT CONTENT = ''
+*
+    LOOP
+        READNEXT ITEM.ID ELSE ITEM.ID = ''
+*
+    UNTIL ITEM.ID = '' DO
+        MATREAD CONTENT FROM FILE,ITEM.ID ELSE MAT CONTENT = ''
+        NUMBER.OF.LINES = INMAT()
+*
+        FOR I = 1 TO NUMBER.OF.LINES
+*
+            TEXT = CONTENT(I)
+*
+            GOSUB MATCH.RECURSE
+*
+            IF RESULT THEN
+                PRINT ITEM.ID : ': ' : I : ': ' : TEXT
+            END
+        NEXT I
+    REPEAT
+*
+*********************  S U B R O U T I N E  *********************
+*
+MATCH.INDEX:NULL
+*
+    RESULT = FALSE
+*
+    IF INDEX(TEXT,REGEXP,1) # 0 THEN
+        RESULT = TRUE
+    END
+*
+    RETURN
+*
+*********************  S U B R O U T I N E  *********************
+*
+MATCH.RECURSE:NULL
+*
+    RESULT = FALSE
+*
+    CALL MATCH(REGEXP,TEXT,RESULT)
+*
+    RETURN
+*
+* END OF PROGRAM
+*
+    END
+*
