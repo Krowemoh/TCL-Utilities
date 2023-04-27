@@ -1271,13 +1271,13 @@ MAIN:NULL
             X.POS = MARGIN.LEFT
             PRINT @(X.POS,Y.POS) :
 *
-        END ELSE IF CHR = '`' THEN
+        END ELSE IF CHR = '1' THEN
             BLOCK.START = LINE.NUMBERS<CURRENT.LINE>
             PRINT BOTTOM : CLEAR.REST.OF.LINE : MESSAGE.COLOR :
             PRINT 'Block started from line ' : BLOCK.START : '.' :
             PRINT @(X.POS,Y.POS) :
 *
-        END ELSE IF CHR = '1' THEN
+        END ELSE IF CHR = '2' THEN
             BLOCK.END = LINE.NUMBERS<CURRENT.LINE>
 *
             IF BLOCK.END < BLOCK.START THEN
@@ -6724,3 +6724,4 @@ ADD.DEFAULT.SNIPPETS:NULL
 *
     END
 *
+
