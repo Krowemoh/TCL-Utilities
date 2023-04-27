@@ -21,6 +21,7 @@
     PACKAGES<1,-1> = 'GET.ARGUMENTS'
 *
     PACKAGES<1,-1> = 'CLONE'
+    PACKAGES<1,-1> = 'GREP'
     PACKAGES<1,-1> = 'MOVE'
     PACKAGES<1,-1> = 'NEW-FILE'
     PACKAGES<1,-1> = 'RENAME'
@@ -33,6 +34,7 @@
     PACKAGES<2,-1> = 'Base program for argument parsing'
 *
     PACKAGES<2,-1> = 'Clone records and dictionaries'
+    PACKAGES<2,-1> = 'Search using regular expressions'
     PACKAGES<2,-1> = 'Move records and dictionaries'
     PACKAGES<2,-1> = 'Create new files with defaults'
     PACKAGES<2,-1> = 'Rename records and dictionaries'
@@ -45,6 +47,7 @@
     PACKAGES<3,-1> = 'https://raw.githubusercontent.com/Krowemoh/TCL-Utilities/main/GET.ARGUMENTS'
 *
     PACKAGES<3,-1> = 'https://raw.githubusercontent.com/Krowemoh/TCL-Utilities/main/CLONE'
+    PACKAGES<3,-1> = 'https://raw.githubusercontent.com/Krowemoh/TCL-Utilities/main/GREP'
     PACKAGES<3,-1> = 'https://raw.githubusercontent.com/Krowemoh/TCL-Utilities/main/MOVE'
     PACKAGES<3,-1> = 'https://raw.githubusercontent.com/Krowemoh/TCL-Utilities/main/NEW-FILE'
     PACKAGES<3,-1> = 'https://raw.githubusercontent.com/Krowemoh/TCL-Utilities/main/RENAME'
@@ -430,4 +433,5 @@ UNDEF:NULL
 *
     END
 *
+
 
