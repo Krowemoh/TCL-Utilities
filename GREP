@@ -68,15 +68,24 @@
         NUMBER.OF.LINES = INMAT()
 *
         FOR I = 1 TO NUMBER.OF.LINES
+            BREAK.OUT = FALSE
 *
             TEXT = CONTENT(I)
 *
-            GOSUB MATCH.RECURSE
+            GOSUB MATCH.INDEX
 *
             IF RESULT THEN
                 PRINT ITEM.ID : ': ' : I : ': ' : TEXT
+                INPUTIF EXIT.SEARCH THEN
+                    BREAK.OUT = TRUE
+                    EXIT
+                END
             END
         NEXT I
+*
+        IF BREAK.OUT THEN
+            EXIT
+        END
     REPEAT
 *
 *********************  S U B R O U T I N E  *********************
@@ -105,3 +114,4 @@ MATCH.RECURSE:NULL
 *
     END
 *
+    
