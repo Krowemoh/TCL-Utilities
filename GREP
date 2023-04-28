@@ -80,6 +80,8 @@
         NEXT LINE.CTR
     REPEAT
 *
+    STOP
+*
 *********************  S U B R O U T I N E  *********************
 *
 MATCH:NULL
