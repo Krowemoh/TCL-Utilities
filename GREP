@@ -44,17 +44,17 @@
     END
 *
     IF ARGS.LEN = 3 THEN
-        REGEXP = ARGUMENTS<3>
+        REGULAR.EXP = ARGUMENTS<3>
         SELECT FILE
 *
     END ELSE IF ARGS.LEN = 4 THEN
         RECORD.ID = ARGUMENTS<3>
-        REGEXP = ARGUMENTS<4>
+        REGULAR.EXP = ARGUMENTS<4>
         SELECT RECORD.ID
     END
 *
-    IF REGEXP[1,1] = '"' AND REGEXP[LEN(REGEXP),1] = '"' THEN
-        REGEXP = REGEXP[2,LEN(REGEXP)-2]
+    IF REGULAR.EXP[1,1] = '"' AND REGULAR.EXP[LEN(REGULAR.EXP),1] = '"' THEN
+        REGULAR.EXP = REGULAR.EXP[2,LEN(REGULAR.EXP)-2]
     END
 *
     DIM CONTENT(10000)
@@ -67,46 +67,136 @@
         MATREAD CONTENT FROM FILE,ITEM.ID ELSE MAT CONTENT = ''
         NUMBER.OF.LINES = INMAT()
 *
-        FOR I = 1 TO NUMBER.OF.LINES
-            BREAK.OUT = FALSE
+        FOR LINE.CTR = 1 TO NUMBER.OF.LINES
 *
-            TEXT = CONTENT(I)
+            TEXT = CONTENT(LINE.CTR)
+            REGEXP = REGULAR.EXP
 *
-            GOSUB MATCH.INDEX
+            GOSUB MATCH
 *
             IF RESULT THEN
-                PRINT ITEM.ID : ': ' : I : ': ' : TEXT
-                INPUTIF EXIT.SEARCH THEN
-                    BREAK.OUT = TRUE
-                    EXIT
-                END
+                PRINT ITEM.ID : ': ' : LINE.CTR : ': ' : TEXT
             END
-        NEXT I
-*
-        IF BREAK.OUT THEN
-            EXIT
-        END
+        NEXT LINE.CTR
     REPEAT
 *
 *********************  S U B R O U T I N E  *********************
 *
-MATCH.INDEX:NULL
+MATCH:NULL
 *
+    BREAK.IMMEDIATE = FALSE
     RESULT = FALSE
 *
-    IF INDEX(TEXT,REGEXP,1) # 0 THEN
+    T.LEN = LEN(TEXT)
+    R.LEN = LEN(REGEXP)
+*
+    I = 0
+*
+    IF REGEXP = '$' THEN
         RESULT = TRUE
+        RETURN
     END
 *
-    RETURN
+    IF REGEXP[1,1] = '^' THEN
+        BREAK.IMMEDIATE = TRUE
+        REGEXP = REGEXP[2,999]
+        R.LEN = LEN(REGEXP)
+    END
 *
-*********************  S U B R O U T I N E  *********************
+    LOOP
 *
-MATCH.RECURSE:NULL
+        I = I + 1
 *
-    RESULT = FALSE
+        IF BREAK.IMMEDIATE AND I # 1 THEN
+            EXIT
+        END
 *
-    CALL MATCH(REGEXP,TEXT,RESULT)
+        R.CTR = 1
+        T.CTR = I
+*
+        STAR.MATCH = ''
+*
+        LOOP
+            T = TEXT[T.CTR,1]
+*
+            IF R.CTR = 1 THEN
+                P.R = ''
+            END ELSE
+                P.R = REGEXP[R.CTR-1,1]
+            END
+*
+            R = REGEXP[R.CTR,1]
+*
+            IF R.CTR = R.LEN THEN
+                N.R = ''
+            END ELSE
+                N.R = REGEXP[R.CTR+1,1]
+            END
+*
+            IF N.R = '*' THEN
+                R.CTR = R.CTR + 1
+                CONTINUE
+*
+            END ELSE IF R = '*' THEN
+*
+                IF P.R = '' THEN
+                    EXIT
+                END
+*
+                DONE = FALSE
+                LOOP
+                    IF (T = P.R OR P.R = '.') AND T # N.R THEN
+                        T.CTR = T.CTR + 1
+                        T = TEXT[T.CTR,1]
+                    END ELSE
+                        DONE = TRUE
+                    END
+                UNTIL DONE OR T.CTR > T.LEN DO REPEAT
+*
+                IF T.CTR > T.LEN AND N.R # '' AND N.R # '$' THEN
+                    EXIT
+                END
+*
+                R.CTR = R.CTR + 1
+*
+            END ELSE IF R = '$' THEN
+                IF T.CTR > T.LEN THEN
+                    RESULT = TRUE
+                    RETURN
+                END ELSE
+                    RESULT = FALSE
+                    RETURN
+                END
+*
+            END ELSE IF T = R OR (R = '.' AND T # '') THEN
+                T.CTR = T.CTR + 1
+                R.CTR = R.CTR + 1
+*
+                IF N.R = '$' THEN
+                    IF T.CTR > T.LEN THEN
+                        RESULT = TRUE
+                        RETURN
+                    END ELSE
+                        EXIT
+                    END
+                END
+*
+            END ELSE IF R.CTR > R.LEN THEN
+                RESULT = TRUE
+                RETURN
+*
+            END ELSE
+                EXIT
+            END
+*
+            IF R.CTR > R.LEN THEN
+                RESULT = TRUE
+                RETURN
+            END
+*
+        UNTIL R.CTR > R.LEN DO REPEAT
+*
+    UNTIL I > T.LEN DO REPEAT
 *
     RETURN
 *
@@ -114,4 +204,3 @@ MATCH.RECURSE:NULL
 *
     END
 *
-    
