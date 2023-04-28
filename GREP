@@ -60,6 +60,7 @@
     DIM CONTENT(10000)
     MAT CONTENT = ''
 *
+    T1 = TIME()
     LOOP
         READNEXT ITEM.ID ELSE ITEM.ID = ''
 *
@@ -77,8 +78,16 @@
             IF RESULT THEN
                 PRINT ITEM.ID : ': ' : LINE.CTR : ': ' : TEXT
             END
+*
+            INPUTIF ANS THEN  
+                STOP
+            END
+*
         NEXT LINE.CTR
     REPEAT
+    T2 = TIME()
+*
+    PRINT 'Took: ' : T2 - T1 : 's'
 *
     STOP
 *
@@ -206,3 +215,4 @@ MATCH:NULL
 *
     END
 *
+    
