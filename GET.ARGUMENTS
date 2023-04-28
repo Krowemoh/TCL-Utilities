@@ -28,6 +28,20 @@
             IF TOKEN # '' THEN ARGS<-1> = TOKEN
             TOKEN = ''
 *
+        END ELSE IF CHARACTER = "'" THEN
+            IF TOKEN # '' THEN ARGS<-1> = TOKEN
+            TOKEN = ''
+*
+            LOOP
+                LETTER.CTR = LETTER.CTR + 1
+                CHARACTER = COMMAND[LETTER.CTR,1]
+            UNTIL CHARACTER = "'" OR LETTER.CTR > LEN(COMMAND) DO
+                TOKEN = TOKEN : CHARACTER
+            REPEAT
+*
+            IF TOKEN # '' THEN ARGS<-1> = TOKEN
+            TOKEN = ''
+*
         END ELSE
             TOKEN = TOKEN : CHARACTER
         END
@@ -41,4 +55,5 @@
 *
     END
 *
+
 
