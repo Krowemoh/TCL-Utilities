@@ -26,6 +26,16 @@ Copy records in PICK:
         CLONE [DICT] {SRC.FILE} {/tmp/backups/}
 ```
 
+### GREP
+
+Regex search in BASIC:
+
+```
+GREP - Regular Expression Search
+
+GREP [DICT] {FILE} {RECORD.ID} {REGEX}
+```
+
 ### MOVE
 
 Move records around in PICK:
