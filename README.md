@@ -28,11 +28,9 @@ Copy records in PICK:
 
 ### GREP
 
-Regex search in BASIC:
+Regex search in BASIC, ^.*$:
 
 ```
-GREP - Regular Expression Search
-
 GREP [DICT] {FILE} {RECORD.ID} {REGEX}
 ```
 
