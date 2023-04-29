@@ -366,7 +366,7 @@ LIST.PACKAGES:NULL
     PRINT
 *
     FOR I = 1 TO DCOUNT(PACKAGES<1>,@VM)
-        PRINT '    ' : PACKAGES<1,I> : ' - ' : PACKAGES<2,I>
+        PRINT PACKAGES<1,I>  'L#25' : PACKAGES<2,I>
     NEXT I
 *
     PRINT
