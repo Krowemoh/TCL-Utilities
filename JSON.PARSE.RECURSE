@@ -32,6 +32,12 @@
 *
         IF RAW.CHAR = ' ' THEN
 *
+        END ELSE IF RAW.CHAR = CHAR(9) THEN
+*
+        END ELSE IF RAW.CHAR = CHAR(10) THEN
+*
+        END ELSE IF RAW.CHAR = CHAR(13) THEN
+*
         END ELSE IF RAW.CHAR = '{' THEN
             STACK = 1
             DONE = FALSE
@@ -157,6 +163,7 @@
             TEXT = 0
         END
 *
+        INPUT.STRING = TEXT
         GOSUB LOWER
         TEXT = INPUT.STRING
 *
