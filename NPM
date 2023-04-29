@@ -26,6 +26,13 @@
     PACKAGES<1,-1> = 'NEW-FILE'
     PACKAGES<1,-1> = 'RENAME'
 *
+    PACKAGES<1,-1> = 'JSON.ADD'
+    PACKAGES<1,-1> = 'JSON.CREATE.ARRAY'
+    PACKAGES<1,-1> = 'JSON.CREATE.OBJECT'
+    PACKAGES<1,-1> = 'JSON.PARSE'
+    PACKAGES<1,-1> = 'JSON.PARSE.RECURSE'
+    PACKAGES<1,-1> = 'JSON.QUERY'
+*
     PACKAGES<2,-1> = 'Text Editor'
     PACKAGES<2,-1> = 'Package Manager'
     PACKAGES<2,-1> = 'Shell'
@@ -39,6 +46,13 @@
     PACKAGES<2,-1> = 'Create new files with defaults'
     PACKAGES<2,-1> = 'Rename records and dictionaries'
 *
+    PACKAGES<2,-1> = 'Add key values pairs to a buffer for json creation'
+    PACKAGES<2,-1> = 'Create a JSON array from a multivalue list'
+    PACKAGES<2,-1> = 'Create a JSON object froma multivalue list of key value pairs'
+    PACKAGES<2,-1> = 'JSON parser'
+    PACKAGES<2,-1> = 'Recursive function to parse JSON'
+    PACKAGES<2,-1> = 'Query JSON'
+*
     PACKAGES<3,-1> = 'https://raw.githubusercontent.com/Krowemoh/eva/main/EVA'
     PACKAGES<3,-1> = 'https://raw.githubusercontent.com/Krowemoh/npm/main/NPM'
     PACKAGES<3,-1> = 'https://raw.githubusercontent.com/Krowemoh/nsh/main/NSH'
@@ -51,6 +65,13 @@
     PACKAGES<3,-1> = 'https://raw.githubusercontent.com/Krowemoh/TCL-Utilities/main/MOVE'
     PACKAGES<3,-1> = 'https://raw.githubusercontent.com/Krowemoh/TCL-Utilities/main/NEW-FILE'
     PACKAGES<3,-1> = 'https://raw.githubusercontent.com/Krowemoh/TCL-Utilities/main/RENAME'
+*
+    PACKAGES<3,-1> = 'https://raw.githubusercontent.com/Krowemoh/TCL-Utilities/main/JSON.ADD'
+    PACKAGES<3,-1> = 'https://raw.githubusercontent.com/Krowemoh/TCL-Utilities/main/JSON.CREATE.ARRAY'
+    PACKAGES<3,-1> = 'https://raw.githubusercontent.com/Krowemoh/TCL-Utilities/main/JSON.CREATE.OBJECT'
+    PACKAGES<3,-1> = 'https://raw.githubusercontent.com/Krowemoh/TCL-Utilities/main/JSON.PARSE'
+    PACKAGES<3,-1> = 'https://raw.githubusercontent.com/Krowemoh/TCL-Utilities/main/JSON.PARSE.RECURSE'
+    PACKAGES<3,-1> = 'https://raw.githubusercontent.com/Krowemoh/TCL-Utilities/main/JSON.QUERY'
 *
     CHECK.OVERWRITE = FALSE
 *
@@ -433,5 +454,6 @@ UNDEF:NULL
 *
     END
 *
+
 
 
