@@ -287,9 +287,11 @@ COMPILE.HANDLER:NULL
     RAW.CODE = ''
     CLEAN.CODE = ''
 *
-    READ RAW.CODE FROM FILE,RECORD.ID THEN
-        GOSUB UNDEF
+    READ RAW.CODE FROM FILE,RECORD.ID ELSE
+        PRINT 'Failed to read: ' : RECORD.ID
     END
+*
+    GOSUB UNDEF
 *
     WRITE CLEAN.CODE ON FILE,RECORD.ID
 *
@@ -389,7 +391,7 @@ UNDEF:NULL
 *
     REPEAT
 *
-    STOP
+    RETURN
 *
 *********************  S U B R O U T I N E  *********************
 *
