@@ -1,0 +1,60 @@
+    SUBROUTINE SECURE.FILE.TRANSFER.PROTOCOL(RESULTS,SERVER,USERNAME,PASSWORD,LOCAL.PATH,REMOTE.PATH,DIRECTION)
+*
+    GIT.FILENAME = 'SECURE.FILE.TRANSFER.PROTOCOL'
+    GIT.REPO = 'https://github.com/Krowemoh/TCL-Utilities.git'
+*
+* VERSION
+*
+    VERSION = '1'
+*
+    @USER1 = 'SECURE.FILE.TRANSFER.PROTOCOL'
+    @USER2 = 'SECURE.FILE.TRANSFER.PROTOCOL'
+*
+    EQU TRUE TO 1
+    EQU FALSE TO 0
+*
+    IF DIRECTION # 'SEND-FILE' AND DIRECTION # 'GET-FILE' THEN
+        PRINT 'Invalid direction.'
+        RETURN
+    END
+*
+    PORT = ''
+*
+    IF INDEX(SERVER,':',1) # 0 THEN
+        PORT = SERVER[INDEX(SERVER,':',1)+1,999]
+        SERVER = SERVER[1,INDEX(SERVER,':',1)-1]
+    END
+*
+    IF DIRECTION = 'SEND-FILE' THEN
+        COMMAND = "sshpass -p '" : PASSWORD : "' "
+        COMMAND = COMMAND : 'sftp -q ' 
+*
+        IF PORT THEN
+            COMMAND = COMMAND : ' -P ' : PORT : ' '
+        END
+*
+        COMMAND = COMMAND : USERNAME : '@' : SERVER : ' <<EOF > /dev/null'
+*
+        COMMAND = COMMAND : CHAR(10) : 'put ' : LOCAL.PATH : ' ' : REMOTE.PATH
+        COMMAND = COMMAND : CHAR(10) : 'quit'
+        COMMAND = COMMAND : CHAR(10) : 'EOF'
+*
+    END ELSE IF DIRECTION = 'GET-FILE' THEN
+        COMMAND = "sshpass -p '" : PASSWORD : "' "
+        COMMAND = COMMAND : 'sftp -q ' 
+*
+        IF PORT THEN
+            COMMAND = COMMAND : ' -P ' : PORT : ' '
+        END
+*
+        COMMAND = COMMAND : USERNAME : '@' : SERVER : ':' : REMOTE.PATH : ' '
+        COMMAND = COMMAND : LOCAL.PATH : ' ' 
+    END
+*
+    SHELL.COMMAND = 'SH -c "' : COMMAND : '"'
+    EXECUTE SHELL.COMMAND CAPTURING RESULTS
+*
+* END OF PROGRAM
+*
+    END
+*
