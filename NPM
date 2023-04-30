@@ -405,6 +405,7 @@ SETUP.PACKAGES:NULL
     PACKAGES<1,-1> = 'GET.ARGUMENTS'
     PACKAGES<1,-1> = 'FILE.TRANSFER.PROTOCOL'
     PACKAGES<1,-1> = 'SECURE.COPY'
+    PACKAGES<1,-1> = 'SECURE.FILE.TRANSFER.PROTOCOL'
 *
     PACKAGES<1,-1> = 'CLONE'
     PACKAGES<1,-1> = 'FTP'
@@ -413,6 +414,7 @@ SETUP.PACKAGES:NULL
     PACKAGES<1,-1> = 'NEW-FILE'
     PACKAGES<1,-1> = 'RENAME'
     PACKAGES<1,-1> = 'SCP'
+    PACKAGES<1,-1> = 'SFTP'
 *
     PACKAGES<1,-1> = 'JSON.ADD'
     PACKAGES<1,-1> = 'JSON.CREATE.ARRAY'
@@ -429,6 +431,7 @@ SETUP.PACKAGES:NULL
     PACKAGES<2,-1> = 'Base program for argument parsing'
     PACKAGES<2,-1> = 'Base program for upload or download files using ftp'
     PACKAGES<2,-1> = 'Base program for upload or download files using ssh'
+    PACKAGES<2,-1> = 'Base program for upload or download files using sftp'
 *
     PACKAGES<2,-1> = 'Clone records and dictionaries'
     PACKAGES<2,-1> = 'Upload or download files using ftp'
@@ -437,6 +440,7 @@ SETUP.PACKAGES:NULL
     PACKAGES<2,-1> = 'Create new files with defaults'
     PACKAGES<2,-1> = 'Rename records and dictionaries'
     PACKAGES<2,-1> = 'Upload or download files using ssh'
+    PACKAGES<2,-1> = 'Upload or download files using sftp'
 *
     PACKAGES<2,-1> = 'Add key values pairs to a buffer for json creation'
     PACKAGES<2,-1> = 'Create a JSON array from a multivalue list'
@@ -453,6 +457,7 @@ SETUP.PACKAGES:NULL
     PACKAGES<3,-1> = 'https://raw.githubusercontent.com/Krowemoh/TCL-Utilities/main/GET.ARGUMENTS'
     PACKAGES<3,-1> = 'https://raw.githubusercontent.com/Krowemoh/TCL-Utilities/main/FILE.TRANSFER.PROTOCOL'
     PACKAGES<3,-1> = 'https://raw.githubusercontent.com/Krowemoh/TCL-Utilities/main/SECURE.COPY'
+    PACKAGES<3,-1> = 'https://raw.githubusercontent.com/Krowemoh/TCL-Utilities/main/SECURE.FILE.TRANSFER.PROTOCOL'
 *
     PACKAGES<3,-1> = 'https://raw.githubusercontent.com/Krowemoh/TCL-Utilities/main/CLONE'
     PACKAGES<3,-1> = 'https://raw.githubusercontent.com/Krowemoh/TCL-Utilities/main/FTP'
@@ -461,6 +466,7 @@ SETUP.PACKAGES:NULL
     PACKAGES<3,-1> = 'https://raw.githubusercontent.com/Krowemoh/TCL-Utilities/main/NEW-FILE'
     PACKAGES<3,-1> = 'https://raw.githubusercontent.com/Krowemoh/TCL-Utilities/main/RENAME'
     PACKAGES<3,-1> = 'https://raw.githubusercontent.com/Krowemoh/TCL-Utilities/main/SCP'
+    PACKAGES<3,-1> = 'https://raw.githubusercontent.com/Krowemoh/TCL-Utilities/main/SFTP'
 *
     PACKAGES<3,-1> = 'https://raw.githubusercontent.com/Krowemoh/TCL-Utilities/main/JSON.ADD'
     PACKAGES<3,-1> = 'https://raw.githubusercontent.com/Krowemoh/TCL-Utilities/main/JSON.CREATE.ARRAY'
