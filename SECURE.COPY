@@ -1,0 +1,58 @@
+    SUBROUTINE SECURE.COPY(RESULTS,SERVER,USERNAME,PASSWORD,LOCAL.PATH,REMOTE.PATH,DIRECTION)
+*
+    GIT.FILENAME = 'SECURE.COPY'
+    GIT.REPO = 'https://github.com/Krowemoh/TCL-Utilities.git'
+*
+* VERSION
+*
+    VERSION = '1'
+*
+    @USER1 = 'SECURE.COPY'
+    @USER2 = 'SECURE.COPY'
+*
+    EQU TRUE TO 1
+    EQU FALSE TO 0
+*
+    IF DIRECTION # 'SEND-FILE' AND DIRECTION # 'GET-FILE' THEN
+        PRINT 'Invalid direction.'
+        RETURN
+    END
+*
+    PORT = ''
+*
+    IF INDEX(SERVER,':',1) # 0 THEN
+        PORT = SERVER[INDEX(SERVER,':',1)+1,999]
+        SERVER = SERVER[1,INDEX(SERVER,':',1)-1]
+    END
+*
+    IF DIRECTION = 'SEND-FILE' THEN
+        COMMAND = "sshpass -p '" : PASSWORD : "' "
+        COMMAND = COMMAND : 'scp ' 
+*
+        IF PORT THEN
+            COMMAND = COMMAND : ' -P ' : PORT : ' '
+        END
+*
+        COMMAND = COMMAND : LOCAL.PATH : ' ' 
+        COMMAND = COMMAND : USERNAME : '@' : SERVER : ':' : REMOTE.PATH : ' '
+*
+    END ELSE IF DIRECTION = 'GET-FILE' THEN
+        COMMAND = "sshpass -p '" : PASSWORD : "' "
+        COMMAND = COMMAND : 'scp ' 
+*
+        IF PORT THEN
+            COMMAND = COMMAND : ' -P ' : PORT : ' '
+        END
+*
+        COMMAND = COMMAND : USERNAME : '@' : SERVER : ':' : REMOTE.PATH : ' '
+        COMMAND = COMMAND : LOCAL.PATH : ' ' 
+    END
+*
+    SHELL.COMMAND = 'SH -c "' : COMMAND : '"'
+*
+    EXECUTE SHELL.COMMAND CAPTURING RESULTS
+*
+* END OF PROGRAM
+*
+    END
+*
