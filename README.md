@@ -26,6 +26,18 @@ Copy records in PICK:
         CLONE [DICT] {SRC.FILE} {/tmp/backups/}
 ```
 
+### FTP
+
+Upload and download files using ftp:
+
+```
+    Send a file to a server:
+        FTP {/path/to/file} {username:password@server:/path/to/file}
+
+    Get a file from a server:
+        FTP {username:password@server:/path/to/file} {/path/to/file}
+```
+
 ### GREP
 
 Regex search in BASIC, ^.*$:
@@ -71,6 +83,18 @@ Rename files and dictionaries:
 RENAME [DICT] {FILE} {CURRENT.NAME} {NEW.NAME}
 ```
 
+### SCP
+
+Upload and download files using ssh:
+
+```
+    Send a file to a server:
+        SCP {/path/to/file} {username:password@server[:port]:/path/to/file}
+
+    Get a file from a server:
+        SCP {username:password@server[:port]:/path/to/file} {/path/to/file}
+```
+
 ## Library Subroutines
 
 ### GET.ARGUMENTS
@@ -87,6 +111,22 @@ Used as a base for COPY, RENAME and MOVE. The DELETE.FLAG will decide if the sou
 
 ```
     SUBROUTINE MOVE.FILES(ARGS,DELETE.FLAG)
+```
+
+### FILE.TRANSFER.PROTOCOL
+
+Used as a base for the FTP command line utility:
+
+```
+    SUBROUTINE FILE.TRANSFER.PROTOCOL(RESULTS,SERVER,USERNAME,PASSWORD,LOCAL.PATH,REMOTE.PATH,DIRECTION)
+```
+
+### SECURE.COPY
+
+Used as a base for the SCP command line utility: 
+
+```
+    SUBROUTINE SECURE.COPY(RESULTS,SERVER,USERNAME,PASSWORD,LOCAL.PATH,REMOTE.PATH,DIRECTION)
 ```
 
 ## JSON Subroutines
