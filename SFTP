@@ -1,0 +1,90 @@
+*
+    GIT.FILENAME = 'SFTP'
+    GIT.REPO = 'https://github.com/Krowemoh/TCL-Utilities.git'
+*
+* VERSION
+*
+    VERSION = '1'
+*
+    @USER1 = 'SFTP'
+    @USER2 = 'SFTP'
+*
+    EQU TRUE TO 1
+    EQU FALSE TO 0
+*
+    CALL GET.ARGUMENTS(ARGUMENTS)
+*
+    ARGS.LEN = DCOUNT(ARGUMENTS,@AM)
+*
+    IF ARGS.LEN = 1 THEN
+        PRINT 'SFTP - Upload and download files using ftp'
+        PRINT
+        PRINT '    Send a file to a server:'
+        PRINT '        SFTP {/path/to/file} {username:password@server:/path/to/file}'
+        PRINT
+        PRINT '    Get a file from a server:'
+        PRINT '        SFTP {username:password@server:/path/to/file} {/path/to/file}'
+        PRINT
+        STOP
+    END
+*
+    IF ARGS.LEN # 3 THEN
+        PRINT 'Invalid number of arguments.'
+        STOP
+    END
+*
+    PATH.A = ARGUMENTS<2>
+    PATH.B = ARGUMENTS<3>
+*
+    IF COUNT(PATH.A,':') > 1 THEN
+        LOCAL.PATH = PATH.B
+*
+        URL = PATH.A
+        GOSUB PARSE.URL
+*
+        DIRECTION = 'GET-FILE'
+*
+    END ELSE IF COUNT(PATH.B,':') > 1 THEN
+        LOCAL.PATH = PATH.A
+*
+        URL = PATH.B
+        GOSUB PARSE.URL
+*
+        DIRECTION = 'SEND-FILE'
+*
+    END ELSE
+        PRINT 'Invalid command - missing remote information.'
+        STOP
+    END
+*
+    CALL SECURE.FILE.TRANSFER.PROTOCOL(RESULTS,SERVER,USERNAME,PASSWORD,LOCAL.PATH,REMOTE.PATH,DIRECTION)
+*
+    IF RESULTS = '' THEN
+        PRINT 'Successfully SFTPed: ' : REMOTE.PATH
+    END ELSE
+        PRINT RESULTS
+    END
+*
+    STOP
+*
+*********************  S U B R O U T I N E  *********************
+*
+PARSE.URL:NULL
+*
+    U.POS = INDEX(URL,':',1)
+    USERNAME = URL[1,U.POS-1]
+*
+    P.POS = INDEX(URL,'@',COUNT(URL,'@'))
+    PASSWORD = URL[U.POS+1,P.POS-U.POS-1]
+*
+    SERVER.POS = INDEX(URL,':',COUNT(URL,':'))
+    SERVER = URL[P.POS+1,SERVER.POS-P.POS-1]
+*
+    REMOTE.PATH = URL[SERVER.POS+1,999]
+*
+    RETURN
+*
+* END OF PROGRAM
+*
+    END
+*
