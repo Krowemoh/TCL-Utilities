@@ -134,11 +134,11 @@
     UNTIL ITEM.ID = '' DO
         TOTAL.CTR = TOTAL.CTR + 1
 *
-        PRINT TOTAL.CTR, ITEM.ID
-*
         IF DEST.RECORD.ID = '' THEN
             DEST.RECORD.ID = ITEM.ID
         END
+*
+        PRINT TOTAL.CTR, ITEM.ID, DEST.RECORD.ID
 *
         READU ITEM FROM SOURCE.FILE,ITEM.ID LOCKED
             PRINT 'Failed to get a lock for: ' : SOURCE : ' ' : ITEM.ID
@@ -195,4 +195,5 @@
 *
     END
 *
+
 
