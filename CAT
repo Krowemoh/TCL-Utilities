@@ -1,0 +1,65 @@
+*
+    GIT.FILENAME = 'CAT'
+    GIT.REPO = 'https://github.com/Krowemoh/TCL-Utilities.git'
+*
+* VERSION
+*
+    VERSION = '1'
+*
+    @USER1 = 'CAT'
+    @USER2 = 'CAT'
+*
+    EQU TRUE TO 1
+    EQU FALSE TO 0
+*
+    CALL GET.ARGUMENTS(ARGUMENTS)
+*
+    DICT = ''
+*
+    IF ARGUMENTS<2> = 'DICT' THEN
+        DICT = 'DICT'
+        ARGUMENTS = DELETE(ARGUMENTS,2)
+        ARGS.LEN = DCOUNT(ARGUMENTS,@AM)
+    END
+*
+    ARGS.LEN = DCOUNT(ARGUMENTS,@AM)
+*
+    IF ARGS.LEN = 1 THEN
+        PRINT 'CAT - Print a record or a set of records'
+        PRINT
+        PRINT '    CAT [DICT] {FILE} {RECORD}'
+        PRINT '    CAT [DICT] {FILE}'
+        PRINT
+        STOP
+    END
+*
+    IF ARGS.LEN > 3 THEN
+        PRINT 'Invalid number of arguments.'
+        STOP
+    END
+*
+    FILENAME = ARGUMENTS<2>
+*
+    OPEN DICT,FILENAME TO FILE ELSE
+        PRINT 'Unable to open file: ' : FILENAME
+        STOP
+    END
+*
+    IF ARGS.LEN = 3 THEN
+        RECORD = ARGUMENTS<3>
+        SELECT RECORD
+    END
+*
+    LOOP
+        READNEXT ITEM.ID ELSE ITEM.ID = ''
+*
+    UNTIL ITEM.ID = '' DO
+        READ ITEM FROM FILE,ITEM.ID ELSE ITEM = ''
+        CONVERT @AM TO CHAR(10) IN ITEM
+        PRINT ITEM
+    REPEAT
+*
+* END OF PROGRAM
+*
+    END
+*
