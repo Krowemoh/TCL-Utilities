@@ -409,6 +409,7 @@ SETUP.PACKAGES:NULL
     PACKAGES<1,-1> = 'SECURE.COPY'
     PACKAGES<1,-1> = 'SECURE.FILE.TRANSFER.PROTOCOL'
 *
+    PACKAGES<1,-1> = 'CAT'
     PACKAGES<1,-1> = 'CLONE'
     PACKAGES<1,-1> = 'FTP'
     PACKAGES<1,-1> = 'GREP'
@@ -435,6 +436,7 @@ SETUP.PACKAGES:NULL
     PACKAGES<2,-1> = 'Base program for upload or download files using ssh'
     PACKAGES<2,-1> = 'Base program for upload or download files using sftp'
 *
+    PACKAGES<2,-1> = 'Print a record to the screen'
     PACKAGES<2,-1> = 'Clone records and dictionaries'
     PACKAGES<2,-1> = 'Upload or download files using ftp'
     PACKAGES<2,-1> = 'Search using regular expressions'
@@ -461,6 +463,7 @@ SETUP.PACKAGES:NULL
     PACKAGES<3,-1> = 'https://raw.githubusercontent.com/Krowemoh/TCL-Utilities/main/SECURE.COPY'
     PACKAGES<3,-1> = 'https://raw.githubusercontent.com/Krowemoh/TCL-Utilities/main/SECURE.FILE.TRANSFER.PROTOCOL'
 *
+    PACKAGES<3,-1> = 'https://raw.githubusercontent.com/Krowemoh/TCL-Utilities/main/CAT'
     PACKAGES<3,-1> = 'https://raw.githubusercontent.com/Krowemoh/TCL-Utilities/main/CLONE'
     PACKAGES<3,-1> = 'https://raw.githubusercontent.com/Krowemoh/TCL-Utilities/main/FTP'
     PACKAGES<3,-1> = 'https://raw.githubusercontent.com/Krowemoh/TCL-Utilities/main/GREP'
@@ -483,3 +486,4 @@ SETUP.PACKAGES:NULL
 *
     END
 *
+
