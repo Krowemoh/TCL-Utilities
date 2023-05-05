@@ -5,6 +5,15 @@ Helpful Commands for PICK TCL
 
 A set of utilities to make PICK easier to manage. Square brackets mean the word is optional. Curly braces are where you can substitute what you want in the command.
 
+### CAT
+
+Print a record to the screen:
+
+```
+    CAT [DICT] {FILE} {RECORD}
+    CAT [DICT] {FILE}
+```
+
 ### CLONE
 
 Copy records in PICK:
