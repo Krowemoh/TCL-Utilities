@@ -1,0 +1,25 @@
+    SUBROUTINE SHA256(TEXT,HASH)
+*
+    GIT.FILENAME = 'SHA256'
+    GIT.REPO = 'https://github.com/Krowemoh/TCL-Utilities.git'
+*
+* VERSION
+*
+    VERSION = '1'
+*
+    @USER1 = 'SHA256'
+    @USER2 = 'SHA256'
+*
+    EQU TRUE TO 1
+    EQU FALSE TO 0
+*
+    HASH = ''
+    STATUS = DIGEST('SHA256',TEXT,1,SHA256)
+    STATUS = ENCODE('BASE64A',1,SHA256,1,HASH,1)
+*
+    RETURN
+*
+* END OF PROGRAM
+*
+    END
+*
