@@ -406,8 +406,11 @@ SETUP.PACKAGES:NULL
     PACKAGES<1,-1> = 'MOVE.FILES'
     PACKAGES<1,-1> = 'GET.ARGUMENTS'
     PACKAGES<1,-1> = 'FILE.TRANSFER.PROTOCOL'
+    PACKAGES<1,-1> = 'MD5'
     PACKAGES<1,-1> = 'SECURE.COPY'
     PACKAGES<1,-1> = 'SECURE.FILE.TRANSFER.PROTOCOL'
+    PACKAGES<1,-1> = 'SHA256'
+    PACKAGES<1,-1> = 'SHA512'
 *
     PACKAGES<1,-1> = 'CAT'
     PACKAGES<1,-1> = 'CLONE'
@@ -439,12 +442,15 @@ SETUP.PACKAGES:NULL
     PACKAGES<2,-1> = 'Print a record to the screen'
     PACKAGES<2,-1> = 'Clone records and dictionaries'
     PACKAGES<2,-1> = 'Upload or download files using ftp'
+    PACKAGES<2,-1> = 'Hashing using MD5'
     PACKAGES<2,-1> = 'Search using regular expressions'
     PACKAGES<2,-1> = 'Move records and dictionaries'
     PACKAGES<2,-1> = 'Create new files with defaults'
     PACKAGES<2,-1> = 'Rename records and dictionaries'
     PACKAGES<2,-1> = 'Upload or download files using ssh'
     PACKAGES<2,-1> = 'Upload or download files using sftp'
+    PACKAGES<2,-1> = 'Hashing using SHA256'
+    PACKAGES<2,-1> = 'Hashing using SHA512'
 *
     PACKAGES<2,-1> = 'Add key values pairs to a buffer for json creation'
     PACKAGES<2,-1> = 'Create a JSON array from a multivalue list'
@@ -460,8 +466,11 @@ SETUP.PACKAGES:NULL
     PACKAGES<3,-1> = 'https://raw.githubusercontent.com/Krowemoh/TCL-Utilities/main/MOVE.FILES'
     PACKAGES<3,-1> = 'https://raw.githubusercontent.com/Krowemoh/TCL-Utilities/main/GET.ARGUMENTS'
     PACKAGES<3,-1> = 'https://raw.githubusercontent.com/Krowemoh/TCL-Utilities/main/FILE.TRANSFER.PROTOCOL'
+    PACKAGES<3,-1> = 'https://raw.githubusercontent.com/Krowemoh/TCL-Utilities/main/MD5'
     PACKAGES<3,-1> = 'https://raw.githubusercontent.com/Krowemoh/TCL-Utilities/main/SECURE.COPY'
-    PACKAGES<3,-1> = 'https://raw.githubusercontent.com/Krowemoh/TCL-Utilities/main/SECURE.FILE.TRANSFER.PROTOCOL'
+    PACKAGES<3,-1> = 'https://raw.githubusercontent.com/Krowemoh/TCL-Utilities/main/SECURE.FILE.TRANSFER.PROTOCOL' 
+    PACKAGES<3,-1> = 'https://raw.githubusercontent.com/Krowemoh/TCL-Utilities/main/SHA256'
+    PACKAGES<3,-1> = 'https://raw.githubusercontent.com/Krowemoh/TCL-Utilities/main/SHA512'
 *
     PACKAGES<3,-1> = 'https://raw.githubusercontent.com/Krowemoh/TCL-Utilities/main/CAT'
     PACKAGES<3,-1> = 'https://raw.githubusercontent.com/Krowemoh/TCL-Utilities/main/CLONE'
@@ -486,4 +495,5 @@ SETUP.PACKAGES:NULL
 *
     END
 *
-
+    
+    
