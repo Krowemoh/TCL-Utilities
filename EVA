@@ -1452,7 +1452,7 @@ SYNTAX.INIT.BASIC:NULL
 *
 SYNTAX.INIT.HTML:NULL
 *
-    STATEMENTS = 'a,abbr,acronym,address,applet,area,article,aside,audio,b,base,basefont,bdi,bdo,bgsound,big,blink,blockquote,body,br,button,canvas,caption,center,cite,code,col,colgroup,content,data,datalist,dd,decorator,del,details,dfn,dir,div,dl,dt,element,em,embed,fieldset,figcaption,figure,font,footer,form,frame,frameset,h1,h2,h3,h4,h5,h6,head,header,hgroup,hr,html,i,iframe,img,input,ins,isindex,kbd,keygen,label,legend,li,link,listing,main,map,mark,marquee,menu,menuitem,meta,meter,nav,nobr,noframes,noscript,object,ol,optgroup,option,output,p,param,plaintext,pre,progress,q,rp,rt,ruby,s,samp,script,section,select,shadow,small,source,spacer,span,strike,strong,style,sub,summary,sup,table,tbody,td,template,textarea,tfoot,th,thead,time,title,tr,track,tt,u,ul,var,video,wbr,xmp'
+    STATEMENTS = 'a,abbr,acronym,address,applet,area,article,aside,audio,b,base,basefont,bdi,bdo,bgsound,big,blink,blockquote,body,br,button,canvas,caption,center,cite,code,col,colgroup,content,data,datalist,dd,decorator,del,details,dfn,dir,div,dl,dt,element,em,embed,fieldset,figcaption,figure,font,footer,form,frame,frameset,h1,h2,h3,h4,h5,h6,head,header,hgroup,hr,html,i,iframe,img,input,ins,isindex,kbd,keygen,label,legend,li,link,listing,main,map,mark,marquee,menu,menuitem,meta,meter,nav,nobr,noframes,noscript,object,ol,optgroup,option,output,p,param,plaintext,pre,progress,q,rp,rt,ruby,s,samp,script,section,select,shadow,small,source,spacer,span,strike,strong,sub,summary,sup,table,tbody,td,template,textarea,tfoot,th,thead,time,title,tr,track,tt,u,ul,var,video,wbr,xmp'
     CONVERT ',' TO @AM IN STATEMENTS
 *
     FUNCTIONS = 'function {{ }}'
@@ -1461,7 +1461,7 @@ SYNTAX.INIT.HTML:NULL
     OPERATORS = '< = > >= <= #'
     CONVERT ' ' TO @AM IN OPERATORS
 *
-    SPECIALS = 'class FOR'
+    SPECIALS = 'class FOR href style placeholder value rel charset name lang'
     CONVERT ' ' TO @AM IN SPECIALS
 *
     BREAK.CHARACTERS = '= ( ) , : + - / ; * < > #'
@@ -5078,9 +5078,13 @@ COMPILE.FILE:NULL
 *
 FORMAT.HTML:NULL
 *
-    HTML.FIRST.WORDS.INC = '<a>,<abbr>,<acronym>,<address>,<applet>,<area>,<article>,<aside>,<audio>,<b>,<base>,<basefont>,<bdi>,<bdo>,<bgsound>,<big>,<blink>,<blockquote>,<body>,<br>,<button>,<canvas>,<caption>,<center>,<cite>,<code>,<col>,<colgroup>,<content>,<data>,<datalist>,<dd>,<decorator>,<del>,<details>,<dfn>,<dir>,<div>,<dl>,<dt>,<element>,<em>,<embed>,<fieldset>,<figcaption>,<figure>,<font>,<footer>,<form>,<frame>,<frameset>,<h1>,<h2>,<h3>,<h4>,<h5>,<h6>,<head>,<header>,<hgroup>,<hr>,<html>,<i>,<iframe>,<img>,<input>,<ins>,<isindex>,<kbd>,<keygen>,<label>,<legend>,<li>,<link>,<listing>,<main>,<map>,<mark>,<marquee>,<menu>,<menuitem>,<meta>,<meter>,<nav>,<nobr>,<noframes>,<noscript>,<object>,<ol>,<optgroup>,<option>,<output>,<p>,<param>,<plaintext>,<pre>,<progress>,<q>,<rp>,<rt>,<ruby>,<s>,<samp>,<script>,<section>,<select>,<shadow>,<small>,<source>,<spacer>,<span>,<strike>,<strong>,<style>,<sub>,<summary>,<sup>,<table>,<tbody>,<td>,<template>,<textarea>,<tfoot>,<th>,<thead>,<time>,<title>,<tr>,<track>,<tt>,<u>,<ul>,<var>,<video>,<wbr>,<xmp>'
+    HTML.FIRST.WORDS.INC = 'a,abbr,acronym,address,applet,area,article,aside,audio,b,base,basefont,bdi,bdo,bgsound,big,blink,blockquote,body,button,canvas,caption,center,cite,code,col,colgroup,content,data,datalist,dd,decorator,del,details,dfn,dir,div,dl,dt,element,em,embed,fieldset,figcaption,figure,font,footer,form,frame,frameset,h1,h2,h3,h4,h5,h6,head,header,hgroup,hr,html,i,iframe,img,input,ins,isindex,kbd,keygen,label,legend,li,listing,main,map,mark,marquee,menu,menuitem,meter,nav,nobr,noframes,noscript,object,ol,optgroup,option,output,p,param,plaintext,pre,progress,q,rp,rt,ruby,s,samp,script,section,select,shadow,small,source,spacer,span,strike,strong,style,sub,summary,sup,table,tbody,td,template,textarea,tfoot,th,thead,time,title,tr,track,tt,u,ul,var,video,wbr,xmp'
 *
-    HTML.FIRST.WORDS.DEC = '</a>,</abbr>,</acronym>,</address>,</applet>,</area>,</article>,</aside>,</audio>,</b>,</base>,</basefont>,</bdi>,</bdo>,</bgsound>,</big>,</blink>,</blockquote>,</body>,</br>,</button>,</canvas>,</caption>,</center>,</cite>,</code>,</col>,</colgroup>,</content>,</data>,</datalist>,</dd>,</decorator>,</del>,</details>,</dfn>,</dir>,</div>,</dl>,</dt>,</element>,</em>,</embed>,</fieldset>,</figcaption>,</figure>,</font>,</footer>,</form>,</frame>,</frameset>,</h1>,</h2>,</h3>,</h4>,</h5>,</h6>,</head>,</header>,</hgroup>,</hr>,</html>,</i>,</iframe>,</img>,</input>,</ins>,</isindex>,</kbd>,</keygen>,</label>,</legend>,</li>,</link>,</listing>,</main>,</map>,</mark>,</marquee>,</menu>,</menuitem>,</meta>,</meter>,</nav>,</nobr>,</noframes>,</noscript>,</object>,</ol>,</optgroup>,</option>,</output>,</p>,</param>,</plaintext>,</pre>,</progress>,</q>,</rp>,</rt>,</ruby>,</s>,</samp>,</script>,</section>,</select>,</shadow>,</small>,</source>,</spacer>,</span>,</strike>,</strong>,</style>,</sub>,</summary>,</sup>,</table>,</tbody>,</td>,</template>,</textarea>,</tfoot>,</th>,</thead>,</time>,</title>,</tr>,</track>,</tt>,</u>,</ul>,</var>,</video>,</wbr>,</xmp>'
+    MORE.HTML.WORDS = HTML.FIRST.WORDS.INC
+    CONVERT '>' TO '' IN MORE.HTML.WORDS
+    HTML.FIRST.WORDS.INC = HTML.FIRST.WORDS.INC : ',' : MORE.HTML.WORDS
+*
+    HTML.FIRST.WORDS.DEC = '/a,/abbr,/acronym,/address,/applet,/area,/article,/aside,/audio,/b,/base,/basefont,/bdi,/bdo,/bgsound,/big,/blink,/blockquote,/body,/button,/canvas,/caption,/center,/cite,/code,/col,/colgroup,/content,/data,/datalist,/dd,/decorator,/del,/details,/dfn,/dir,/div,/dl,/dt,/element,/em,/embed,/fieldset,/figcaption,/figure,/font,/footer,/form,/frame,/frameset,/h1,/h2,/h3,/h4,/h5,/h6,/head,/header,/hgroup,/hr,/html,/i,/iframe,/img,/input,/ins,/isindex,/kbd,/keygen,/label,/legend,/li,/listing,/main,/map,/mark,/marquee,/menu,/menuitem,/meter,/nav,/nobr,/noframes,/noscript,/object,/ol,/optgroup,/option,/output,/p,/param,/plaintext,/pre,/progress,/q,/rp,/rt,/ruby,/s,/samp,/script,/section,/select,/shadow,/small,/source,/spacer,/span,/strike,/strong,/style,/sub,/summary,/sup,/table,/tbody,/td,/template,/textarea,/tfoot,/th,/thead,/time,/title,/tr,/track,/tt,/u,/ul,/var,/video,/wbr,/xmp'
 *
     FIRST.WORDS.INC = '{{FOR,{{IF,' : HTML.FIRST.WORDS.INC
     CONVERT ',' TO @AM IN FIRST.WORDS.INC
@@ -5090,6 +5094,9 @@ FORMAT.HTML:NULL
 *
     FIRST.WORDS.DEC = '{{NEXT,{{END,}}NEXT,},' : HTML.FIRST.WORDS.DEC
     CONVERT ',' TO @AM IN FIRST.WORDS.DEC
+*
+    LAST.WORDS.DEC = HTML.FIRST.WORDS.DEC
+    CONVERT ',' TO @AM IN LAST.WORDS.DEC
 *
     START.INDENT = -1
     GOSUB FORMAT.FILE
@@ -5108,6 +5115,9 @@ FORMAT.BASIC:NULL
 *
     FIRST.WORDS.DEC = 'END,WHILE,UNTIL,REPEAT,CASE,NEXT,$ENDIF'
     CONVERT ',' TO @AM IN FIRST.WORDS.DEC
+*
+    LAST.WORDS.DEC = ''
+    CONVERT ',' TO @AM IN LAST.WORDS.DEC
 *
     START.INDENT = 0
     GOSUB FORMAT.FILE
@@ -5131,10 +5141,20 @@ FORMAT.FILE:NULL
             CONTINUE
         END
 *
-        FIRST.WORD = FIELD(TRIMMED.LINE,' ',1)
-        LAST.WORD = FIELD(TRIMMED.LINE,' ',DCOUNT(TRIMMED.LINE,' '))
+        IF FILETYPE = 'HTML' THEN
+            WORKING.LINE = TRIMMED.LINE
+            CONVERT '<' TO ' ' IN WORKING.LINE
+            CONVERT '>' TO ' ' IN WORKING.LINE
+            WORKING.LINE = TRIMB(TRIMF(WORKING.LINE))
 *
-        IF TRIMMED.LINE = 'END CASE' THEN
+        END ELSE
+            WORKING.LINE = TRIMMED.LINE
+        END
+*
+        FIRST.WORD = FIELD(WORKING.LINE,' ',1)
+        LAST.WORD = FIELD(WORKING.LINE,' ',DCOUNT(WORKING.LINE,' '))
+*
+        IF WORKING.LINE = 'END CASE' THEN
             INDENT.LEVEL = INDENT.LEVEL - 2
             IF INDENT.LEVEL = 0 THEN INDENT.LEVEL = 1
 *
@@ -5155,10 +5175,12 @@ FORMAT.FILE:NULL
         END
 *
         LOCATE(FIRST.WORD,FIRST.WORDS.INC;ANYPOS) THEN
-            INDENT.LEVEL = INDENT.LEVEL + 1
+            LOCATE(LAST.WORD,LAST.WORDS.DEC;LAST.ANYPOS) ELSE
+                INDENT.LEVEL = INDENT.LEVEL + 1
+            END
         END
 *
-        IF TRIMMED.LINE = 'BEGIN CASE' THEN
+        IF WORKING.LINE = 'BEGIN CASE' THEN
             INDENT.LEVEL = INDENT.LEVEL + 2
         END
     NEXT FMT.CTR
@@ -6724,5 +6746,3 @@ ADD.DEFAULT.SNIPPETS:NULL
 *
     END
 *
-
-
