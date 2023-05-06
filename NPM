@@ -409,6 +409,7 @@ SETUP.PACKAGES:NULL
     PACKAGES<1,-1> = 'MD5'
     PACKAGES<1,-1> = 'SECURE.COPY'
     PACKAGES<1,-1> = 'SECURE.FILE.TRANSFER.PROTOCOL'
+    PACKAGES<1,-1> = 'SHA1'
     PACKAGES<1,-1> = 'SHA256'
     PACKAGES<1,-1> = 'SHA512'
 *
@@ -449,6 +450,7 @@ SETUP.PACKAGES:NULL
     PACKAGES<2,-1> = 'Rename records and dictionaries'
     PACKAGES<2,-1> = 'Upload or download files using ssh'
     PACKAGES<2,-1> = 'Upload or download files using sftp'
+    PACKAGES<2,-1> = 'Hashing using SHA1'
     PACKAGES<2,-1> = 'Hashing using SHA256'
     PACKAGES<2,-1> = 'Hashing using SHA512'
 *
@@ -469,6 +471,7 @@ SETUP.PACKAGES:NULL
     PACKAGES<3,-1> = 'https://raw.githubusercontent.com/Krowemoh/TCL-Utilities/main/MD5'
     PACKAGES<3,-1> = 'https://raw.githubusercontent.com/Krowemoh/TCL-Utilities/main/SECURE.COPY'
     PACKAGES<3,-1> = 'https://raw.githubusercontent.com/Krowemoh/TCL-Utilities/main/SECURE.FILE.TRANSFER.PROTOCOL' 
+    PACKAGES<3,-1> = 'https://raw.githubusercontent.com/Krowemoh/TCL-Utilities/main/SHA1'
     PACKAGES<3,-1> = 'https://raw.githubusercontent.com/Krowemoh/TCL-Utilities/main/SHA256'
     PACKAGES<3,-1> = 'https://raw.githubusercontent.com/Krowemoh/TCL-Utilities/main/SHA512'
 *
