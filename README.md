@@ -130,6 +130,14 @@ Used as a base for the FTP command line utility:
     SUBROUTINE FILE.TRANSFER.PROTOCOL(RESULTS,SERVER,USERNAME,PASSWORD,LOCAL.PATH,REMOTE.PATH,DIRECTION)
 ```
 
+### MD5
+
+MD5 hashing:
+
+```
+    SUBROUTINE MD5(TEXT,HASH)
+```
+
 ### SECURE.COPY
 
 Used as a base for the SCP command line utility: 
@@ -146,6 +154,21 @@ Used as a base for the SFTP command line utility:
     SUBROUTINE SECURE.FILE.TRANSFER.PROTOCOL(RESULTS,SERVER,USERNAME,PASSWORD,LOCAL.PATH,REMOTE.PATH,DIRECTION)
 ```
 
+### SHA256
+
+SHA256 hashing:
+
+```
+    SUBROUTINE SHA256(TEXT,HASH)
+```
+
+### SHA512
+
+SHA512 hashing:
+
+```
+    SUBROUTINE SHA512(TEXT,HASH)
+```
 
 ## JSON Subroutines
 
