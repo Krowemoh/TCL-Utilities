@@ -1,0 +1,24 @@
+    SUBROUTINE URLENCODE(TEXT,URL)
+*
+    GIT.FILENAME = 'URLENCODE'
+    GIT.REPO = 'https://github.com/Krowemoh/TCL-Utilities.git'
+*
+* VERSION
+*
+    VERSION = '1'
+*
+    @USER1 = 'URLENCODE'
+    @USER2 = 'URLENCODE'
+*
+    EQU TRUE TO 1
+    EQU FALSE TO 0
+*
+    URL = ''
+    STATUS = ENCODE('URLENCODE',1,TEXT,1,URL,1)
+*
+    RETURN
+*
+* END OF PROGRAM
+*
+    END
+*
