@@ -455,6 +455,10 @@ SETUP.PACKAGES:NULL
     PACKAGES<2,-1> = 'Decode an escaped URL'
     PACKAGES<3,-1> = 'https://raw.githubusercontent.com/Krowemoh/TCL-Utilities/main/URLDECIDE'
 *
+    PACKAGES<1,-1> = 'ADD-DICT'
+    PACKAGES<2,-1> = 'Add dictionaries to a file'
+    PACKAGES<3,-1> = 'https://raw.githubusercontent.com/Krowemoh/TCL-Utilities/main/ADD-DICT'
+*
     PACKAGES<1,-1> = 'CAT'
     PACKAGES<2,-1> = 'Print a record to the screen'
     PACKAGES<3,-1> = 'https://raw.githubusercontent.com/Krowemoh/TCL-Utilities/main/CAT'
