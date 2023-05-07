@@ -5,6 +5,14 @@ Helpful Commands for PICK TCL
 
 A set of utilities to make PICK easier to manage. Square brackets mean the word is optional. Curly braces are where you can substitute what you want in the command.
 
+### ADD-DICT
+
+Add a A type and an S type PICK style dictionary to a file:
+
+```
+    ADD-DICT {FILE-NAME} {ATTR.#} {DICT.NAME}
+```
+
 ### CAT
 
 Print a record to the screen:
@@ -154,6 +162,14 @@ Used as a base for the SFTP command line utility:
     SUBROUTINE SECURE.FILE.TRANSFER.PROTOCOL(RESULTS,SERVER,USERNAME,PASSWORD,LOCAL.PATH,REMOTE.PATH,DIRECTION)
 ```
 
+### SHA1
+
+SHA1 hashing:
+
+```
+    SUBROUTINE SHA1(TEXT,HASH)
+```
+
 ### SHA256
 
 SHA256 hashing:
@@ -168,6 +184,22 @@ SHA512 hashing:
 
 ```
     SUBROUTINE SHA512(TEXT,HASH)
+```
+
+### URLDECODE
+
+Percent decode a URL:
+
+```
+    SUBROUTINE URLDECODE(TEXT,URL)
+```
+
+### URLENCODE
+
+Percent encode a URL:
+
+```
+    SUBROUTINE URLENCODE(TEXT,URL)
 ```
 
 ## JSON Subroutines
