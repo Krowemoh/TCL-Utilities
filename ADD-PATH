@@ -1,0 +1,71 @@
+*
+    GIT.FILENAME = 'ADD-PATH'
+    GIT.REPO = 'https://github.com/Krowemoh/TCL-Utilities.git'
+*
+* VERSION
+*
+    VERSION = '1'
+*
+    @USER1 = 'ADD-PATH'
+    @USER2 = 'ADD-PATH'
+*
+    EQU TRUE TO 1
+    EQU FALSE TO 0
+*
+    OPEN '','VOC' TO VOC.FILE ELSE
+        PRINT 'Unable to open file: VOC-FILE'
+        STOP
+    END
+*
+    CALL GET.ARGUMENTS(ARGS)
+*
+    ARGS.LEN = DCOUNT(ARGS,@AM)
+*
+    IF ARGS.LEN = 1 THEN
+        PRINT 'ADD-PATH - Add a F Pointer to a Linux Path'
+        PRINT
+        PRINT '    ADD-PATH {MD.NAME} {/path/to/folder}'
+        PRINT
+        STOP
+*
+    END ELSE IF ARGS.LEN # 3 THEN
+        PRINT 'Invalid option'
+        STOP
+    END
+*
+    MD.ID = ARGS<2>
+    FILE.PATH = ARGS<3>
+*
+    IF FILE.PATH[LEN(FILE.PATH),1] # '/' THEN
+        PRINT 'FILE.PATH should end with /'
+        STOP
+    END
+*
+    OPENPATH FILE.PATH TO FILE ELSE
+        PRINT 'Path does not exist: ' : FILE.PATH
+        STOP
+    END
+*
+    READ VOC.ITEM FROM VOC.FILE,MD.ID THEN
+        PRINT 'VOC entry exists, overwrite? (y/N) ' :
+        INPUT ANS
+*
+        IF ANS # 'Y' THEN
+            PRINT 'No changes made.'
+            STOP
+        END
+    END
+*
+    VOC.ITEM = ''
+    VOC.ITEM<1> = 'F'
+    VOC.ITEM<2> = FILE.PATH
+    VOC.ITEM<3> = FILE.PATH
+*
+    WRITE VOC.ITEM ON VOC.FILE,MD.ID
+*
+    PRINT 'Updated VOC with ' : MD.ID : ' -> ' : FILE.PATH
+*
+* END OF PROGRAM
+*
+    END
+*
