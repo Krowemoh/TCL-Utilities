@@ -69,6 +69,12 @@
         GOSUB CHECK.PACKAGE.CONFLICTS
 *
     END ELSE IF VERB = 'SYNC' THEN
+*
+        IF ARG.LEN = 2 THEN
+            PRINT 'Invalid command.'
+            STOP
+        END
+*
         ALL.FLAG = TRUE
         PRINT 'Get all packages? (y/N) ' :
 *
