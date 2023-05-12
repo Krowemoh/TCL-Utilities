@@ -480,6 +480,10 @@ SETUP.PACKAGES:NULL
     PACKAGES<2,-1> = 'Add dictionaries to a file'
     PACKAGES<3,-1> = 'https://raw.githubusercontent.com/Krowemoh/TCL-Utilities/main/ADD-DICT'
 *
+    PACKAGES<1,-1> = 'ADD-PATH'
+    PACKAGES<2,-1> = 'Create MD entries for folder paths'
+    PACKAGES<3,-1> = 'https://raw.githubusercontent.com/Krowemoh/TCL-Utilities/main/ADD-PATH'
+*
     PACKAGES<1,-1> = 'CAT'
     PACKAGES<2,-1> = 'Print a record to the screen'
     PACKAGES<3,-1> = 'https://raw.githubusercontent.com/Krowemoh/TCL-Utilities/main/CAT'
@@ -546,6 +550,3 @@ SETUP.PACKAGES:NULL
 *
     END
 *
-    
-    
-    
