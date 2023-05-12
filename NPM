@@ -25,6 +25,8 @@
         PRINT
         PRINT '    INFO - Get system information'
         PRINT
+        PRINT '    CHECK - Display package conflicts'
+        PRINT
         PRINT '    GET - Get a file'
         PRINT '        NPM GET <FILE> <RECORD> <URL>'
         PRINT
@@ -62,6 +64,9 @@
     IF VERB = 'INFO' THEN
         PRINT 'OS: ' : OS
         PRINT 'MV: ' : MV
+*
+    END ELSE IF VERB = 'CHECK' THEN
+        GOSUB CHECK.PACKAGE.CONFLICTS
 *
     END ELSE IF VERB = 'SYNC' THEN
         ALL.FLAG = TRUE
@@ -169,6 +174,22 @@ SYSTEM.INFO:NULL
             OS = 'LINUX'
         END
     END
+*
+    RETURN
+*
+*********************  S U B R O U T I N E  *********************
+*
+CHECK.PACKAGE.CONFLICTS:NULL
+*
+    FOR I = 1 TO DCOUNT(PACKAGES<1>,@VM)
+        PACKAGE.NAME = PACKAGES<1,I>
+        READ ANYTHING FROM VOC.FILE,PACKAGE.NAME THEN
+            PRINT 'CONFLICT: ', PACKAGE.NAME
+        END ELSE
+*TEMP             PRINT 'NEW     : ', PACKAGE.NAME
+        END
+    NEXT I
+*
 *
     RETURN
 *
@@ -433,7 +454,7 @@ SETUP.PACKAGES:NULL
 *
     PACKAGES<1,-1> = 'SECURE.FILE.TRANSFER.PROTOCOL'
     PACKAGES<2,-1> = 'Base program for upload or download files using sftp'
-    PACKAGES<3,-1> = 'https://raw.githubusercontent.com/Krowemoh/TCL-Utilities/main/SECURE.FILE.TRANSFER.PROTOCOL' 
+    PACKAGES<3,-1> = 'https://raw.githubusercontent.com/Krowemoh/TCL-Utilities/main/SECURE.FILE.TRANSFER.PROTOCOL'
 *
     PACKAGES<1,-1> = 'SHA1'
     PACKAGES<2,-1> = 'Hashing using SHA1'
@@ -525,5 +546,6 @@ SETUP.PACKAGES:NULL
 *
     END
 *
+    
     
     
