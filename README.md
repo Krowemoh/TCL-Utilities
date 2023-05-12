@@ -13,6 +13,14 @@ Add a A type and an S type PICK style dictionary to a file:
     ADD-DICT {FILE-NAME} {ATTR.#} {DICT.NAME}
 ```
 
+### ADD-PATH
+
+Add a F Pointer to a Linux Path
+
+```
+    ADD-PATH {MD.NAME} {/path/to/folder}
+```
+
 ### CAT
 
 Print a record to the screen:
