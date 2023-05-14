@@ -270,4 +270,28 @@ Convert a json object to a multivalue string that can be queried.
     CALL JSON.QUERY(JSON,'.firstName',FIRST.NAME)
 ```
 
+### Hash Map
 
+#### MAP.SET
+
+Add a key to a hash map:
+
+```
+    SUBROUTINE MAP.SET(MAT MAP,SIZE,KEY,VALUE)
+```
+
+#### MAP.GET
+
+Get a key from a hash map:
+
+```
+    SUBROUTINE MAP.GET(MAT MAP,SIZE,KEY,VALUE)
+```
+
+#### MAP.DELETE
+
+Delete a key from a hash map:
+
+```
+    SUBROUTINE MAP.DELETE(MAT MAP,SIZE,KEY)
+```
