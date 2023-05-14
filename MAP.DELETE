@@ -1,0 +1,49 @@
+    SUBROUTINE MAP.DELET(MAT MAP,SIZE,KEY)
+*
+    GIT.FILENAME = 'MAP.DELETE'
+    GIT.REPO = 'https://github.com/Krowemoh/TCL-Utilities.git'
+*
+* VERSION
+*
+    VERSION = '1'
+*
+    @USER1 = 'MAP.DELETE'
+    @USER2 = 'MAP.DELETE'
+*
+    KEY.LEN = LEN(KEY)
+*
+    HASH = 5381
+*
+    FOR I = 1 TO KEY.LEN
+        C = KEY[I,1]
+*
+* HASH = HASH * 33 + C
+*
+        HASH = SADD(SMUL(HASH,33),SEQ(C))
+    NEXT I
+*
+* POS = HASH - (INT(HASH / SIZE) * HASH)
+*
+    D = SDIV(HASH,SIZE)
+    E = INDEX(D,'.',1)
+*
+    IF E = 0 THEN E = LEN(D)
+*
+    DIVISION = D[1,E]
+    MULTIPLE = SMUL(DIVISION,SIZE)
+    POS = SSUB(HASH,MULTIPLE) + 1
+*
+    LOCATE(KEY,MAP(POS)<1>,1,1;ANYPOS) THEN
+        KEYS = MAP(POS)<1,1>
+        VALUES = MAP(POS)<1,2>
+*
+        MAP(POS)<1,1> = DELETE(KEYS<1>,1,1,ANYPOS)
+        MAP(POS)<1,2> = DELETE(VALUES<1>,1,1,ANYPOS)
+    END
+*
+    RETURN
+*
+* END OF PROGRAM
+*
+    END
+*
