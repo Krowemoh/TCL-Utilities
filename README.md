@@ -270,7 +270,7 @@ Convert a json object to a multivalue string that can be queried.
     CALL JSON.QUERY(JSON,'.firstName',FIRST.NAME)
 ```
 
-## Hash Map
+## Hashmap Subroutines
 
 #### MAP.SET
 
