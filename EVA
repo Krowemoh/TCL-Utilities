@@ -2263,6 +2263,32 @@ TOKENIZE.LINE.BASIC:NULL
             TOKEN = ''
             LETTER.CTR = LETTER.CTR - 1
 *
+        END ELSE IF BSQ.STACK.CTR # 0 OR CHARACTER = "\" THEN
+            IF BSQ.STACK.CTR = 0 THEN
+                TOKENS<-1> = TOKEN
+            END
+*
+            STRING = CHARACTER
+            LETTER.CTR = LETTER.CTR + 1
+*
+            IF BSQ.STACK.CTR = 0 THEN
+                BSQ.STACK.CTR = 1
+            END
+*
+            LOOP UNTIL BSQ.STACK.CTR = 0 OR LETTER.CTR > LEN(LINE) DO
+                CHARACTER = LINE[LETTER.CTR,1]
+                LETTER.CTR = LETTER.CTR + 1
+                IF CHARACTER = "\" THEN
+                    BSQ.STACK.CTR = BSQ.STACK.CTR - 1
+                END
+                STRING = STRING : CHARACTER
+            REPEAT
+*
+            CREATED.FIRST.TOKEN = TRUE
+            TOKENS<-1> = STRING.COLOR : STRING : FOREGROUND.COLOR
+            TOKEN = ''
+            LETTER.CTR = LETTER.CTR - 1
+*
         END ELSE IF CHARACTER = ';' THEN
             TOKENS<-1> = TOKEN
             HIT.SEMICOLON = TRUE
@@ -2609,6 +2635,7 @@ DISPLAY.LINES:NULL
 *
     DQ.STACK.CTR = 0
     SQ.STACK.CTR = 0
+    BSQ.STACK.CTR = 0
 *
     PREV.LINE.NUMBER = 0
 *
@@ -2624,6 +2651,7 @@ DISPLAY.LINES:NULL
         IF PREV.LINE.NUMBER # LINE.NUMBER THEN
             DQ.STACK.CTR = 0
             SQ.STACK.CTR = 0
+            BSQ.STACK.CTR = 0
         END
 *
         GOSUB TOKENIZE.LINE
@@ -2692,6 +2720,7 @@ PRINT.CURRENT.LINE:NULL
 *
     DQ.STACK.CTR = 0
     SQ.STACK.CTR = 0
+    BSQ.STACK.CTR = 0
 *
     GOSUB TOKENIZE.LINE
 *
@@ -2724,6 +2753,7 @@ DISPLAY.LINES.FROM.TO:NULL
 *
     DQ.STACK.CTR = 0
     SQ.STACK.CTR = 0
+    BSQ.STACK.CTR = 0
 *
     PREV.LINE.NUMBER = 0
 *
@@ -2739,6 +2769,7 @@ DISPLAY.LINES.FROM.TO:NULL
         IF PREV.LINE.NUMBER # LINE.NUMBER THEN
             DQ.STACK.CTR = 0
             SQ.STACK.CTR = 0
+            BSQ.STACK.CTR = 0
         END
 *
         PRINT @(0,LINE.Y.POS+LINES.FROM.CTR) : CLEAR.REST.OF.LINE :
@@ -6746,4 +6777,5 @@ ADD.DEFAULT.SNIPPETS:NULL
 *
     END
 *
-
+    
+    
