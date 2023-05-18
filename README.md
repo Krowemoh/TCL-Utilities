@@ -14,15 +14,16 @@ Commands starting with `:` are commands you can run in command mode. You can ent
 `:help` - Help
 
 ## Features
-1. Persistent Undo History
-2. Syntax Highlighting for BASIC and PROCs
-3. BASIC code formatter
-4. Auto Complete based on the current file
-5. BASIC snippets for commonly used functions like MATREAD and LOCATE
-6. Natively handle multivalue data and encoding
-7. Explode, edit and view multivalue data easily
-8. Simple searching and replacing
-9. View dictionaries alongside record data
+		01. Persistent Undo History
+		02. Syntax Highlighting for BASIC and PROCs
+		03. BASIC code formatter
+		04. Auto Complete based on the current file
+		05. BASIC snippets for commonly used functions like MATREAD and LOCATE
+		06. Natively handle multivalue data and encoding
+		07. Explode, edit and view multivalue data easily
+		08. Simple searching and replacing
+		09. View dictionaries alongside record data
+		10. Open linux file paths and write out linux files
 
 ## Modes
 1. Normal Mode - This is the default mode  
@@ -41,6 +42,8 @@ Commands starting with `:` are commands you can run in command mode. You can ent
 `i` - enter Insert mode, you can edit and insert characters  
 `:` - Command Mode  
 `v` - Enter visual mode and copy part of a line  
+`v -> $` - Inside Visual mode, you can use $ to go to the end of a line
+`v -> d` - Inside Visual mode, you can use d to delete a portion of the a line
 
 `/` - Enter search mode and type in a string to search for  
 `ctrl+f` - Enter search mode and type in a string to search for  
@@ -49,16 +52,19 @@ Commands starting with `:` are commands you can run in command mode. You can ent
 
 `c` - Add "* TEMP" to the beginning of a line  
 `e` - Add a new line containing just "*" after the cursor  
+`s` - Add a internal subroutine template
+
 `d` - This command can be followed by another "d" or a number to delete that many lines  
 `o` - Insert a blank new line and enter insert mode  
 `x` - Delete the character at the cursor  
 `r` - Replace the character at the cursor with the next keypress  
-
 `u` - Undo the last change  
 `ctrl+r` - Redo the last undo  
 
 `y` - Yank the current line  
 `p` - Paste the current buffer 
+`1` - Place a starting mark, the will be the starting line for a block
+`\`` - Place an ending mark, this will be the end of a block
 
 ```
 ` - Place a starting mark, the will be the starting line for a block  
@@ -82,11 +88,16 @@ Commands starting with `:` are commands you can run in command mode. You can ent
 `$` - Place the cursor at the end of the line  
 `0` - Place the cursor at the beginning of the line  
 
+`"` - Enclose a word in double quotes
+`'` - Enclose a word in single quotes
+
 ## Editor Mode Commands
 `:help` - Display the help  
 `:^` - Enter up-arrow mode to view non-printable characters  
 `:syntax={BASIC,PROC,DATA}` - Change the syntax highlighting  
 `:{lineNumber}` - This will put the cursor on that line number  
+`:e` - Go to %END
+`:gf` - Typing gf on a CALL SUBROUTINE will open the subroutine in a view only buffer
 
 `:invert` - This will inverse the case of a line  
 `:lower` - Transform the line to lowercase  
@@ -94,7 +105,12 @@ Commands starting with `:` are commands you can run in command mode. You can ent
 
 `:numbers` - Toggle the line numbers   
 `:f` - Format the file  
+
+`:dec` - Decompile a file - ASI
+`:prec` - Precompile a file - ASI
+`:comp` - Decompile and Precompile a file - ASI
 `:archive` - Archive a record in a file, creates a copy to ARCHIVE-{FILE} with a datestamp  
+
 `:vlist` - View the object code source of a BASIC program  
 
 `:fa` - Toggle the file attributes, only works in dictionaries  
