@@ -788,7 +788,7 @@ MAIN:NULL
 *
 * CC.LIST INIT
 *
-   CC.BREAK.CHARACTERS = '( ) , : + - / ; * < > = [ ]' : ' "' : " '"
+   CC.BREAK.CHARACTERS = '( ) , : + - ; * < > = [ ]' : ' "' : " '"
    CONVERT ' ' TO @AM IN CC.BREAK.CHARACTERS
    CC.BREAK.CHARACTERS = CC.BREAK.CHARACTERS : @AM : ' '
 *
@@ -4585,12 +4585,46 @@ PROCESS.INSERT:NULL
             CC.LIST = ''
 *
          END ELSE
-            CC.LIST = ''
-            FOR LIST.CTR = 1 TO DCOUNT(SNIPPETS,@AM)
-               IF INDEX(OCONV(SNIPPETS<LIST.CTR,1>,'MCU'),OCONV(CURRENT.WORD,'MCU'),1) = 1 THEN
-                  CC.LIST<-1> = SNIPPETS<LIST.CTR>
-               END
-            NEXT LIST.CTR
+            IF CURRENT.WORD[1,1] = '/' THEN
+               SEARCH.PATH = CURRENT.WORD[1,INDEX(CURRENT.WORD,'/',COUNT(CURRENT.WORD,'/'))]
+               SEARCH.WORD = CURRENT.WORD[LEN(SEARCH.PATH)+1,9999]
+*
+               $IFDEF PLATFORM.LINUX
+                  STATEMENT = 'SH -c "ls -ap ' : SEARCH.PATH : ' | grep ^' : SEARCH.WORD  : '"'
+                  EXECUTE STATEMENT CAPTURING RESULTS
+               $ENDIF
+*
+               $IFDEF PLATFORM.WINDOWS
+                  RESULTS = ''
+               $ENDIF
+*
+               RECORDS.SELECTED = DCOUNT(RESULTS,@AM)
+*
+               LIST.OF.FILES = ''
+*
+               FOR RESULT.CTR = 1 TO RECORDS.SELECTED
+                  RESULT.FILE = RESULTS<RESULT.CTR>
+*
+                  IF RESULT.FILE[LEN(RESULT.FILE),1] = '/' THEN
+                     RESULT.FILE = RESULT.FILE[1,LEN(RESULT.FILE)-1]
+                  END
+*
+                  IF RESULT.FILE # '' THEN
+                     LIST.OF.FILES<RESULT.CTR,1> = SEARCH.PATH : RESULT.FILE
+                     LIST.OF.FILES<RESULT.CTR,2> = SEARCH.PATH : RESULT.FILE
+                  END
+               NEXT RESULT.CTR
+*
+               CC.LIST = LIST.OF.FILES
+*
+            END ELSE
+               CC.LIST = ''
+               FOR LIST.CTR = 1 TO DCOUNT(SNIPPETS,@AM)
+                  IF INDEX(OCONV(SNIPPETS<LIST.CTR,1>,'MCU'),OCONV(CURRENT.WORD,'MCU'),1) = 1 THEN
+                     CC.LIST<-1> = SNIPPETS<LIST.CTR>
+                  END
+               NEXT LIST.CTR
+            END
          END
 *
          IF DCOUNT(CC.LIST,@AM) > 0 AND Y.POS < (VIEW.HEIGHT+MARGIN.TOP - DCOUNT(CC.LIST,@AM)-MARGIN.BOTTOM) THEN
@@ -6778,6 +6812,7 @@ ADD.DEFAULT.SNIPPETS:NULL
 *
    END
 *
+   
    
    
    
