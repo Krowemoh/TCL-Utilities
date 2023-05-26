@@ -40,7 +40,7 @@ Commands starting with `:` are commands you can run in command mode. You can ent
 ## Normal Mode Keys
 `Escape` - Will put you in normal mode  
 `i` - enter Insert mode, you can edit and insert characters  
-`space` - Space will highlight a column of characters.
+`space` - Space will highlight a column of characters  
 `:` - Command Mode  
 `v` - Enter visual mode and copy part of a line  
 `v -> $` - Inside Visual mode, you can use $ to go to the end of a line
