@@ -5763,6 +5763,7 @@ BUILD.HELP.LINES:NULL
    HELP.LINES<-1> = '## Normal Mode Keys'
    HELP.LINES<-1> = '    Escape - Will put you in normal mode  '
    HELP.LINES<-1> = '    i - enter Insert mode, you can edit and insert characters  '
+   HELP.LINES<-1> = '    space - Space will highlight a column of characters. '
    HELP.LINES<-1> = '    : - Command Mode  '
    HELP.LINES<-1> = '    v - Enter visual mode and copy part of a line  '
    HELP.LINES<-1> = '    v -> $ - Inside Visual mode, you can use $ to go to the end of a line  '
