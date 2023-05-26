@@ -43,8 +43,8 @@ Commands starting with `:` are commands you can run in command mode. You can ent
 `space` - Space will highlight a column of characters  
 `:` - Command Mode  
 `v` - Enter visual mode and copy part of a line  
-`v -> $` - Inside Visual mode, you can use $ to go to the end of a line
-`v -> d` - Inside Visual mode, you can use d to delete a portion of the a line
+`v -> $` - Inside Visual mode, you can use $ to go to the end of a line  
+`v -> d` - Inside Visual mode, you can use d to delete a portion of the a line  
 
 `/` - Enter search mode and type in a string to search for  
 `ctrl+f` - Enter search mode and type in a string to search for  
