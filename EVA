@@ -806,6 +806,10 @@ MAIN:NULL
       GOSUB ADD.DEFAULT.SNIPPETS
    END
 *
+   IF FILETYPE = 'MARKDOWN' THEN
+      GOSUB ADD.MARKDOWN.SNIPPETS
+   END
+*
    PATH = '/home/usr/nivethan/.vim/UltiSnips/all.snippets'
    GOSUB ADD.SNIPPETS
 *
@@ -2238,6 +2242,8 @@ TOKENIZE.LINE.BASIC:NULL
 *
    FOR LETTER.CTR = 1 TO LEN(LINE)
       CHARACTER = LINE[LETTER.CTR,1]
+      TWO.CHARACTERS = LINE[1,2]
+      THREE.CHARACTERS = LINE[1,3]
 *
       IF DQ.STACK.CTR # 0 OR CHARACTER = '"' THEN
          IF DQ.STACK.CTR = 0 THEN
@@ -2321,7 +2327,7 @@ TOKENIZE.LINE.BASIC:NULL
          TOKENS<-1> = ';'
          TOKEN = ''
 *
-      END ELSE IF CHARACTER = '*' OR CHARACTER = '!' THEN
+      END ELSE IF CHARACTER = '*' OR CHARACTER = '!' OR TWO.CHARACTERS = '$*' OR THREE.CHARACTERS = 'REM' THEN
          IF TOKEN # '' THEN CREATED.FIRST.TOKEN = TRUE
          GOSUB COLORIZE.TOKEN
          TOKENS<-1> = TOKEN
@@ -6869,13 +6875,23 @@ ADD.DEFAULT.SNIPPETS:NULL
 *
    RETURN
 *
+*********************  S U B R O U T I N E  *********************
+*
+ADD.MARKDOWN.SNIPPETS:NULL
+*
+   SNIPPETS<1,1> = 'newpost'
+   SNIPPETS<1,2> = 'YAML Frontmatter'
+   SNIPPETS<1,3,1> = '---'
+   SNIPPETS<1,3,2> = 'Title: '
+   SNIPPETS<1,3,3> = 'Date: ' : OCONV(DATE(),'D')
+   SNIPPETS<1,3,4> = 'Sequence: 1'
+   SNIPPETS<1,3,5> = 'Tags: []'
+   SNIPPETS<1,3,6> = '---'
+   SNIPPETS<1,3,7> = ''
+*
+   RETURN
+*
 * END OF PROGRAM
 *
    END
 *
-   
-   
-   
-   
-   
-   
