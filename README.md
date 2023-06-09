@@ -34,6 +34,7 @@ Commands starting with `:` are commands you can run in command mode. You can ent
 
 ## Opening Files
 `EVA BP SOME.FILE` - This will open a file inside BP.  
+`EVA BP SOME.FILE --NO-LOCK` - This will open a file without locking it.
 `EVA STUDENT.FILE 47` - This will open a data file.  
 `EVA DICT STUDENT.FILE FIRST.NAME` - This will open a dictionary  
 
