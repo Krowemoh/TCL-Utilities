@@ -343,6 +343,13 @@
 *
    GOSUB GET.ARGUMENTS
 *
+   LOCATE('--NO-LOCK',ARGUMENTS;FLAG.POS) THEN
+      OPEN.READONLY = TRUE
+      ARGUMENTS = DELETE(ARGUMENTS,FLAG.POS)
+   END ELSE
+      OPEN.READONLY = FALSE
+   END
+*
    NUMBER.OF.ARGUMENTS = DCOUNT(ARGUMENTS,@AM)
 *
    QUIT.ALL.FLAG = FALSE
@@ -353,7 +360,6 @@
    IS.UNIVERSE.FILE = TRUE
    IS.OS.FILE = FALSE
    CREATE.NEW.OS.FILE = FALSE
-   OPEN.READONLY = FALSE
 *
 * OPEN FILE AND GO TO MAIN:
 *
@@ -473,23 +479,30 @@
             RECORD.ID = RECORD.ID[2,LEN(RECORD.ID)-2]
          END
 *
-*
-         READU RAW.LINES FROM FILE,RECORD.ID LOCKED
-            PRINT 'Record is locked: ' : RECORD.ID : ' - View Only? (Y/n) ':
-            INPUT ANYTHING
-*
-            IF ANYTHING # 'Y' THEN
-               EXIT
-            END
-*
+         IF OPEN.READONLY THEN
             READ RAW.LINES FROM FILE,RECORD.ID ELSE
                PRINT 'Unabled to read file as read only.'
                RETURN
             END
 *
-            OPEN.READONLY = TRUE
+         END ELSE
+            READU RAW.LINES FROM FILE,RECORD.ID LOCKED
+               PRINT 'Record is locked: ' : RECORD.ID : ' - View Only? (Y/n) ':
+               INPUT ANYTHING
 *
-         END ELSE RAW.LINES = ''
+               IF ANYTHING # 'Y' THEN
+                  EXIT
+               END
+*
+               READ RAW.LINES FROM FILE,RECORD.ID ELSE
+                  PRINT 'Unabled to read file as read only.'
+                  RETURN
+               END
+*
+               OPEN.READONLY = TRUE
+*
+            END ELSE RAW.LINES = ''
+         END
 *
          GOSUB MAIN
 *
@@ -5482,10 +5495,10 @@ BUILD.DICTIONARY:NULL
 *
    OPEN 'DICT',FILENAME TO DICT.FILE THEN
       $IFDEF DATABASE.UV
-         EXECUTE 'SELECT DICT ' : FILENAME : ' WITH F1 = "A"'
+         EXECUTE 'SELECT DICT ' : FILENAME : ' WITH F1 = "A"' CAPTURING RESULTS
       $ENDIF
       $IFDEF DATABASE.D3
-         EXECUTE 'SELECT DICT ' : FILENAME : ' WITH A1 = "A"'
+         EXECUTE 'SELECT DICT ' : FILENAME : ' WITH A1 = "A"' CAPTURING RESULTS
       $ENDIF
 *
       DICT.LINES = ''
@@ -6895,3 +6908,4 @@ ADD.MARKDOWN.SNIPPETS:NULL
 *
    END
 *
+   
