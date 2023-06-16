@@ -1500,11 +1500,11 @@ SYNTAX.INIT.HTML:NULL
    CONVERT ',' TO @AM IN STATEMENTS
 *
    FUNCTIONS = 'function {{ }}'
-   BASIC.FUNCTIONS = 'DCOUNT LEN'
+   BASIC.FUNCTIONS = 'DCOUNT LEN OCONV DATE'
    FUNCTIONS = FUNCTIONS : ' ' : BASIC.FUNCTIONS 
    CONVERT ' ' TO @AM IN FUNCTIONS
 *
-   OPERATORS = '< = > >= <= #'
+   OPERATORS = '< = > >= <= # :'
    CONVERT ' ' TO @AM IN OPERATORS
 *
    SPECIALS = 'class href style placeholder value rel charset name lang'
