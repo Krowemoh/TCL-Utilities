@@ -280,6 +280,14 @@ Add a key to a hash map:
     SUBROUTINE MAP.SET(MAT MAP,SIZE,KEY,VALUE)
 ```
 
+#### MAP.HAS
+
+Check if a hash map contains a key:
+
+```
+    SUBROUTINE MAP.HAS(MAT MAP,SIZE,KEY,FLAG)
+```
+
 #### MAP.GET
 
 Get a key from a hash map:
