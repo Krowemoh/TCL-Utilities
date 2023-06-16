@@ -10,6 +10,8 @@
     @USER1 = 'MAP.SET'
     @USER2 = 'MAP.SET'
 *
+   COPIED = VALUE
+*
     GOSUB SETUP
 *
     KEY.LEN = LEN(KEY)
@@ -42,21 +44,21 @@
         GOSUB LOWER
         GOSUB LOWER
         GOSUB LOWER
-        MAP(POS)<1,2> = VALUE
+        MAP(POS)<1,2> = COPIED
 *
     END ELSE
         LOCATE(KEY,MAP(POS)<1>,1;ANYPOS) THEN
             GOSUB LOWER
             GOSUB LOWER
             GOSUB LOWER
-            MAP(POS)<1,2,ANYPOS> = VALUE
+            MAP(POS)<1,2,ANYPOS> = COPIED
 *
         END ELSE
             MAP(POS)<1,1,-1> = KEY
             GOSUB LOWER
             GOSUB LOWER
             GOSUB LOWER
-            MAP(POS)<1,2,-1> = VALUE
+            MAP(POS)<1,2,-1> = COPIED
         END
     END
 *
@@ -76,7 +78,7 @@ SETUP:NULL
 *
 RAISE:NULL
 *
-    CONVERT LOW TO HIGH IN VALUE
+    CONVERT LOW TO HIGH IN COPIED
 *
     RETURN
 *
@@ -84,7 +86,7 @@ RAISE:NULL
 *
 LOWER:NULL
 *
-    CONVERT HIGH TO LOW IN VALUE
+    CONVERT HIGH TO LOW IN COPIED
 *
     RETURN
 *
@@ -92,3 +94,4 @@ LOWER:NULL
 *
     END
 *
+
