@@ -1504,7 +1504,7 @@ SYNTAX.INIT.HTML:NULL
    FUNCTIONS = FUNCTIONS : ' ' : BASIC.FUNCTIONS 
    CONVERT ' ' TO @AM IN FUNCTIONS
 *
-   OPERATORS = '< = > >= <= # : AND OR'
+   OPERATORS = '< = > >= <= # : AND OR NOT'
    CONVERT ' ' TO @AM IN OPERATORS
 *
    SPECIALS = 'class href style placeholder value rel charset name lang'
