@@ -1495,7 +1495,7 @@ SYNTAX.INIT.BASIC:NULL
 SYNTAX.INIT.HTML:NULL
 *
    STATEMENTS = 'a abbr acronym address applet area article aside audio b base basefont bdi bdo bgsound big blink blockquote body br button canvas caption center cite code col colgroup content data datalist dd decorator del details dfn dir div dl dt element em embed fieldset figcaption figure font footer form frame frameset h1 h2 h3 h4 h5 h6 head header hgroup hr html i iframe img input ins isindex kbd keygen label legend li link listing main map mark marquee menu menuitem meta meter nav nobr noframes noscript object ol optgroup option output p param plaintext pre progress q rp rt ruby s samp script section select shadow small source spacer span strike strong sub summary sup table tbody td template textarea tfoot th thead time title tr track tt u ul var video wbr xmp'
-   BASIC.STATEMENTS = 'FOR NEXT READ FROM ELSE OPEN TO PRINT IF THEN END ELSE LOOP UNTIL DO REPEAT'
+   BASIC.STATEMENTS = 'FOR NEXT READ FROM ELSE OPEN TO PRINT IF THEN END ELSE LOOP UNTIL DO REPEAT INCLUDE'
    STATEMENTS = STATEMENTS : ' ' : BASIC.STATEMENTS 
    CONVERT ' ' TO @AM IN STATEMENTS
 *
@@ -5237,13 +5237,13 @@ FORMAT.HTML:NULL
 *
    HTML.FIRST.WORDS.DEC = '/a,/abbr,/acronym,/address,/applet,/area,/article,/aside,/audio,/b,/base,/basefont,/bdi,/bdo,/bgsound,/big,/blink,/blockquote,/body,/button,/canvas,/caption,/center,/cite,/code,/col,/colgroup,/content,/data,/datalist,/dd,/decorator,/del,/details,/dfn,/dir,/div,/dl,/dt,/element,/em,/embed,/fieldset,/figcaption,/figure,/font,/footer,/form,/frame,/frameset,/h1,/h2,/h3,/h4,/h5,/h6,/head,/header,/hgroup,/hr,/html,/i,/iframe,/img,/input,/ins,/isindex,/kbd,/keygen,/label,/legend,/li,/listing,/main,/map,/mark,/marquee,/menu,/menuitem,/meter,/nav,/nobr,/noframes,/noscript,/object,/ol,/optgroup,/option,/output,/p,/param,/plaintext,/pre,/progress,/q,/rp,/rt,/ruby,/s,/samp,/script,/section,/select,/shadow,/small,/source,/spacer,/span,/strike,/strong,/style,/sub,/summary,/sup,/table,/tbody,/td,/template,/textarea,/tfoot,/th,/thead,/time,/title,/tr,/track,/tt,/u,/ul,/var,/video,/wbr,/xmp'
 *
-   FIRST.WORDS.INC = '{{ FOR,{{ IF,' : HTML.FIRST.WORDS.INC
+   FIRST.WORDS.INC = 'FOR,IF,' : HTML.FIRST.WORDS.INC
    CONVERT ',' TO @AM IN FIRST.WORDS.INC
 *
-   LAST.WORDS.INC = 'THEN}},ELSE}},{'
+   LAST.WORDS.INC = 'THEN,ELSE'
    CONVERT ',' TO @AM IN LAST.WORDS.INC
 *
-   FIRST.WORDS.DEC = '{{NEXT,{{END,}}NEXT,},' : HTML.FIRST.WORDS.DEC
+   FIRST.WORDS.DEC = 'NEXT,END,NEXT,' : HTML.FIRST.WORDS.DEC
    CONVERT ',' TO @AM IN FIRST.WORDS.DEC
 *
    LAST.WORDS.DEC = HTML.FIRST.WORDS.DEC
@@ -5296,6 +5296,8 @@ FORMAT.FILE:NULL
          WORKING.LINE = TRIMMED.LINE
          CONVERT '<' TO ' ' IN WORKING.LINE
          CONVERT '>' TO ' ' IN WORKING.LINE
+         WORKING.LINE = CHANGE(WORKING.LINE,'{{','')
+         WORKING.LINE = CHANGE(WORKING.LINE,'}}','')
          WORKING.LINE = TRIMB(TRIMF(WORKING.LINE))
 *
       END ELSE
@@ -6915,5 +6917,6 @@ ADD.MARKDOWN.SNIPPETS:NULL
    END
 *
    
+
 
 
