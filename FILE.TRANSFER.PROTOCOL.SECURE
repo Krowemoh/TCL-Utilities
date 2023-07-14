@@ -28,7 +28,7 @@
    COMMAND = 'lftp <<EOF'
 *
    IF PORT THEN
-      COMMAND = COMMAND : CHAR(10) : 'open ' : SERVER : ' ' : PORT
+      COMMAND = COMMAND : CHAR(10) : 'open -p ' : PORT : ' ' : SERVER
    END ELSE
       COMMAND = COMMAND : CHAR(10) : 'open ' : SERVER
    END
