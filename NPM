@@ -450,6 +450,10 @@ SETUP.PACKAGES:NULL
     PACKAGES<2,-1> = 'Base program for upload or download files using ftp'
     PACKAGES<3,-1> = 'https://raw.githubusercontent.com/Krowemoh/TCL-Utilities/main/FILE.TRANSFER.PROTOCOL'
 *
+    PACKAGES<1,-1> = 'FILE.TRANSFER.PROTOCOL.SECURE'
+    PACKAGES<2,-1> = 'Base program for upload or download files using lftp, ftps'
+    PACKAGES<3,-1> = 'https://raw.githubusercontent.com/Krowemoh/TCL-Utilities/main/FILE.TRANSFER.PROTOCOL.SECURE'
+*
     PACKAGES<1,-1> = 'MD5'
     PACKAGES<2,-1> = 'Hashing using MD5'
     PACKAGES<3,-1> = 'https://raw.githubusercontent.com/Krowemoh/TCL-Utilities/main/MD5'
@@ -501,6 +505,10 @@ SETUP.PACKAGES:NULL
     PACKAGES<1,-1> = 'FTP'
     PACKAGES<2,-1> = 'Upload or download files using ftp'
     PACKAGES<3,-1> = 'https://raw.githubusercontent.com/Krowemoh/TCL-Utilities/main/FTP'
+*
+    PACKAGES<1,-1> = 'FTPS'
+    PACKAGES<2,-1> = 'Upload or download files using lftp, ftps'
+    PACKAGES<3,-1> = 'https://raw.githubusercontent.com/Krowemoh/TCL-Utilities/main/FTPS'
 *
     PACKAGES<1,-1> = 'GREP'
     PACKAGES<2,-1> = 'Search using regular expressions'
@@ -566,11 +574,24 @@ SETUP.PACKAGES:NULL
     PACKAGES<2,-1> = 'Delete a key from a hashmap'
     PACKAGES<3,-1> = 'https://raw.githubusercontent.com/Krowemoh/TCL-Utilities/main/MAP.DELETE'
 *
+    PACKAGES<1,-1> = 'RENDER'
+    PACKAGES<2,-1> = 'BASIC Template Language'
+    PACKAGES<3,-1> = 'https://raw.githubusercontent.com/Krowemoh/basic-template-language/main/RENDER'
+*
+    PACKAGES<1,-1> = 'RAW.RENDER'
+    PACKAGES<2,-1> = 'BASIC Template Language'
+    PACKAGES<3,-1> = 'https://raw.githubusercontent.com/Krowemoh/basic-template-language/main/RAW.RENDER'
+*
+    PACKAGES<1,-1> = 'EVALUATE'
+    PACKAGES<2,-1> = 'BASIC Template Language'
+    PACKAGES<3,-1> = 'https://raw.githubusercontent.com/Krowemoh/basic-template-language/main/EVALUATE'
+*
     RETURN
 *
 * END OF PROGRAM
 *
     END
 *
+
 
 
