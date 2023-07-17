@@ -221,6 +221,9 @@
       PAGE.DOWN = '[6~'
    $ENDIF
 *
+   F5 = '[16~'
+   F6 = '[17~'
+*
 * INITIALIZE TERMINAL SIZE
 *
    SCREEN.WIDTH = TERM.WIDTH
@@ -1496,12 +1499,12 @@ SYNTAX.INIT.HTML:NULL
 *
    STATEMENTS = 'a abbr acronym address applet area article aside audio b base basefont bdi bdo bgsound big blink blockquote body br button canvas caption center cite code col colgroup content data datalist dd decorator del details dfn dir div dl dt element em embed fieldset figcaption figure font footer form frame frameset h1 h2 h3 h4 h5 h6 head header hgroup hr html i iframe img input ins isindex kbd keygen label legend li link listing main map mark marquee menu menuitem meta meter nav nobr noframes noscript object ol optgroup option output p param plaintext pre progress q rp rt ruby s samp script section select shadow small source spacer span strike strong sub summary sup table tbody td template textarea tfoot th thead time title tr track tt u ul var video wbr xmp'
    BASIC.STATEMENTS = 'FOR NEXT READ FROM ELSE OPEN TO PRINT IF THEN END ELSE LOOP UNTIL DO REPEAT INCLUDE CALL'
-   STATEMENTS = STATEMENTS : ' ' : BASIC.STATEMENTS 
+   STATEMENTS = STATEMENTS : ' ' : BASIC.STATEMENTS
    CONVERT ' ' TO @AM IN STATEMENTS
 *
    FUNCTIONS = 'function {{ }}'
    BASIC.FUNCTIONS = 'DCOUNT LEN OCONV DATE'
-   FUNCTIONS = FUNCTIONS : ' ' : BASIC.FUNCTIONS 
+   FUNCTIONS = FUNCTIONS : ' ' : BASIC.FUNCTIONS
    CONVERT ' ' TO @AM IN FUNCTIONS
 *
    OPERATORS = '< = > >= <= # : AND OR NOT'
@@ -2985,6 +2988,12 @@ PROCESS.BASE.ESCAPE.KEY:NULL
       GOSUB PRINT.CURRENT.LINE
       GOSUB SCROLL.RIGHT
       PRINT @(X.POS, Y.POS) :
+*
+   END ELSE IF ESCAPE.SEQUENCE = F5 THEN
+      GOSUB PRECOMPILE
+*
+   END ELSE IF ESCAPE.SEQUENCE = F6 THEN
+      GOSUB DECOMPILE
    END
 *
    RETURN
@@ -3386,91 +3395,10 @@ PROCESS.EDITOR.COMMAND:NULL
       PRINT @(X.POS,Y.POS) :
 *
    END ELSE IF EDITOR.COMMAND = 'dec' OR EDITOR.COMMAND = 'decompile' THEN
-      IF FILETYPE # 'BASIC' THEN
-         PRINT BOTTOM : MESSAGE.COLOR : CLEAR.REST.OF.LINE :
-         PRINT 'This file is not a BASIC file.' :
-         PRINT @(X.POS,Y.POS) :
-         RETURN
-      END
-*
-      READ ANYTHING FROM VOC.FILE,'DECOMPILE' ELSE
-         PRINT BOTTOM : MESSAGE.COLOR : CLEAR.REST.OF.LINE :
-         PRINT 'DECOMPILE is not available.' :
-         PRINT @(X.POS,Y.POS) :
-         RETURN
-      END
-*
-      GOSUB SAVE.FILE
-*
-      EXECUTE 'DECOMPILE ' : FILENAME : ' ' : RECORD.ID
-*
-      READU RAW.LINES FROM FILE,RECORD.ID ELSE
-         PRINT BOTTOM : MESSAGE.COLOR : CLEAR.REST.OF.LINE :
-         PRINT 'Error reading file after pre-processing.' :
-         PRINT @(X.POS,Y.POS) :
-         RETURN
-      END
-*
-      GOSUB CONVERT.RAW.LINES
-      GOSUB DISPLAY.LINES
-*
-      $IFDEF DATABASE.UV
-         CURRENT.CHECKSUM = CHECKSUM(RAW.LINES)
-      $ENDIF
-      $IFDEF DATABASE.D3
-         CURRENT.CHECKSUM = OCONV(RAW.LINES,'u001e')
-      $ENDIF
-*
-      PRINT BOTTOM : MESSAGE.COLOR : CLEAR.REST.OF.LINE :
-      PRINT 'Decompiled file.' :
-*
-      GOTO.LINE = 1
-      GOSUB GOTO.LINE.POSITION
-*
-      X.POS = MARGIN.LEFT
-      PRINT @(X.POS,Y.POS) :
+      GOSUB DECOMPILE
 *
    END ELSE IF EDITOR.COMMAND = 'prec' OR EDITOR.COMMAND = 'precompile' THEN
-      IF FILETYPE # 'BASIC' THEN
-         PRINT BOTTOM : MESSAGE.COLOR : CLEAR.REST.OF.LINE :
-         PRINT 'This file is not a BASIC file.' :
-         PRINT @(X.POS,Y.POS) :
-         RETURN
-      END
-*
-      READ ANYTHING FROM VOC.FILE,'PRECOMPILE' ELSE
-         PRINT BOTTOM : MESSAGE.COLOR : CLEAR.REST.OF.LINE :
-         PRINT 'PRECOMPILE is not available.' :
-         PRINT @(X.POS,Y.POS) :
-         RETURN
-      END
-*
-      GOSUB SAVE.FILE
-*
-      EXECUTE 'PRECOMPILE ' : FILENAME : ' ' : RECORD.ID : ' (A'
-*
-      READU RAW.LINES FROM FILE,RECORD.ID ELSE
-         PRINT BOTTOM : MESSAGE.COLOR : CLEAR.REST.OF.LINE :
-         PRINT 'Error reading file after pre-processing.' :
-         PRINT @(X.POS,Y.POS) :
-         RETURN
-      END
-*
-      GOSUB CONVERT.RAW.LINES
-      GOSUB DISPLAY.LINES
-*
-      $IFDEF DATABASE.UV
-         CURRENT.CHECKSUM = CHECKSUM(RAW.LINES)
-      $ENDIF
-      $IFDEF DATABASE.D3
-         CURRENT.CHECKSUM = OCONV(RAW.LINES,'u001e')
-      $ENDIF
-*
-      GOSUB FORMAT.BASIC
-*
-      PRINT BOTTOM : MESSAGE.COLOR : CLEAR.REST.OF.LINE :
-      PRINT 'Precompiled file.' :
-      PRINT @(X.POS,Y.POS) :
+      GOSUB PRECOMPILE
 *
    END ELSE IF EDITOR.COMMAND = 'comp' THEN
       IF FILETYPE # 'BASIC' THEN
@@ -5587,6 +5515,102 @@ TOGGLE.DICTIONARY:NULL
 *
    RETURN
 *
+*********************  S U B R O U T I N E  *********************
+*
+PRECOMPILE:NULL
+*
+   IF FILETYPE # 'BASIC' THEN
+      PRINT BOTTOM : MESSAGE.COLOR : CLEAR.REST.OF.LINE :
+      PRINT 'This file is not a BASIC file.' :
+      PRINT @(X.POS,Y.POS) :
+      RETURN
+   END
+*
+   READ ANYTHING FROM VOC.FILE,'PRECOMPILE' ELSE
+      PRINT BOTTOM : MESSAGE.COLOR : CLEAR.REST.OF.LINE :
+      PRINT 'PRECOMPILE is not available.' :
+      PRINT @(X.POS,Y.POS) :
+      RETURN
+   END
+*
+   GOSUB SAVE.FILE
+*
+   EXECUTE 'PRECOMPILE ' : FILENAME : ' ' : RECORD.ID : ' (A'
+*
+   READU RAW.LINES FROM FILE,RECORD.ID ELSE
+      PRINT BOTTOM : MESSAGE.COLOR : CLEAR.REST.OF.LINE :
+      PRINT 'Error reading file after pre-processing.' :
+      PRINT @(X.POS,Y.POS) :
+      RETURN
+   END
+*
+   GOSUB CONVERT.RAW.LINES
+   GOSUB DISPLAY.LINES
+*
+   $IFDEF DATABASE.UV
+      CURRENT.CHECKSUM = CHECKSUM(RAW.LINES)
+   $ENDIF
+   $IFDEF DATABASE.D3
+      CURRENT.CHECKSUM = OCONV(RAW.LINES,'u001e')
+   $ENDIF
+*
+   GOSUB FORMAT.BASIC
+*
+   PRINT BOTTOM : MESSAGE.COLOR : CLEAR.REST.OF.LINE :
+   PRINT 'Precompiled file.' :
+   PRINT @(X.POS,Y.POS) :
+*
+   RETURN
+*
+*********************  S U B R O U T I N E  *********************
+*
+DECOMPILE:NULL
+*
+   IF FILETYPE # 'BASIC' THEN
+      PRINT BOTTOM : MESSAGE.COLOR : CLEAR.REST.OF.LINE :
+      PRINT 'This file is not a BASIC file.' :
+      PRINT @(X.POS,Y.POS) :
+      RETURN
+   END
+*
+   READ ANYTHING FROM VOC.FILE,'DECOMPILE' ELSE
+      PRINT BOTTOM : MESSAGE.COLOR : CLEAR.REST.OF.LINE :
+      PRINT 'DECOMPILE is not available.' :
+      PRINT @(X.POS,Y.POS) :
+      RETURN
+   END
+*
+   GOSUB SAVE.FILE
+*
+   EXECUTE 'DECOMPILE ' : FILENAME : ' ' : RECORD.ID
+*
+   READU RAW.LINES FROM FILE,RECORD.ID ELSE
+      PRINT BOTTOM : MESSAGE.COLOR : CLEAR.REST.OF.LINE :
+      PRINT 'Error reading file after pre-processing.' :
+      PRINT @(X.POS,Y.POS) :
+      RETURN
+   END
+*
+   GOSUB CONVERT.RAW.LINES
+   GOSUB DISPLAY.LINES
+*
+   $IFDEF DATABASE.UV
+      CURRENT.CHECKSUM = CHECKSUM(RAW.LINES)
+   $ENDIF
+   $IFDEF DATABASE.D3
+      CURRENT.CHECKSUM = OCONV(RAW.LINES,'u001e')
+   $ENDIF
+*
+   PRINT BOTTOM : MESSAGE.COLOR : CLEAR.REST.OF.LINE :
+   PRINT 'Decompiled file.' :
+*
+   GOTO.LINE = 1
+   GOSUB GOTO.LINE.POSITION
+*
+   X.POS = MARGIN.LEFT
+   PRINT @(X.POS,Y.POS) :
+*
+   RETURN
 *
 *********************  S U B R O U T I N E  *********************
 *
@@ -6916,4 +6940,5 @@ ADD.MARKDOWN.SNIPPETS:NULL
 *
    END
 *
-
+   
+   
