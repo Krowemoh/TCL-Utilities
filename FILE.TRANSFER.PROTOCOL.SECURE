@@ -36,6 +36,7 @@
    COMMAND = COMMAND : CHAR(10) : 'user ' : USERNAME : ' ': PASSWORD
 *
    COMMAND = COMMAND : CHAR(10) : 'set xfer:clobber on'
+   COMMAND = COMMAND : CHAR(10) : 'set ssl:verify-certificate no'
 *
    IF DIRECTION = 'SEND-FILE' THEN
       COMMAND = COMMAND : CHAR(10) : 'put ' : LOCAL.PATH : ' -o ' : REMOTE.PATH
@@ -57,3 +58,4 @@
    END
 *
    
+
