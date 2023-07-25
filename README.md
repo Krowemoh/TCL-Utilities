@@ -311,3 +311,13 @@ Delete a key from a hash map:
 ```
     SUBROUTINE MAP.DELETE(MAT MAP,SIZE,KEY)
 ```
+
+## Programs
+
+#### HTTP.SERVER
+
+A simple web server:
+
+```
+    RUN BP HTTP.SERVER
+```
