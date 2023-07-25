@@ -1,0 +1,522 @@
+*
+   GIT.FILENAME = 'HTTP.SERVER'
+    GIT.REPO = 'https://github.com/Krowemoh/TCL-Utilities.git'
+*
+* COMPILER DIRECTIVES
+*
+   $DEFINE DATABASE.UV
+   $DEFINE PLATFORM.LINUX
+*
+   EQU TRUE TO 1
+   EQU FALSE TO 0
+*
+   @USER1 = 'HTTP.SERVER'
+   @USER2 = 'HTTP.SERVER'
+*
+   OPEN '','MD' TO MD.FILE ELSE
+      PRINT 'Unable to open file: MD - Press RETURN':
+      INPUT ANYTHING
+      STOP
+   END
+*
+   $IFDEF DATABASE.D3
+      CLEARSELECT
+      FLASH.CMD = 'SELECT DICT BP HTTP.SERVER C/FLASH'
+      EXECUTE FLASH.CMD CAPTURING OUTPUT
+      READNEXT FLASH.COMPILED ELSE FLASH.COMPILED = 0
+*
+      IF NOT(FLASH.COMPILED) THEN
+         PRINT 'HTTP.SERVER is not flash compiled.'
+         STOP
+      END
+   $ENDIF
+*
+   SERVER.PORT = 8122
+*
+   CR = CHAR(13)
+   LF = CHAR(10)
+*
+   BODY.DELIMITER = CR:LF:CR:LF
+   BODY.DELIMITER.LEN = LEN(BODY.DELIMITER)
+*
+   ALLOWED.METHODS = 'GET POST PUT PATCH DELETE '
+*
+   HTTP.STATUSES = ''
+   HTTP.STATUSES<1,1> = 200
+   HTTP.STATUSES<1,2> = 400
+   HTTP.STATUSES<1,3> = 404
+   HTTP.STATUSES<1,4> = 500
+   HTTP.STATUSES<1,5> = 501
+*
+   HTTP.STATUSES<2,1> = 'OK'
+   HTTP.STATUSES<2,2> = 'Bad Request'
+   HTTP.STATUSES<2,3> = 'Not Found'
+   HTTP.STATUSES<2,4> = 'Internal Server Error'
+   HTTP.STATUSES<2,5> = 'Not Implemented'
+*
+* SOCKET INITIALIZATION
+*
+   $IFDEF DATABASE.D3
+      CFUNCTION SOCKET.BUILTIN
+*
+      SOCKET = %SOCKET(2,1,6)
+      IF SOCKET < 0 THEN
+         CRT 'ERROR ' : SYSTEM(0) : ' - Socket failed.'
+         STOP
+      END
+*
+      CODE = %BIND(SOCKET,2,0,SERVER.PORT)
+      IF CODE < 0 THEN
+         CRT 'ERROR ' : SYSTEM(0) : ' - Bind failed.'
+         %CLOSESOCKET(SOCKET)
+         STOP
+      END
+*
+      CODE = %LISTEN(SOCKET,1)
+      IF CODE < 0 THEN
+         CRT 'ERROR ' : SYSTEM(0) : ' - Listen failed.'
+         %CLOSESOCKET(SOCKET)
+         STOP
+      END
+   $ENDIF
+*
+   $IFDEF DATABASE.UV
+      CODE = initServerSocket('0.0.0.0',SERVER.PORT,1,SOCKET)
+      IF CODE # 0 THEN
+         CRT 'ERROR ' : SYSTEM(0) : ' - initServerSocket failed.'
+         CODE = closeSocket(SOCKET)
+      END
+   $ENDIF
+*
+   CRT 'Listening on: 0.0.0.0:' : SERVER.PORT
+   CRT
+*
+   OPEN '','CONTROL-FILE' TO CONTROL.FILE ELSE
+      PRINT 'Unable to open file: CONTROL-FILE - Press RETURN':
+      INPUT ANYTHING
+      STOP
+   END
+*
+   DONE = FALSE
+*
+   CLIENT.ADDRESS = 0
+   CLIENT.PORT = 0
+*
+   LOOP UNTIL DONE DO
+*
+      READ ROUTES FROM CONTROL.FILE,'ROUTES' ELSE ROUTES = ''
+*
+      $IFDEF DATABASE.D3
+         FD = %ACCEPT(SOCKET,&CLIENT.ADDRESS,&CLIENT.PORT)
+         IF FD < 0 THEN
+            CRT 'ERROR ' : SYSTEM(0) : ' = Accept failed.'
+            %CLOSESOCKET(SOCKET)
+            STOP
+         END
+      $ENDIF
+*
+      $IFDEF DATABASE.UV
+         CODE = acceptConnection(SOCKET,1,0,NULL,NULL,FD)
+         IF CODE # 0 THEN
+            CRT 'ERROR ' : SYSTEM(0) : ' = Accept failed.'
+            CODE = closeSocket(SOCKET)
+         END
+      $ENDIF
+*
+      GOSUB INITIALIZE.REQUEST
+      GOSUB READ.REQUEST
+*
+      GOSUB GET.STATUS.LINE
+      GOSUB GET.HEADERS
+*
+      IF REQUEST.TYPE = 'POST' THEN
+         GOSUB GET.POST.DATA
+      END
+*
+      GOSUB LOG.REQUEST
+*
+      T1 = TIME()
+*
+      BEGIN CASE
+         CASE REQUEST.ERROR # ''
+            RESPONSE.STATUS = 400
+            RESPONSE.BODY = 'Bad request.'
+            GOSUB SEND.HTTP.RESPONSE
+*
+         CASE REQUEST.URL = '/kill'
+            DONE = TRUE
+*
+            RESPONSE.STATUS = 200
+            RESPONSE.BODY = 'Killing server.'
+            GOSUB SEND.HTTP.RESPONSE
+*
+         CASE REQUEST.URL = '/restart'
+            DONE = TRUE
+*
+            RESPONSE.STATUS = 200
+            RESPONSE.BODY = 'Restarting server.'
+            GOSUB SEND.HTTP.RESPONSE
+*
+            $IFDEF DATABASE.D3
+               %CLOSESOCKET(FD)
+               %CLOSESOCKET(SOCKET)
+            $ENDIF
+*
+            $IFDEF DATABASE.UV
+               CODE = closeSocket(FD)
+               CODE = closeSocket(SOCKET)
+            $ENDIF
+*
+            CHAIN 'HTTP.SERVER'
+*
+         CASE TRUE
+            LOCATE(REQUEST.URL,ROUTES<1>,1;ROUTE.POS) THEN
+               FUNC = TRIM(ROUTES<2,ROUTE.POS>)
+*
+               READ MD.ITEM FROM MD.FILE,FUNC ELSE
+                  RESPONSE.STATUS = 500
+                  RESPONSE.BODY = 'Subroutine "' : FUNC : '" was not cataloged.'
+                  GOSUB SEND.HTTP.RESPONSE
+                  CONTINUE
+               END
+*
+               $IFDEF DATABASE.D3
+                  PROGRAM.FOLDER.NAME = TRIM(FIELD(MD.ITEM<4>,' ',1))
+*
+                  CLEARSELECT
+                  FLASH.CMD = 'SELECT DICT ' : PROGRAM.FOLDER.NAME : ' ' : FUNC : ' C/FLASH'
+                  EXECUTE FLASH.CMD
+                  READNEXT FLASH.COMPILED ELSE FLASH.COMPILED = 0
+*
+                  IF NOT(FLASH.COMPILED) THEN
+                     RESPONSE.STATUS = 500
+                     RESPONSE.BODY = 'Subroutine "' : FUNC : '" was not flash compiled.'
+                     GOSUB SEND.HTTP.RESPONSE
+                     CONTINUE
+                  END
+               $ENDIF
+*
+               CALL @FUNC(REQUEST.QUERY,REQUEST.FORM,REQUEST.JSON,RESPONSE.BODY)
+*
+               RESPONSE.STATUS = 200
+               GOSUB SEND.HTTP.RESPONSE
+*
+            END ELSE
+               RESPONSE.STATUS = 404
+               RESPONSE.BODY = 'Page not found.'
+               GOSUB SEND.HTTP.RESPONSE
+            END
+      END CASE
+*
+      T2 = TIME()
+*
+      TIME.TAKEN = T2 - T1
+      GOSUB LOG.RESPONSE
+*
+      $IFDEF DATABASE.D3
+         %CLOSESOCKET(FD)
+      $ENDIF
+*
+      $IFDEF DATABASE.UV
+         CODE = closeSocket(FD)
+      $ENDIF
+*
+   REPEAT
+*
+   $IFDEF DATABASE.D3
+      %CLOSESOCKET(SOCKET)
+   $ENDIF
+*
+   $IFDEF DATABASE.UV
+      CODE = closeSocket(SOCKET)
+   $ENDIF
+*
+   STOP
+*
+*********************  S U B R O U T I N E  *********************
+*
+INITIALIZE.REQUEST:NULL
+*
+   RAW.REQUEST = ''
+*
+   REQUEST.ERROR = ''
+*
+   REQUEST.TYPE = ''
+   REQUEST.VERSION = ''
+   REQUEST.URL = ''
+   REQUEST.QUERY = ''
+*
+   REQUEST.HEADERS = ''
+*
+   REQUEST.RAW.BODY = ''
+   REQUEST.FORM = ''
+   REQUEST.JSON = ''
+*
+   RETURN
+*
+*********************  S U B R O U T I N E  *********************
+*
+READ.REQUEST:NULL
+*
+   BUFFER.SIZE = 300
+*
+   READ.DONE = FALSE
+*
+   LOOP UNTIL READ.DONE DO
+      $IFDEF DATABASE.D3
+         CHAR BUFFER[BUFFER.SIZE]
+      $ENDIF
+*
+      $IFDEF DATABASE.UV
+         BUFFER = SPACES(BUFFER.SIZE)
+         CONVERT ' ' TO '' IN BUFFER
+      $ENDIF
+*
+      $IFDEF DATABASE.D3
+         READ.SIZE = %RECV(FD,BUFFER,BUFFER.SIZE,0)
+      $ENDIF
+*
+      $IFDEF DATABASE.UV
+         CODE = readSocket(FD,BUFFER,BUFFER.SIZE,0,1,READ.SIZE)
+      $ENDIF
+*
+      IF READ.SIZE < 0 THEN
+         CRT 'Read Error: ' : SYSTEM(0)
+         READ.DONE = TRUE
+*
+      END ELSE IF READ.SIZE < BUFFER.SIZE THEN
+         RAW.REQUEST = RAW.REQUEST : BUFFER[1,BUFFER.SIZE]
+         READ.DONE = TRUE
+*
+      END ELSE
+         RAW.REQUEST = RAW.REQUEST : BUFFER
+      END
+   REPEAT
+*
+   RETURN
+*
+*********************  S U B R O U T I N E  *********************
+*
+GET.STATUS.LINE:NULL
+*
+   IF RAW.REQUEST = '' THEN
+      REQUEST.ERROR = 'Invalid request - request is blank.'
+      RETURN
+   END
+*
+   STATUS.LINE = FIELD(RAW.REQUEST,CR:LF,1)
+*
+   REQUEST.TYPE = FIELD(STATUS.LINE,' ',1)
+   IF INDEX(ALLOWED.METHODS,REQUEST.TYPE:' ',1) = 0 THEN
+      REQUEST.ERROR = 'Invalid request - type: ' : REQUEST.TYPE
+      RETURN
+   END
+*
+   REQUEST.VERSION = FIELD(STATUS.LINE,' ',3)
+   IF REQUEST.VERSION # 'HTTP/1.1' AND REQUEST.VERSION # 'HTTP/0.9' THEN
+      REQUEST.ERROR = 'Invalid request - unsupported http version: ' : REQUEST.VERSION
+      RETURN
+   END
+*
+   REQUEST.URL = FIELD(STATUS.LINE,' ',2)
+   REQUEST.QUERY = ''
+*
+   IF INDEX(REQUEST.URL,'?',1) THEN
+      QUERY.PARAMS = FIELD(REQUEST.URL,'?',2)
+      QUERY.LENGTH = LEN(QUERY.PARAMS)
+*
+      TOKEN = ''
+      IN.NAME = TRUE
+*
+      FOR I = 1 TO QUERY.LENGTH
+         LETTER = QUERY.PARAMS[I,1]
+*
+         IF IN.NAME AND LETTER = '=' THEN
+            REQUEST.QUERY<1,-1> = TOKEN
+            TOKEN = ''
+            IN.NAME = FALSE
+*
+         END ELSE IF LETTER = '&' THEN
+            REQUEST.QUERY<2,-1> = TOKEN
+            TOKEN = ''
+            IN.NAME = TRUE
+*
+         END ELSE
+            TOKEN = TOKEN : LETTER
+         END
+      NEXT I
+*
+      IF TOKEN # '' THEN
+         REQUEST.QUERY<2,-1> = TOKEN
+      END
+*
+      REQUEST.URL = FIELD(REQUEST.URL,'?',1)
+   END
+*
+   RETURN
+*
+*********************  S U B R O U T I N E  *********************
+*
+GET.HEADERS:NULL
+*
+   START.POS = INDEX(RAW.REQUEST,CR:LF,1)
+*
+   IF REQUEST.TYPE = 'POST' THEN
+      HEADERS = RAW.REQUEST[START.POS+2,INDEX(RAW.REQUEST,BODY.DELIMITER,1)-START.POS-2]
+   END ELSE
+      HEADERS = RAW.REQUEST[START.POS+2,LEN(RAW.REQUEST)-START.POS-2]
+   END
+*
+   HEADERS.LENGTH = LEN(HEADERS)
+*
+   TOKEN = ''
+   IN.NAME = TRUE
+*
+   FOR I = 1 TO HEADERS.LENGTH
+      LETTER = HEADERS[I,1]
+*
+      IF IN.NAME AND LETTER = ':' THEN
+         REQUEST.HEADERS<1,-1> = TRIM(TOKEN)
+         TOKEN = ''
+         IN.NAME = FALSE
+*
+      END ELSE IF LETTER = CR THEN
+         IF HEADERS[I+1,1] = LF THEN
+            I = I + 1
+         END
+*
+         REQUEST.HEADERS<2,-1> = TRIM(TOKEN)
+         TOKEN = ''
+         IN.NAME = TRUE
+*
+      END ELSE
+         TOKEN = TOKEN : LETTER
+      END
+   NEXT I
+*
+   IF TOKEN # '' THEN
+      REQUEST.HEADERS<2,-1> = TRIM(TOKEN)
+   END
+*
+   RETURN
+*
+*********************  S U B R O U T I N E  *********************
+*
+GET.POST.DATA:NULL
+*
+   LOCATE('Content-Type',REQUEST.HEADERS,1;ANYPOS) ELSE
+      REQUEST.ERROR = 'Cannot find Content-Type, make sure it is spelled correctly.'
+      RETURN
+   END
+*
+   CONTENT.TYPE = REQUEST.HEADERS<2,ANYPOS>
+*
+   LOCATE('Content-Length',REQUEST.HEADERS,1;ANYPOS) ELSE
+      REQUEST.ERROR = 'Cannot find Content-Length, make sure it is set correctly.'
+      RETURN
+   END
+*
+   CONTENT.LENGTH = REQUEST.HEADERS<2,ANYPOS>
+*
+   REQUEST.RAW.BODY = RAW.REQUEST[INDEX(RAW.REQUEST,BODY.DELIMITER,1)+BODY.DELIMITER.LEN,CONTENT.LENGTH]
+*
+   IF CONTENT.TYPE = 'application/x-www-form-urlencoded' THEN
+      TOKEN = ''
+*
+      FOR I = 1 TO CONTENT.LENGTH
+         LETTER = REQUEST.RAW.BODY[I,1]
+*
+         IF LETTER = '=' THEN
+            REQUEST.FORM<1,-1> = TOKEN
+            TOKEN = ''
+*
+         END ELSE IF LETTER = '&' THEN
+            REQUEST.FORM<2,-1> = TOKEN
+            TOKEN = ''
+*
+         END ELSE
+            TOKEN = TOKEN : LETTER
+         END
+      NEXT I
+*
+      IF TOKEN # '' THEN
+         REQUEST.FORM<2,-1> = TOKEN
+      END
+*
+   END ELSE IF CONTENT.TYPE = 'application/json' THEN
+      REQUEST.JSON = REQUEST.RAW.BODY
+*
+   END ELSE
+      REQUEST.ERROR = 'Unsupported content type: ' : CONTENT.TYPE
+   END
+   
+   RETURN
+*
+*********************  S U B R O U T I N E  *********************
+*
+LOG.REQUEST:NULL
+*
+   PRINT '< [' : OCONV(DATE(),'D') : ' ' :
+   PRINT OCONV(TIME(),'MTH') : '] ' :
+   PRINT REQUEST.TYPE : ' ' :
+   PRINT REQUEST.URL : ' '
+*
+   RETURN
+*
+*********************  S U B R O U T I N E  *********************
+*
+LOG.RESPONSE:NULL
+*
+   PRINT '> [' : OCONV(DATE(),'D') : ' ' :
+   PRINT OCONV(TIME(),'MTH') : '] ' :
+   PRINT REQUEST.TYPE : ' ' :
+   PRINT REQUEST.URL : ' ' :
+   PRINT RESPONSE.STATUS : ' ' :
+   PRINT TIME.TAKEN : 's '
+*
+   RETURN
+*
+*********************  S U B R O U T I N E  *********************
+*
+SEND.HTTP.RESPONSE:NULL
+*
+   RESPONSE.BODY = CHANGE(RESPONSE.BODY,@AM,CR:LF)
+*
+   LOCATE(RESPONSE.STATUS,HTTP.STATUSES,1;POS) THEN
+      STATUS.TEXT = HTTP.STATUSES<2,POS>
+   END ELSE
+      PRINT 'Invalid http status "' : RESPONSE.STATUS : '".'
+      STATUS.TEXT = 'Invalid Status'
+   END
+*
+   RESPONSE = ''
+   RESPONSE<1> = 'HTTP/1.1 ' : RESPONSE.STATUS : ' ' : STATUS.TEXT
+   RESPONSE<2> = 'Date: ' : OCONV(DATE(),'D')
+   RESPONSE<3> = 'Server: D3 HTTP.SERVER'
+   RESPONSE<4> = 'Access-Control-Allow-Origin: *'
+   RESPONSE<5> = 'Access-Control-Allow-Methods: GET, POST, OPTIONS, DELETE, PUT'
+   RESPONSE<6> = 'Access-Control-Allow-Headers: *'
+   RESPONSE<7> = 'Content-Length: ' : LEN(RESPONSE.BODY)
+   RESPONSE<8> = 'Content-Type: text/html'
+   RESPONSE<9> = 'Connection: Closed'
+   RESPONSE<10> = ''
+   RESPONSE<11> = RESPONSE.BODY
+*
+   RESPONSE = CHANGE(RESPONSE,@AM,CR:LF)
+*
+   RESPONSE.LENGTH = LEN(RESPONSE)
+*
+   $IFDEF DATABASE.D3
+      CODE = %SEND(FD,RESPONSE,RESPONSE.LENGTH,0)
+   $ENDIF
+*
+   $IFDEF DATABASE.UV
+      CODE = writeSocket(FD,RESPONSE,10000,1,WRITE.SIZE)
+   $ENDIF
+*
+   RETURN
+*
+* END OF PROGRAM
+*
+   END
+*
