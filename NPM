@@ -424,7 +424,6 @@ UNDEF:NULL
 *
 SETUP.PACKAGES:NULL
 *
-*
     PACKAGES = ''
     PACKAGES<1,-1> = 'EVA'
     PACKAGES<2,-1> = 'Text Editor'
@@ -586,12 +585,17 @@ SETUP.PACKAGES:NULL
     PACKAGES<2,-1> = 'BASIC Template Language'
     PACKAGES<3,-1> = 'https://raw.githubusercontent.com/Krowemoh/basic-template-language/main/EVALUATE'
 *
+    PACKAGES<1,-1> = 'HTTP.SERVER'
+    PACKAGES<2,-1> = 'Simple HTTP Server'
+    PACKAGES<3,-1> = 'https://raw.githubusercontent.com/Krowemoh/TCL-Utilities/main/HTTP.SERVER'
+*
     RETURN
 *
 * END OF PROGRAM
 *
     END
 *
+
 
 
 
