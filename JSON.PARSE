@@ -14,7 +14,7 @@
 *
     IF RAW.TEXT[1,1] # '{' THEN
         PRINT 'Not JSON.'
-        STOP
+        RETURN
     END
 *
     CONVERT HIGH TO '?' IN RAW.TEXT
