@@ -13,7 +13,7 @@
     GOSUB SETUP
 *
     IF RAW.TEXT[1,1] # '{' THEN
-        PRINT 'Not JSON.'
+        PRINT 'Error - Text is not JSON.'
         RETURN
     END
 *
@@ -23,7 +23,6 @@
     IF RAW.TEXT[1,1] = '{' AND RAW.TEXT[LEN(RAW.TEXT),1] = '}' THEN
         RAW.TEXT = RAW.TEXT[2,LEN(RAW.TEXT)-2]
     END
-*
 *
     CALL JSON.PARSE.RECURSE(RAW.TEXT,JSON)
 *
