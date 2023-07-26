@@ -164,6 +164,8 @@
 *
       BEGIN CASE
          CASE REQUEST.ERROR # ''
+            PRINT REQUEST.ERROR
+*
             RESPONSE.STATUS = 400
             RESPONSE.BODY = 'Bad request.'
             GOSUB SEND.HTTP.RESPONSE
@@ -357,10 +359,6 @@ GET.STATUS.LINE:NULL
    END
 *
    REQUEST.VERSION = FIELD(STATUS.LINE,' ',3)
-   IF REQUEST.VERSION # 'HTTP/1.1' AND REQUEST.VERSION # 'HTTP/0.9' THEN
-      REQUEST.ERROR = 'Invalid request - unsupported http version: ' : REQUEST.VERSION
-      RETURN
-   END
 *
    REQUEST.URL = FIELD(STATUS.LINE,' ',2)
    REQUEST.QUERY = ''
