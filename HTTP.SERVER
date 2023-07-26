@@ -498,30 +498,6 @@ GET.POST.DATA:NULL
 *
 *********************  S U B R O U T I N E  *********************
 *
-LOG.REQUEST:NULL
-*
-   PRINT '< [' : OCONV(DATE(),'D') : ' ' :
-   PRINT OCONV(TIME(),'MTH') : '] ' :
-   PRINT REQUEST.TYPE : ' ' :
-   PRINT REQUEST.URL : ' '
-*
-   RETURN
-*
-*********************  S U B R O U T I N E  *********************
-*
-LOG.RESPONSE:NULL
-*
-   PRINT '> [' : OCONV(DATE(),'D') : ' ' :
-   PRINT OCONV(TIME(),'MTH') : '] ' :
-   PRINT REQUEST.TYPE : ' ' :
-   PRINT REQUEST.URL : ' ' :
-   PRINT RESPONSE.STATUS : ' ' :
-   PRINT TIME.TAKEN : 's '
-*
-   RETURN
-*
-*********************  S U B R O U T I N E  *********************
-*
 SEND.HTTP.RESPONSE:NULL
 *
    RESPONSE.BODY = CHANGE(RESPONSE.BODY,@AM,CR:LF)
@@ -557,6 +533,30 @@ SEND.HTTP.RESPONSE:NULL
    $IFDEF DATABASE.UV
       CODE = writeSocket(FD,RESPONSE,10000,1,WRITE.SIZE)
    $ENDIF
+*
+   RETURN
+*
+*********************  S U B R O U T I N E  *********************
+*
+LOG.REQUEST:NULL
+*
+   PRINT '< [' : OCONV(DATE(),'D') : ' ' :
+   PRINT OCONV(TIME(),'MTH') : '] ' :
+   PRINT REQUEST.TYPE : ' ' :
+   PRINT REQUEST.URL : ' '
+*
+   RETURN
+*
+*********************  S U B R O U T I N E  *********************
+*
+LOG.RESPONSE:NULL
+*
+   PRINT '> [' : OCONV(DATE(),'D') : ' ' :
+   PRINT OCONV(TIME(),'MTH') : '] ' :
+   PRINT REQUEST.TYPE : ' ' :
+   PRINT REQUEST.URL : ' ' :
+   PRINT RESPONSE.STATUS : ' ' :
+   PRINT TIME.TAKEN : 's '
 *
    RETURN
 *
