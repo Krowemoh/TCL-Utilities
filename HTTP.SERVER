@@ -51,8 +51,7 @@
    SERVER.PORT = 8122
 *
    OPEN '','MD' TO MD.FILE ELSE
-      PRINT 'Unable to open file: MD - Press RETURN':
-      INPUT ANYTHING
+      PRINT 'Unable to open file: MD'
       STOP
    END
 *
@@ -269,6 +268,7 @@
 INITIALIZE.REQUEST:NULL
 *
    MAT REQUEST =''
+*
    RAW.REQUEST = ''
 *
    REQUEST.ERROR = ''
