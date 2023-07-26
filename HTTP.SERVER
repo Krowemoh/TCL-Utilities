@@ -133,6 +133,7 @@
          IF CODE # 0 THEN
             CRT 'ERROR ' : SYSTEM(0) : ' = Accept failed.'
             CODE = closeSocket(SOCKET)
+            STOP
          END
       $ENDIF
 *
@@ -228,7 +229,7 @@
                   CODE = closeSocket(SOCKET)
                $ENDIF
 *
-               EXECUTE 'PHANTOM HTTP.SERVER' CAPTURING RESULT
+               EXECUTE 'PHANTOM BRIEF HTTP.SERVER' CAPTURING RESULT
 *
                PHANTOM.STARTED = INDEX(RESULT,'started',1) > 0
 *
