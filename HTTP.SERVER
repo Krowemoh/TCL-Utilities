@@ -230,7 +230,9 @@
 *
                EXECUTE 'PHANTOM HTTP.SERVER' CAPTURING RESULT
 *
-               IF INDEX(RESULT,'started',1) THEN
+               PHANTOM.STARTED = INDEX(RESULT,'started',1) > 0
+*
+               IF PHANTOM.STARTED THEN
                   DONE = TRUE
                END ELSE
                   DONE = FALSE
@@ -561,4 +563,3 @@ SEND.HTTP.RESPONSE:NULL
 *
    END
 *
-   
