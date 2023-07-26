@@ -174,12 +174,6 @@
             RESPONSE.BODY = 'Killing server.'
             GOSUB SEND.HTTP.RESPONSE
 *
-         CASE REQUEST.URL = '/sleep'
-            SLEEP 5
-            RESPONSE.STATUS = 200
-            RESPONSE.BODY = 'Sleeping...'
-            GOSUB SEND.HTTP.RESPONSE
-*
          CASE REQUEST.URL = '/restart'
             DONE = TRUE
 *
@@ -226,8 +220,23 @@
                   END
                $ENDIF
 *
-               CALL @FUNC(MAT REQUEST,RESPONSE.BODY)
+               $IFDEF DATABASE.D3
+                  %CLOSESOCKET(SOCKET)
+               $ENDIF
 *
+               $IFDEF DATABASE.UV
+                  CODE = closeSocket(SOCKET)
+               $ENDIF
+*
+               EXECUTE 'PHANTOM HTTP.SERVER' CAPTURING RESULT
+*
+               IF INDEX(RESULT,'started',1) THEN
+                  DONE = TRUE
+               END ELSE
+                  DONE = FALSE
+               END
+*
+               CALL @FUNC(MAT REQUEST,RESPONSE.BODY)
                RESPONSE.STATUS = 200
                GOSUB SEND.HTTP.RESPONSE
 *
@@ -552,3 +561,4 @@ SEND.HTTP.RESPONSE:NULL
 *
    END
 *
+   
