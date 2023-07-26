@@ -27,26 +27,6 @@
    @USER1 = 'HTTP.SERVER'
    @USER2 = 'HTTP.SERVER'
 *
-   OPEN '','MD' TO MD.FILE ELSE
-      PRINT 'Unable to open file: MD - Press RETURN':
-      INPUT ANYTHING
-      STOP
-   END
-*
-   $IFDEF DATABASE.D3
-      CLEARSELECT
-      FLASH.CMD = 'SELECT DICT BP HTTP.SERVER C/FLASH'
-      EXECUTE FLASH.CMD CAPTURING OUTPUT
-      READNEXT FLASH.COMPILED ELSE FLASH.COMPILED = 0
-*
-      IF NOT(FLASH.COMPILED) THEN
-         PRINT 'HTTP.SERVER is not flash compiled.'
-         STOP
-      END
-   $ENDIF
-*
-   SERVER.PORT = 8122
-*
    CR = CHAR(13)
    LF = CHAR(10)
 *
@@ -68,6 +48,25 @@
    HTTP.STATUSES<2,4> = 'Internal Server Error'
    HTTP.STATUSES<2,5> = 'Not Implemented'
 *
+   SERVER.PORT = 8122
+*
+   OPEN '','MD' TO MD.FILE ELSE
+      PRINT 'Unable to open file: MD - Press RETURN':
+      INPUT ANYTHING
+      STOP
+   END
+*
+   $IFDEF DATABASE.D3
+      CLEARSELECT
+      FLASH.CMD = 'SELECT DICT BP HTTP.SERVER C/FLASH'
+      EXECUTE FLASH.CMD CAPTURING OUTPUT
+      READNEXT FLASH.COMPILED ELSE FLASH.COMPILED = 0
+*
+      IF NOT(FLASH.COMPILED) THEN
+         PRINT 'HTTP.SERVER is not flash compiled.'
+         STOP
+      END
+   $ENDIF
 *
 * SOCKET INITIALIZATION
 *
