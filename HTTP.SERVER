@@ -10,19 +10,28 @@
    EQU TRUE TO 1
    EQU FALSE TO 0
 *
-   DIM REQUEST(9)
+   DIM REQUEST(10)
 *
    EQU REQUEST.TYPE.ATTRIBUTE TO 1
    EQU REQUEST.VERSION.ATTRIBUTE TO 2
    EQU REQUEST.URL.ATTRIBUTE TO 3
    EQU REQUEST.QUERY.ATTRIBUTE TO 4
    EQU REQUEST.HEADERS.ATTRIBUTE TO 5
-   EQU REQUEST.RAW.BODY.ATTRIBUTE TO 6
-   EQU REQUEST.FORM.ATTRIBUTE TO 7
-   EQU REQUEST.JSON.ATTRIBUTE TO 8
-   EQU REQUEST.RAW.REQUEST.ATTRIBUTE TO 9
+   EQU REQUEST.COOKIES.ATTRIBUTE TO 6
+   EQU REQUEST.RAW.BODY.ATTRIBUTE TO 7
+   EQU REQUEST.FORM.ATTRIBUTE TO 8
+   EQU REQUEST.JSON.ATTRIBUTE TO 9
+   EQU REQUEST.RAW.REQUEST.ATTRIBUTE TO 10
 *
    MAT REQUEST = ''
+*
+   DIM RESPONSE(3)
+*
+   EQU RESPONSE.STATUS.ATTRIBUTE TO 1
+   EQU RESPONSE.HEADERS.ATTRIBUTE TO 2
+   EQU RESPONSE.CONTENT.ATTRIBUTE TO 3
+*
+   MAT RESPONSE = ''
 *
    @USER1 = 'HTTP.SERVER'
    @USER2 = 'HTTP.SERVER'
@@ -36,19 +45,36 @@
    ALLOWED.METHODS = 'GET POST PUT PATCH DELETE '
 *
    HTTP.STATUSES = ''
-   HTTP.STATUSES<1,1> = 200
-   HTTP.STATUSES<1,2> = 400
-   HTTP.STATUSES<1,3> = 404
-   HTTP.STATUSES<1,4> = 500
-   HTTP.STATUSES<1,5> = 501
 *
-   HTTP.STATUSES<2,1> = 'OK'
-   HTTP.STATUSES<2,2> = 'Bad Request'
-   HTTP.STATUSES<2,3> = 'Not Found'
-   HTTP.STATUSES<2,4> = 'Internal Server Error'
-   HTTP.STATUSES<2,5> = 'Not Implemented'
+   HTTP.STATUSES<1,-1> = 200
+   HTTP.STATUSES<2,-1> = 'OK'
 *
-   SERVER.PORT = 8122
+   HTTP.STATUSES<1,-1> = 301
+   HTTP.STATUSES<2,-1> = 'Found'
+*
+   HTTP.STATUSES<1,-1> = 302
+   HTTP.STATUSES<2,-1> = 'Moved Permanently'
+*
+   HTTP.STATUSES<1,-1> = 303
+   HTTP.STATUSES<2,-1> = 'See Other'
+*
+   HTTP.STATUSES<1,-1> = 400
+   HTTP.STATUSES<2,-1> = 'Bad Request'
+*
+   HTTP.STATUSES<1,-1> = 401
+   HTTP.STATUSES<2,-1> = 'Unauthorized'
+*
+   HTTP.STATUSES<1,-1> = 404
+   HTTP.STATUSES<2,-1> = 'Not Found'
+*
+   HTTP.STATUSES<1,-1> = 500
+   HTTP.STATUSES<2,-1> = 'Internal Server Error'
+*
+   HTTP.STATUSES<1,-1> = 501
+   HTTP.STATUSES<2,-1> = 'Not Implemented'
+*
+*
+   SERVER.PORT = 7122
 *
    OPEN '','MD' TO MD.FILE ELSE
       PRINT 'Unable to open file: MD'
@@ -138,6 +164,7 @@
       $ENDIF
 *
       GOSUB INITIALIZE.REQUEST
+      MAT RESPONSE = ''
 *
       GOSUB READ.REQUEST
       REQUEST(REQUEST.RAW.REQUEST.ATTRIBUTE) = RAW.REQUEST
@@ -150,6 +177,7 @@
 *
       GOSUB GET.HEADERS
       REQUEST(REQUEST.HEADERS.ATTRIBUTE) = REQUEST.HEADERS
+      REQUEST(REQUEST.COOKIES.ATTRIBUTE) = REQUEST.COOKIES
 *
       IF REQUEST.TYPE = 'POST' THEN
          GOSUB GET.POST.DATA
@@ -158,7 +186,7 @@
          REQUEST(REQUEST.JSON.ATTRIBUTE) = REQUEST.JSON
       END
 *
-      GOSUB LOG.REQUEST
+*TEMP       GOSUB LOG.REQUEST
 *
       T1 = TIME()
 *
@@ -166,22 +194,22 @@
          CASE REQUEST.ERROR # ''
             PRINT REQUEST.ERROR
 *
-            RESPONSE.STATUS = 400
-            RESPONSE.BODY = 'Bad request.'
+            RESPONSE(RESPONSE.STATUS.ATTRIBUTE) = 400
+            RESPONSE(RESPONSE.CONTENT.ATTRIBUTE) = 'Bad request.'
             GOSUB SEND.HTTP.RESPONSE
 *
          CASE REQUEST.URL = '/kill'
             DONE = TRUE
 *
-            RESPONSE.STATUS = 200
-            RESPONSE.BODY = 'Killing server.'
+            RESPONSE(RESPONSE.STATUS.ATTRIBUTE) = 200
+            RESPONSE(RESPONSE.CONTENT.ATTRIBUTE) = 'Killing server.'
             GOSUB SEND.HTTP.RESPONSE
 *
          CASE REQUEST.URL = '/restart'
             DONE = TRUE
 *
-            RESPONSE.STATUS = 200
-            RESPONSE.BODY = 'Restarting server.'
+            RESPONSE(RESPONSE.STATUS.ATTRIBUTE) = 200
+            RESPONSE(RESPONSE.CONTENT.ATTRIBUTE) = 'Restarting server.'
             GOSUB SEND.HTTP.RESPONSE
 *
             $IFDEF DATABASE.D3
@@ -197,16 +225,27 @@
             CHAIN 'HTTP.SERVER'
 *
          CASE TRUE
-            LOCATE(REQUEST.URL,ROUTES<1>,1;ROUTE.POS) THEN
+            PROCEED = TRUE
+*
+            LOCATE(REQUEST.URL,ROUTES<1>,1;ROUTE.POS) ELSE
+               RESPONSE(RESPONSE.STATUS.ATTRIBUTE) = 404
+               RESPONSE(RESPONSE.CONTENT.ATTRIBUTE) = 'Page not found.'
+               GOSUB SEND.HTTP.RESPONSE
+               PROCEED = FALSE
+            END
+*
+            IF PROCEED THEN
                FUNC = TRIM(ROUTES<2,ROUTE.POS>)
 *
                READ MD.ITEM FROM MD.FILE,FUNC ELSE
-                  RESPONSE.STATUS = 500
-                  RESPONSE.BODY = 'Subroutine "' : FUNC : '" was not cataloged.'
+                  RESPONSE(RESPONSE.STATUS.ATTRIBUTE) = 500
+                  RESPONSE(RESPONSE.CONTENT.ATTRIBUTE) = 'Subroutine "' : FUNC : '" was not cataloged.'
                   GOSUB SEND.HTTP.RESPONSE
-                  CONTINUE
+                  PROCEED = FALSE
                END
+            END
 *
+            IF PROCEED THEN
                $IFDEF DATABASE.D3
                   PROGRAM.FOLDER.NAME = TRIM(FIELD(MD.ITEM<4>,' ',1))
 *
@@ -216,13 +255,15 @@
                   READNEXT FLASH.COMPILED ELSE FLASH.COMPILED = 0
 *
                   IF NOT(FLASH.COMPILED) THEN
-                     RESPONSE.STATUS = 500
-                     RESPONSE.BODY = 'Subroutine "' : FUNC : '" was not flash compiled.'
+                     RESPONSE(RESPONSE.STATUS.ATTRIBUTE) = 500
+                     RESPONSE(RESPONSE.CONTENT.ATTRIBUTE) = 'Subroutine "' : FUNC : '" was not flash compiled.'
                      GOSUB SEND.HTTP.RESPONSE
-                     CONTINUE
+                     PROCEED = FALSE
                   END
                $ENDIF
+            END
 *
+            IF PROCEED THEN
                $IFDEF DATABASE.D3
                   %CLOSESOCKET(SOCKET)
                $ENDIF
@@ -241,15 +282,10 @@
                   DONE = FALSE
                END
 *
-               CALL @FUNC(MAT REQUEST,RESPONSE.BODY)
-               RESPONSE.STATUS = 200
-               GOSUB SEND.HTTP.RESPONSE
-*
-            END ELSE
-               RESPONSE.STATUS = 404
-               RESPONSE.BODY = 'Page not found.'
+               CALL @FUNC(MAT REQUEST,MAT RESPONSE)
                GOSUB SEND.HTTP.RESPONSE
             END
+*
       END CASE
 *
       T2 = TIME()
@@ -264,7 +300,6 @@
       $IFDEF DATABASE.UV
          CODE = closeSocket(FD)
       $ENDIF
-*
    REPEAT
 *
    $IFDEF DATABASE.D3
@@ -293,6 +328,7 @@ INITIALIZE.REQUEST:NULL
    REQUEST.QUERY = ''
 *
    REQUEST.HEADERS = ''
+   REQUEST.COOKIES = ''
 *
    REQUEST.RAW.BODY = ''
    REQUEST.FORM = ''
@@ -440,6 +476,21 @@ GET.HEADERS:NULL
       REQUEST.HEADERS<2,-1> = TRIM(TOKEN)
    END
 *
+   LOCATE('Cookie',REQUEST.HEADERS<1>,1;ANYPOS) THEN
+      COOKIES = REQUEST.HEADERS<2,ANYPOS>
+      CONVERT ';' TO @AM IN COOKIES
+      NUMBER.OF.COOKIES = DCOUNT(COOKIES,@AM)
+*
+      FOR COOKIE.CTR = 1 TO NUMBER.OF.COOKIES
+         COOKIE = COOKIES<COOKIE.CTR>
+*
+         CONVERT '=' TO @AM IN COOKIE
+*
+         REQUEST.COOKIES<1,-1> = TRIM(COOKIE<1>)
+         REQUEST.COOKIES<2,-1> = TRIM(COOKIE<2>)
+      NEXT COOKIE.CTR
+   END
+*
    RETURN
 *
 *********************  S U B R O U T I N E  *********************
@@ -498,7 +549,8 @@ GET.POST.DATA:NULL
 *
 SEND.HTTP.RESPONSE:NULL
 *
-   RESPONSE.BODY = CHANGE(RESPONSE.BODY,@AM,CR:LF)
+   RESPONSE.STATUS = RESPONSE(RESPONSE.STATUS.ATTRIBUTE)
+   RESPONSE.BODY = CHANGE(RESPONSE(RESPONSE.CONTENT.ATTRIBUTE),@AM,CR:LF)
 *
    LOCATE(RESPONSE.STATUS,HTTP.STATUSES,1;POS) THEN
       STATUS.TEXT = HTTP.STATUSES<2,POS>
@@ -507,29 +559,36 @@ SEND.HTTP.RESPONSE:NULL
       STATUS.TEXT = 'Invalid Status'
    END
 *
-   RESPONSE = ''
-   RESPONSE<1> = 'HTTP/1.1 ' : RESPONSE.STATUS : ' ' : STATUS.TEXT
-   RESPONSE<2> = 'Date: ' : OCONV(DATE(),'D')
-   RESPONSE<3> = 'Server: D3 HTTP.SERVER'
-   RESPONSE<4> = 'Access-Control-Allow-Origin: *'
-   RESPONSE<5> = 'Access-Control-Allow-Methods: GET, POST, OPTIONS, DELETE, PUT'
-   RESPONSE<6> = 'Access-Control-Allow-Headers: *'
-   RESPONSE<7> = 'Content-Length: ' : LEN(RESPONSE.BODY)
-   RESPONSE<8> = 'Content-Type: text/html'
-   RESPONSE<9> = 'Connection: Closed'
-   RESPONSE<10> = ''
-   RESPONSE<11> = RESPONSE.BODY
+   HEADERS = RESPONSE(RESPONSE.HEADERS.ATTRIBUTE)
 *
-   RESPONSE = CHANGE(RESPONSE,@AM,CR:LF)
+   BUFFER = ''
+   BUFFER<-1> = 'HTTP/1.1 ' : RESPONSE.STATUS : ' ' : STATUS.TEXT
+   BUFFER<-1> = 'Date: ' : OCONV(DATE(),'D')
+   BUFFER<-1> = 'Server: D3 HTTP.SERVER'
+   BUFFER<-1> = 'Access-Control-Allow-Origin: *'
+   BUFFER<-1> = 'Access-Control-Allow-Methods: GET, POST, OPTIONS, DELETE, PUT'
+   BUFFER<-1> = 'Access-Control-Allow-Headers: *'
 *
-   RESPONSE.LENGTH = LEN(RESPONSE)
+   IF HEADERS THEN
+      BUFFER<-1> = HEADERS
+   END
+*
+   BUFFER<-1> = 'Content-Length: ' : LEN(RESPONSE.BODY)
+   BUFFER<-1> = 'Content-Type: text/html'
+   BUFFER<-1> = 'Connection: Closed'
+*
+   BUFFER = BUFFER : @AM : '' : @AM : RESPONSE.BODY
+*
+   BUFFER = CHANGE(BUFFER,@AM,CR:LF)
+*
+   BUFFER.LENGTH = LEN(BUFFER)
 *
    $IFDEF DATABASE.D3
-      CODE = %SEND(FD,RESPONSE,RESPONSE.LENGTH,0)
+      CODE = %SEND(FD,BUFFER,BUFFER.LENGTH,0)
    $ENDIF
 *
    $IFDEF DATABASE.UV
-      CODE = writeSocket(FD,RESPONSE,10000,1,WRITE.SIZE)
+      CODE = writeSocket(FD,BUFFER,10000,1,WRITE.SIZE)
    $ENDIF
 *
    RETURN
@@ -562,3 +621,4 @@ LOG.RESPONSE:NULL
 *
    END
 *
+   
