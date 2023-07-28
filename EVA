@@ -1510,7 +1510,7 @@ SYNTAX.INIT.HTML:NULL
    OPERATORS = '< = > >= <= # : AND OR NOT'
    CONVERT ' ' TO @AM IN OPERATORS
 *
-   SPECIALS = 'class href style placeholder value rel charset name lang alt title src'
+   SPECIALS = 'class href style placeholder value rel charset name lang alt title src action method'
    BASIC.SPECIALS = '@AM @VM @SVM @TM @STM NULL'
    SPECIALS = SPECIALS : ' ' : BASIC.SPECIALS
    CONVERT ' ' TO @AM IN SPECIALS
@@ -6942,3 +6942,4 @@ ADD.MARKDOWN.SNIPPETS:NULL
 *
    
    
+
