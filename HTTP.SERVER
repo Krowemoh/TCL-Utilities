@@ -608,7 +608,7 @@ SEND.HTTP.RESPONSE:NULL
    BUFFER = ''
    BUFFER<-1> = 'HTTP/1.1 ' : RESPONSE.STATUS : ' ' : STATUS.TEXT
    BUFFER<-1> = 'Date: ' : OCONV(DATE(),'D')
-   BUFFER<-1> = 'Server: D3 HTTP.SERVER'
+   BUFFER<-1> = 'Server: HTTP.SERVER'
    BUFFER<-1> = 'Access-Control-Allow-Origin: *'
    BUFFER<-1> = 'Access-Control-Allow-Methods: GET, POST, OPTIONS, DELETE, PUT'
    BUFFER<-1> = 'Access-Control-Allow-Headers: *'
