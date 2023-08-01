@@ -119,6 +119,15 @@
       END
    $ENDIF
 *
+   $IFDEF DATABASE.QM
+      SOCKET = CREATE.SERVER.SOCKET('',SERVER.PORT,0)
+      CODE = STATUS()
+      IF CODE THEN
+         CRT 'ERROR ' : CODE : ' - CREATE.SERVER.SOCKET failed.'
+         CLOSE.SOCKET SOCKET
+      END
+   $ENDIF
+*
    $IFDEF DATABASE.UV
       CODE = initServerSocket('0.0.0.0',SERVER.PORT,1,SOCKET)
       IF CODE # 0 THEN
@@ -150,6 +159,16 @@
          IF FD < 0 THEN
             CRT 'ERROR ' : SYSTEM(0) : ' = Accept failed.'
             %CLOSESOCKET(SOCKET)
+            STOP
+         END
+      $ENDIF
+*
+      $IFDEF DATABASE.QM
+         FD = ACCEPT.SOCKET(SOCKET,0)
+         CODE = STATUS()
+         IF CODE THEN
+            CRT 'ERROR ' : CODE : ' = Accept failed.'
+            CLOSE.SOCKET SOCKET
             STOP
          END
       $ENDIF
@@ -217,6 +236,11 @@
                %CLOSESOCKET(SOCKET)
             $ENDIF
 *
+            $IFDEF DATABASE.QM
+               CLOSE.SOCKET FD
+               CLOSE.SOCKET SOCKET
+            $ENDIF
+*
             $IFDEF DATABASE.UV
                CODE = closeSocket(FD)
                CODE = closeSocket(SOCKET)
@@ -268,6 +292,10 @@
                   %CLOSESOCKET(SOCKET)
                $ENDIF
 *
+               $IFDEF DATABASE.QM
+                  CLOSE.SOCKET SOCKET
+               $ENDIF
+*
                $IFDEF DATABASE.UV
                   CODE = closeSocket(SOCKET)
                $ENDIF
@@ -297,6 +325,10 @@
          %CLOSESOCKET(FD)
       $ENDIF
 *
+      $IFDEF DATABASE.QM
+         CLOSE.SOCKET FD
+      $ENDIF
+*
       $IFDEF DATABASE.UV
          CODE = closeSocket(FD)
       $ENDIF
@@ -304,6 +336,10 @@
 *
    $IFDEF DATABASE.D3
       %CLOSESOCKET(SOCKET)
+   $ENDIF
+*
+   $IFDEF DATABASE.QM
+      CLOSE.SOCKET SOCKET
    $ENDIF
 *
    $IFDEF DATABASE.UV
@@ -349,6 +385,10 @@ READ.REQUEST:NULL
          CHAR BUFFER[BUFFER.SIZE]
       $ENDIF
 *
+      $IFDEF DATABASE.QM
+         CHAR BUFFER[BUFFER.SIZE]
+      $ENDIF
+*
       $IFDEF DATABASE.UV
          BUFFER = SPACES(BUFFER.SIZE)
          CONVERT ' ' TO '' IN BUFFER
@@ -356,6 +396,10 @@ READ.REQUEST:NULL
 *
       $IFDEF DATABASE.D3
          READ.SIZE = %RECV(FD,BUFFER,BUFFER.SIZE,0)
+      $ENDIF
+*
+      $IFDEF DATABASE.QM
+         BUFFER = READ.SOCKET(FD,BUFFER.SIZE,1,0)
       $ENDIF
 *
       $IFDEF DATABASE.UV
@@ -587,6 +631,11 @@ SEND.HTTP.RESPONSE:NULL
       CODE = %SEND(FD,BUFFER,BUFFER.LENGTH,0)
    $ENDIF
 *
+   $IFDEF DATABASE.QM
+      WRITE.SIZE = WRITE.SOCKET(FD,BUFFER,0,0)
+   $ENDIF
+*
+*
    $IFDEF DATABASE.UV
       CODE = writeSocket(FD,BUFFER,10000,1,WRITE.SIZE)
    $ENDIF
@@ -621,4 +670,3 @@ LOG.RESPONSE:NULL
 *
    END
 *
-   
