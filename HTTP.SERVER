@@ -120,7 +120,7 @@
    $ENDIF
 *
    $IFDEF DATABASE.QM
-      SOCKET = CREATE.SERVER.SOCKET('',SERVER.PORT,0)
+      SOCKET = CREATE.SERVER.SOCKET('0.0.0.0',SERVER.PORT,0)
       CODE = STATUS()
       IF CODE THEN
          CRT 'ERROR ' : CODE : ' - CREATE.SERVER.SOCKET failed.'
@@ -164,7 +164,7 @@
       $ENDIF
 *
       $IFDEF DATABASE.QM
-         FD = ACCEPT.SOCKET(SOCKET,0)
+         FD = ACCEPT.SOCKET.CONNECTION(SOCKET,0)
          CODE = STATUS()
          IF CODE THEN
             CRT 'ERROR ' : CODE : ' = Accept failed.'
@@ -204,8 +204,6 @@
          REQUEST(REQUEST.FORM.ATTRIBUTE) = REQUEST.FORM
          REQUEST(REQUEST.JSON.ATTRIBUTE) = REQUEST.JSON
       END
-*
-*TEMP       GOSUB LOG.REQUEST
 *
       T1 = TIME()
 *
@@ -386,7 +384,8 @@ READ.REQUEST:NULL
       $ENDIF
 *
       $IFDEF DATABASE.QM
-         CHAR BUFFER[BUFFER.SIZE]
+         BUFFER = SPACES(BUFFER.SIZE)
+         CONVERT ' ' TO '' IN BUFFER
       $ENDIF
 *
       $IFDEF DATABASE.UV
@@ -400,6 +399,7 @@ READ.REQUEST:NULL
 *
       $IFDEF DATABASE.QM
          BUFFER = READ.SOCKET(FD,BUFFER.SIZE,1,0)
+         READ.SIZE = LEN(BUFFER)
       $ENDIF
 *
       $IFDEF DATABASE.UV
@@ -635,21 +635,9 @@ SEND.HTTP.RESPONSE:NULL
       WRITE.SIZE = WRITE.SOCKET(FD,BUFFER,0,0)
    $ENDIF
 *
-*
    $IFDEF DATABASE.UV
       CODE = writeSocket(FD,BUFFER,10000,1,WRITE.SIZE)
    $ENDIF
-*
-   RETURN
-*
-*********************  S U B R O U T I N E  *********************
-*
-LOG.REQUEST:NULL
-*
-   PRINT '< [' : OCONV(DATE(),'D') : ' ' :
-   PRINT OCONV(TIME(),'MTH') : '] ' :
-   PRINT REQUEST.TYPE : ' ' :
-   PRINT REQUEST.URL : ' '
 *
    RETURN
 *
