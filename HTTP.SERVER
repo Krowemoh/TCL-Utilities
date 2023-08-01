@@ -4,7 +4,7 @@
 *
 * COMPILER DIRECTIVES
 *
-   $DEFINE DATABASE.UV
+   $DEFINE DATABASE.QM
    $DEFINE PLATFORM.LINUX
 *
    EQU TRUE TO 1
@@ -125,6 +125,7 @@
       IF CODE THEN
          CRT 'ERROR ' : CODE : ' - CREATE.SERVER.SOCKET failed.'
          CLOSE.SOCKET SOCKET
+         STOP
       END
    $ENDIF
 *
@@ -133,6 +134,7 @@
       IF CODE # 0 THEN
          CRT 'ERROR ' : SYSTEM(0) : ' - initServerSocket failed.'
          CODE = closeSocket(SOCKET)
+         STOP
       END
    $ENDIF
 *
@@ -298,9 +300,9 @@
                   CODE = closeSocket(SOCKET)
                $ENDIF
 *
-               EXECUTE 'PHANTOM BRIEF HTTP.SERVER' CAPTURING RESULT
+               EXECUTE 'PHANTOM HTTP.SERVER' CAPTURING RESULT
 *
-               PHANTOM.STARTED = INDEX(RESULT,'started',1) > 0
+               PHANTOM.STARTED = INDEX(OCONV(RESULT,'MCU'),'STARTED',1) > 0
 *
                IF PHANTOM.STARTED THEN
                   DONE = TRUE
