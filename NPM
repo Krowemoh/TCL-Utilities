@@ -33,6 +33,9 @@
       PRINT '    COMPILE - Compile a file with conditional compilation'
       PRINT '        NPM COMPILE <FILE> <RECORD>'
       PRINT
+      PRINT '    FLASH-COMPILE - Flash compile a file with conditional compilation'
+      PRINT '        NPM FLASH-COMPILE <FILE> <RECORD>'
+      PRINT
       PRINT '    INSTALL - GET and COMPILE and CATALOG'
       PRINT '        NPM INSTALL <FILE> <RECORD> <URL>'
       PRINT
@@ -99,6 +102,9 @@
 *
    END ELSE IF VERB = 'COMPILE' THEN
       GOSUB COMPILE.HANDLER
+*
+   END ELSE IF VERB = 'FLASH-COMPILE' THEN
+      GOSUB FLASH.COMPILE.HANDLER
 *
    END ELSE IF VERB = 'INSTALL' THEN
       GOSUB GET.HANDLER
@@ -338,6 +344,52 @@ COMPILE.HANDLER:NULL
    WRITE CLEAN.CODE ON FILE,RECORD.ID
 *
    EXECUTE 'BASIC ' : FILENAME : ' ' : RECORD.ID
+*
+   WRITE RAW.CODE ON FILE, RECORD.ID
+*
+   RETURN
+*
+*********************  S U B R O U T I N E  *********************
+*
+FLASH.COMPILE.HANDLER:NULL
+*
+   IF MV # 'D3' THEN
+      PRINT
+      PRINT 'Flash compiling is only available on D3.'
+      PRINT
+      STOP
+   END
+*
+   IF ARG.LEN = 2 AND NOT(ALL.FLAG) THEN
+      PRINT
+      PRINT '    FLASH-COMPILE - Flash compile a file with conditional compilation'
+      PRINT '        NPM FLASH-COMPILE <FILE> <RECORD>'
+      PRINT
+      STOP
+   END
+*
+   OPEN '',FILENAME TO FILE ELSE
+      PRINT 'Unable to open file: ' : FILENAME
+      STOP
+   END
+*
+   READ ANYTHING FROM FILE,RECORD.ID ELSE
+      PRINT 'File does not exist: ' : FILENAME : ' ' : RECORD.ID
+      STOP
+   END
+*
+   RAW.CODE = ''
+   CLEAN.CODE = ''
+*
+   READ RAW.CODE FROM FILE,RECORD.ID ELSE
+      PRINT 'Failed to read: ' : RECORD.ID
+   END
+*
+   GOSUB UNDEF
+*
+   WRITE CLEAN.CODE ON FILE,RECORD.ID
+*
+   EXECUTE 'COMPILE ' : FILENAME : ' ' : RECORD.ID : ' (O'
 *
    WRITE RAW.CODE ON FILE, RECORD.ID
 *
@@ -618,3 +670,4 @@ SETUP.PACKAGES:NULL
    
    
    
+
