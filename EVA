@@ -217,10 +217,10 @@
    $ENDIF
 *
    $IFDEF DATABASE.QM
-      UP.ARROW = 'OA'
-      DOWN.ARROW = 'OB'
-      LEFT.ARROW = 'OD'
-      RIGHT.ARROW = 'OC'
+      UP.ARROW = '[A'
+      DOWN.ARROW = '[B'
+      LEFT.ARROW = '[D'
+      RIGHT.ARROW = '[C'
 *
       PAGE.UP = '[5~'
       PAGE.DOWN = '[6~'
@@ -7203,3 +7203,4 @@ ADD.MARKDOWN.SNIPPETS:NULL
 *
    END
 *
+
