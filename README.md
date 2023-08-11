@@ -4,6 +4,16 @@ EVA is a modal editor for UniVerse and D3. It is multivalue aware and can be use
 
 Commands starting with `:` are commands you can run in command mode. You can enter this mode by press shift and the `:` key in normal mode.
 
+```
+EVA BP SOME.FILE.NAME
+```
+
+There is an easy mode that starts in Insert Mode and uses `Ctrl S` and `Ctrl Q` to save and quit.
+
+```
+EVA --EASY BP SOME.FILE.NAME
+```
+
 ## Quick Start
 `escape` - Enter Normal mode  
 `:q` - Exit  
@@ -24,6 +34,7 @@ Commands starting with `:` are commands you can run in command mode. You can ent
 		08. Simple searching and replacing
 		09. View dictionaries alongside record data
 		10. Open linux file paths and write out linux files
+  		11. Easy Mode starts in Insert mode and Ctrl S and Ctrl Q are available
 
 ## Modes
 1. Normal Mode - This is the default mode  
