@@ -401,11 +401,19 @@
 *
    GOSUB GET.ARGUMENTS
 *
+   OPEN.READONLY = FALSE
+*
    LOCATE('--NO-LOCK',ARGUMENTS;FLAG.POS) THEN
       OPEN.READONLY = TRUE
       ARGUMENTS = DELETE(ARGUMENTS,FLAG.POS)
-   END ELSE
-      OPEN.READONLY = FALSE
+   END
+*
+   OPEN.EASY = FALSE
+*
+   LOCATE('--EASY',ARGUMENTS;FLAG.POS) THEN
+      OPEN.EASY = TRUE
+      ARGUMENTS = DELETE(ARGUMENTS,FLAG.POS)
+      EXECUTE 'SH -c "stty -ixon"' CAPTURING TERM.SIZE
    END
 *
    NUMBER.OF.ARGUMENTS = DCOUNT(ARGUMENTS,@AM)
@@ -603,6 +611,10 @@
       WINT.KEY = 'Emulation'
       WINT.VALUE = ORIGINAL.WINT.TERM
       GOSUB SET.WINTEGRATE.VALUE
+   END
+*
+   IF OPEN.EASY THEN
+      EXECUTE 'SH -c "stty -ixany"' CAPTURING TERM.SIZE
    END
 *
    STOP
@@ -915,6 +927,11 @@ MAIN:NULL
 *
    IF DCOUNT(RAW.LINES,@AM) < 3000 AND FILETYPE = 'BASIC' THEN
       GOSUB ADD.AUTO.COMPLETE
+   END
+*
+   IF OPEN.EASY THEN
+      PROCESS.CHAR = 'i'
+      INPUT.AVAILABLE = TRUE
    END
 *
    LOOP WHILE TRUE DO
@@ -3072,55 +3089,74 @@ PROCESS.ESCAPE.KEY:NULL
 *
 *********************  S U B R O U T I N E  *********************
 *
+PAGE.UP:NULL
+*
+   GOSUB PRINT.CURRENT.LINE
+*
+   OLD.LINE.START = LINE.START
+*
+   LINE.START = LINE.START - PAGE.HEIGHT
+   IF LINE.START < 1 THEN
+      LINE.START = 1
+   END
+*
+   IF OLD.LINE.START = LINE.START THEN
+      PRINT @(X.POS, Y.POS) :
+      RETURN
+   END
+*
+   CURRENT.LINE = CURRENT.LINE - PAGE.HEIGHT
+*
+   IF CURRENT.LINE < 1 THEN
+      CURRENT.LINE = 1
+      Y.POS = MARGIN.TOP
+   END ELSE
+      Y.POS = CURRENT.LINE - LINE.START + MARGIN.TOP
+   END
+*
+   GOSUB SET.X.POS
+*
+   RETURN
+*
+*********************  S U B R O U T I N E  *********************
+*
+PAGE.DOWN:NULL
+*
+   GOSUB PRINT.CURRENT.LINE
+*
+   NUMBER.OF.LINES = DCOUNT(LINES,@AM)
+   IF LINE.START + PAGE.HEIGHT > NUMBER.OF.LINES THEN
+      PRINT @(X.POS, Y.POS) :
+      RETURN
+   END
+*
+   LINE.START = LINE.START + PAGE.HEIGHT
+*
+   CURRENT.LINE = CURRENT.LINE + PAGE.HEIGHT
+   IF CURRENT.LINE > NUMBER.OF.LINES THEN
+      CURRENT.LINE = NUMBER.OF.LINES
+      Y.POS = CURRENT.LINE - LINE.START + MARGIN.TOP
+   END
+*
+   GOSUB SET.X.POS
+*
+   RETURN
+*
+*********************  S U B R O U T I N E  *********************
+*
 PROCESS.BASE.ESCAPE.KEY:NULL
 *
    IF ESCAPE.SEQUENCE = PAGE.UP THEN
-      GOSUB PRINT.CURRENT.LINE
+      GOSUB PAGE.UP
 *
-      OLD.LINE.START = LINE.START
-*
-      LINE.START = LINE.START - PAGE.HEIGHT
-      IF LINE.START < 1 THEN
-         LINE.START = 1
-      END
-*
-      IF OLD.LINE.START = LINE.START THEN
-         PRINT @(X.POS, Y.POS) :
-         RETURN
-      END
-*
-      CURRENT.LINE = CURRENT.LINE - PAGE.HEIGHT
-*
-      IF CURRENT.LINE < 1 THEN
-         CURRENT.LINE = 1
-         Y.POS = MARGIN.TOP
-      END ELSE
-         Y.POS = CURRENT.LINE - LINE.START + MARGIN.TOP
-      END
-*
-      GOSUB SET.X.POS
       GOSUB DISPLAY.HEADER
       GOSUB DISPLAY.LINES
       PRINT @(X.POS, Y.POS) :
 *
+*
    END ELSE IF ESCAPE.SEQUENCE = PAGE.DOWN THEN
-      GOSUB PRINT.CURRENT.LINE
+      GOSUB PAGE.DOWN
 *
-      NUMBER.OF.LINES = DCOUNT(LINES,@AM)
-      IF LINE.START + PAGE.HEIGHT > NUMBER.OF.LINES THEN
-         PRINT @(X.POS, Y.POS) :
-         RETURN
-      END
-*
-      LINE.START = LINE.START + PAGE.HEIGHT
-*
-      CURRENT.LINE = CURRENT.LINE + PAGE.HEIGHT
-      IF CURRENT.LINE > NUMBER.OF.LINES THEN
-         CURRENT.LINE = NUMBER.OF.LINES
-         Y.POS = CURRENT.LINE - LINE.START + MARGIN.TOP
-      END
-*
-      GOSUB SET.X.POS
       GOSUB DISPLAY.HEADER
       GOSUB DISPLAY.LINES
       PRINT @(X.POS, Y.POS) :
@@ -4491,6 +4527,60 @@ PROCESS.INSERT:NULL
 *
          GOSUB SAVE.FILE
 *
+      END ELSE IF ASCII.CODE = SEQ(KEY.CTRL.Q) THEN
+         IF NEST.LEVEL # 0 THEN
+            IF ORIGINAL.RAW.LINES = RAW.LINES THEN
+               SAVE.ROW = FALSE
+               GOSUB POP.EXPLODE
+*
+            END ELSE
+               PRINT BOTTOM : MESSAGE.COLOR : CLEAR.REST.OF.LINE :
+               PRINT 'There are unsaved changes. Are you sure you want to exit? (y/n) ' :
+               INPUT ANSWER :
+*
+               IF OCONV(ANSWER,'MCL') = 'y' THEN
+                  SAVE.ROW = FALSE
+                  GOSUB POP.EXPLODE
+               END
+*
+               PRINT BOTTOM : MESSAGE.COLOR : CLEAR.REST.OF.LINE :
+               PRINT @(X.POS,Y.POS) :
+            END
+*
+         END ELSE
+            IF ORIGINAL.RAW.LINES = RAW.LINES OR EDITOR.COMMAND[2,1] = '!' THEN
+               IF EDITOR.COMMAND = 'exk' OR EDITOR.COMMAND = 'x' THEN QUIT.ALL.FLAG = TRUE
+               QUIT.FLAG = TRUE
+*
+            END ELSE
+               PRINT BOTTOM : MESSAGE.COLOR : CLEAR.REST.OF.LINE :
+               PRINT 'There are unsaved changes. Are you sure you want to exit? (y/n) ' :
+               INPUT ANSWER :
+*
+               IF OCONV(ANSWER,'MCL') = 'y' THEN
+                  IF EDITOR.COMMAND = 'exk' OR EDITOR.COMMAND = 'x' THEN QUIT.ALL.FLAG = TRUE
+                  QUIT.FLAG = TRUE
+               END
+*
+               PRINT BOTTOM : MESSAGE.COLOR : CLEAR.REST.OF.LINE :
+               PRINT @(X.POS,Y.POS) :
+            END
+         END
+*
+         IF QUIT.FLAG THEN
+            EXIT
+         END
+*
+      END ELSE IF ASCII.CODE = SEQ(KEY.CTRL.F) THEN
+         GOSUB PROCESS.SEARCH.INPUT
+         GOSUB PROCESS.SEARCH
+*
+         IF SEARCH.RESULTS.EXIST THEN
+            FORWARD.SEARCH = TRUE
+            GOSUB GOTO.SEARCH.RESULT
+         END
+*
+*
       END ELSE IF ASCII.CODE = SEQ(KEY.ESCAPE) THEN
          GOSUB PROCESS.ESCAPE.KEY
 *
@@ -4517,6 +4607,20 @@ PROCESS.INSERT:NULL
             GOSUB PRINT.CURRENT.LINE
             GOSUB SCROLL.RIGHT
             PRINT @(X.POS,Y.POS) :
+*
+         END ELSE IF ESCAPE.SEQUENCE = PAGE.UP THEN
+            GOSUB PAGE.UP
+*
+            GOSUB DISPLAY.HEADER
+            GOSUB DISPLAY.LINES
+            PRINT @(X.POS, Y.POS) :
+*
+         END ELSE IF ESCAPE.SEQUENCE = PAGE.DOWN THEN
+            GOSUB PAGE.DOWN
+*
+            GOSUB DISPLAY.HEADER
+            GOSUB DISPLAY.LINES
+            PRINT @(X.POS, Y.POS) :
 *
          END ELSE
             IF CC.LIST.OPEN THEN
@@ -6061,6 +6165,7 @@ BUILD.HELP.LINES:NULL
    HELP.LINES<-1> = '    08. Simple searching and replacing'
    HELP.LINES<-1> = '    09. View dictionaries alongside record data'
    HELP.LINES<-1> = '    10. Open linux file paths and write out linux files'
+   HELP.LINES<-1> = '    11. Easy Mode starts in Insert mode and Ctrl S and Ctrl Q are available'
    HELP.LINES<-1> = '*'
    HELP.LINES<-1> = '## Modes'
    HELP.LINES<-1> = '    01. Normal Mode - This is the default mode  '
@@ -7203,4 +7308,5 @@ ADD.MARKDOWN.SNIPPETS:NULL
 *
    END
 *
-
+   
+   
