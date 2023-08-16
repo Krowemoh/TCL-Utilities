@@ -16,8 +16,8 @@
     JSON = ''
 *
     FOR I = 1 TO NUMBER.OF.KEYS
-        KEY = TRIM(BUFFER<I,1>)
-        VALUE = TRIM(BUFFER<I,2>)
+        KEY = BUFFER<I,1>
+        VALUE = BUFFER<I,2>
 *
         LOCATE(KEY,KEYS;KEY.POS) ELSE
             KEYS<-1> = KEY
@@ -67,3 +67,4 @@ QUOTE.VALUE:NULL
 *
     END
 *
+
