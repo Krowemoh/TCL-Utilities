@@ -14,7 +14,7 @@
     JSON = ''
 *
     FOR I = 1 TO NUMBER.OF.KEYS
-        VALUE = TRIM(BUFFER<I>)
+        VALUE = BUFFER<I>
 *
         IF VALUE = '' THEN
             GOSUB QUOTE.VALUE 
@@ -54,3 +54,4 @@ QUOTE.VALUE:NULL
 *
     END
 *
+
