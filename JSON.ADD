@@ -11,9 +11,9 @@
     @USER2 = 'JSON.ADD'
 *
     IF BUFFER = '' THEN
-        BUFFER = TRIM(KEY) : @VM : TRIM(VALUE)
+        BUFFER = KEY : @VM : VALUE
     END ELSE
-        BUFFER = BUFFER : @AM : TRIM(KEY) : @VM : TRIM(VALUE)
+        BUFFER = BUFFER : @AM : KEY : @VM : VALUE
     END
 *
     RETURN
@@ -22,3 +22,4 @@
 *
     END
 *
+
