@@ -51,11 +51,11 @@ EVA --EASY BP SOME.FILE.NAME
 `EVA DICT STUDENT.FILE FIRST.NAME` - This will open a dictionary  
 
 ## Easy Mode Keys
-`Ctrl S` - Save the file
-`Ctrl Q` - Quit
-`Ctrl Y` - Redo
-`Ctrl Z` - Undo
-`Ctrl F` - Find
+`Ctrl S` - Save the file  
+`Ctrl Q` - Quit  
+`Ctrl Y` - Redo  
+`Ctrl Z` - Undo  
+`Ctrl F` - Find  
 
 ## Normal Mode Keys
 `Escape` - Will put you in normal mode  
