@@ -10,18 +10,19 @@
    EQU TRUE TO 1
    EQU FALSE TO 0
 *
-   DIM REQUEST(10)
+   DIM REQUEST(11)
 *
    EQU REQUEST.TYPE.ATTRIBUTE TO 1
    EQU REQUEST.VERSION.ATTRIBUTE TO 2
    EQU REQUEST.URL.ATTRIBUTE TO 3
-   EQU REQUEST.QUERY.ATTRIBUTE TO 4
-   EQU REQUEST.HEADERS.ATTRIBUTE TO 5
-   EQU REQUEST.COOKIES.ATTRIBUTE TO 6
-   EQU REQUEST.RAW.BODY.ATTRIBUTE TO 7
-   EQU REQUEST.FORM.ATTRIBUTE TO 8
-   EQU REQUEST.JSON.ATTRIBUTE TO 9
-   EQU REQUEST.RAW.REQUEST.ATTRIBUTE TO 10
+   EQU REQUEST.SLUGS.ATTRIBUTE TO 4
+   EQU REQUEST.QUERY.ATTRIBUTE TO 5
+   EQU REQUEST.HEADERS.ATTRIBUTE TO 6
+   EQU REQUEST.COOKIES.ATTRIBUTE TO 7
+   EQU REQUEST.RAW.BODY.ATTRIBUTE TO 8
+   EQU REQUEST.FORM.ATTRIBUTE TO 9
+   EQU REQUEST.JSON.ATTRIBUTE TO 10
+   EQU REQUEST.RAW.REQUEST.ATTRIBUTE TO 11
 *
    MAT REQUEST = ''
 *
@@ -251,11 +252,51 @@
          CASE TRUE
             PROCEED = TRUE
 *
-            LOCATE(REQUEST.URL,ROUTES<1>,1;ROUTE.POS) ELSE
+            NUMBER.OF.ROUTES = DCOUNT(ROUTES<1>,@VM)
+            PROCEED = FALSE
+*
+            FOR ROUTE.CTR = 1 TO NUMBER.OF.ROUTES UNTIL PROCEED = TRUE
+               ROUTE = ROUTES<1,ROUTE.CTR>
+*
+               ROUTE.PATTERN = ''
+               SLUG.PATTERN = "0X'{'0X'}'0X"
+               SLUG.CTR = 0
+*
+               LOOP UNTIL NOT(ROUTE MATCHES SLUG.PATTERN) DO
+                  ONE = MATCHFIELD(ROUTE,SLUG.PATTERN,1)
+                  SLUG = MATCHFIELD(ROUTE,SLUG.PATTERN,3)
+                  THREE = MATCHFIELD(ROUTE,SLUG.PATTERN,5)
+*
+                  ROUTE = "'" : ONE : "'0X'" : THREE : "'"
+*
+                  IF REQUEST.URL MATCHES ROUTE THEN
+                     SLUG.CTR = SLUG.CTR + 2
+*
+                     REQUEST(REQUEST.SLUGS.ATTRIBUTE)<1,-1> = SLUG
+*
+                     SLUG.VALUE = MATCHFIELD(REQUEST.URL,ROUTE,SLUG.CTR)
+                     REQUEST(REQUEST.SLUGS.ATTRIBUTE)<2,-1> = SLUG.VALUE
+*
+                     PRINT 'Slug: ' : REQUEST(REQUEST.SLUGS.ATTRIBUTE)<1>
+                     PRINT 'Slug Val: ' : REQUEST(REQUEST.SLUGS.ATTRIBUTE)<2>
+                  END
+               REPEAT
+*
+               ROUTE.PATTERN = ROUTE
+*
+               IF REQUEST.URL MATCHES ROUTE.PATTERN THEN
+                  PROCEED = TRUE
+                  ROUTE.POS = ROUTE.CTR
+               END ELSE
+                  REQUEST(REQUEST.SLUGS.ATTRIBUTE)<1> = ''
+                  REQUEST(REQUEST.SLUGS.ATTRIBUTE)<2> = ''
+               END
+            NEXT ROUTE.CTR
+*
+            IF NOT(PROCEED) THEN
                RESPONSE(RESPONSE.STATUS.ATTRIBUTE) = 404
                RESPONSE(RESPONSE.CONTENT.ATTRIBUTE) = 'Page not found.'
                GOSUB SEND.HTTP.RESPONSE
-               PROCEED = FALSE
             END
 *
             IF PROCEED THEN
@@ -288,28 +329,28 @@
             END
 *
             IF PROCEED THEN
-               $IFDEF DATABASE.D3
-                  %CLOSESOCKET(SOCKET)
-               $ENDIF
-*
-               $IFDEF DATABASE.QM
-                  CLOSE.SOCKET SOCKET
-               $ENDIF
-*
-               $IFDEF DATABASE.UV
-                  CODE = closeSocket(SOCKET)
-               $ENDIF
-*
-               EXECUTE 'PHANTOM HTTP.SERVER' CAPTURING RESULT
-*
-               PHANTOM.STARTED = INDEX(OCONV(RESULT,'MCU'),'STARTED',1) > 0
-*
-               IF PHANTOM.STARTED THEN
-                  DONE = TRUE
-               END ELSE
-                  DONE = FALSE
-               END
-*
+*TEMP                $IFDEF DATABASE.D3
+*TEMP                   %CLOSESOCKET(SOCKET)
+*TEMP                $ENDIF
+*TEMP *
+*TEMP                $IFDEF DATABASE.QM
+*TEMP                   CLOSE.SOCKET SOCKET
+*TEMP                $ENDIF
+*TEMP *
+*TEMP                $IFDEF DATABASE.UV
+*TEMP                   CODE = closeSocket(SOCKET)
+*TEMP                $ENDIF
+*TEMP *
+*TEMP                EXECUTE 'PHANTOM HTTP.SERVER' CAPTURING RESULT
+*TEMP *
+*TEMP                PHANTOM.STARTED = INDEX(OCONV(RESULT,'MCU'),'STARTED',1) > 0
+*TEMP *
+*TEMP                IF PHANTOM.STARTED THEN
+*TEMP                   DONE = TRUE
+*TEMP                END ELSE
+*TEMP                   DONE = FALSE
+*TEMP                END
+*TEMP *
                CALL @FUNC(MAT REQUEST,MAT RESPONSE)
                GOSUB SEND.HTTP.RESPONSE
             END
@@ -660,4 +701,4 @@ LOG.RESPONSE:NULL
 *
    END
 *
-
+   
