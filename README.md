@@ -41,13 +41,21 @@ EVA --EASY BP SOME.FILE.NAME
 2. Insert Mode - Press "i" to enter insert mode, this is how you edit things  
 3. Command Mode - Press ":" to enter command mode, here you can type in commands to run  
 4. Visual Mode -  Press "v" to copy text from a single line  
-5. Search Mode - Press "/" to enter search mode  
+5. Search Mode - Press "/" to enter search mode
+6. Easy Mode - This will open in a familiar editing environment
 
 ## Opening Files
 `EVA BP SOME.FILE` - This will open a file inside BP.  
 `EVA BP SOME.FILE --NO-LOCK` - This will open a file without locking it.
 `EVA STUDENT.FILE 47` - This will open a data file.  
 `EVA DICT STUDENT.FILE FIRST.NAME` - This will open a dictionary  
+
+## Easy Mode Keys
+`Ctrl S` - Save the file
+`Ctrl Q` - Quit
+`Ctrl Y` - Redo
+`Ctrl Z` - Undo
+`Ctrl F` - Find
 
 ## Normal Mode Keys
 `Escape` - Will put you in normal mode  
@@ -96,6 +104,11 @@ EVA --EASY BP SOME.FILE.NAME
 `j` - Move the cursor down    
 `k` - Move the cursor up  
 `l` - Move the cursor right  
+
+`A` - Move the cursor left    
+`S` - Move the cursor down    
+`W` - Move the cursor up  
+`D` - Move the cursor right  
 
 `G` - Place the cursor on the last line  
 `$` - Place the cursor at the end of the line  
