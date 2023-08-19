@@ -162,6 +162,14 @@ MD5 hashing:
     SUBROUTINE MD5(TEXT,HASH)
 ```
 
+#### RENDER.MARKDOWN
+
+Render markdown to html:
+
+```
+   SUBROUTINE RENDER.MARKDOWN(MARKDOWN,HTML)
+```
+
 ### SECURE.COPY
 
 Used as a base for the SCP command line utility: 
