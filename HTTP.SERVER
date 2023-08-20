@@ -26,6 +26,8 @@
 *
    MAT REQUEST = ''
 *
+   MIME.TYPE = ''
+*
    DIM RESPONSE(3)
 *
    EQU RESPONSE.STATUS.ATTRIBUTE TO 1
@@ -36,6 +38,14 @@
 *
    @USER1 = 'HTTP.SERVER'
    @USER2 = 'HTTP.SERVER'
+*
+   READ CONFIG FROM CONTROL.FILE,'HTTP.SERVER' THEN
+      SERVER.PORT = CONFIG<1>
+      STATIC.FOLDER = CONFIG<2>
+   END ELSE
+      PRINT 'Configuration not found: CONTROL-FILE HTTP.SERVER'
+      STOP
+   END
 *
    CR = CHAR(13)
    LF = CHAR(10)
@@ -74,8 +84,6 @@
    HTTP.STATUSES<1,-1> = 501
    HTTP.STATUSES<2,-1> = 'Not Implemented'
 *
-*
-   SERVER.PORT = 7122
 *
    OPEN '','MD' TO MD.FILE ELSE
       PRINT 'Unable to open file: MD'
@@ -277,8 +285,6 @@
                      SLUG.VALUE = MATCHFIELD(REQUEST.URL,ROUTE,SLUG.CTR)
                      REQUEST(REQUEST.SLUGS.ATTRIBUTE)<2,-1> = SLUG.VALUE
 *
-                     PRINT 'Slug: ' : REQUEST(REQUEST.SLUGS.ATTRIBUTE)<1>
-                     PRINT 'Slug Val: ' : REQUEST(REQUEST.SLUGS.ATTRIBUTE)<2>
                   END
                REPEAT
 *
@@ -294,9 +300,39 @@
             NEXT ROUTE.CTR
 *
             IF NOT(PROCEED) THEN
-               RESPONSE(RESPONSE.STATUS.ATTRIBUTE) = 404
-               RESPONSE(RESPONSE.CONTENT.ATTRIBUTE) = 'Page not found.'
-               GOSUB SEND.HTTP.RESPONSE
+               FILE.PATH = STATIC.FOLDER : REQUEST.URL
+               FILE.EXT = FILE.PATH[3]
+*
+               BEGIN CASE
+                  CASE FILE.EXT = 'css'
+                     MIME.TYPE = 'text/css'
+                  CASE FILE.EXT = 'jpg'
+                     MIME.TYPE = 'image/jpeg'
+                  CASE FILE.EXT = 'png'
+                     MIME.TYPE = 'image/png'
+                  CASE TRUE
+                     MIME.TYPE = 'text/html'
+               END CASE
+*
+               OPENSEQ FILE.PATH TO FLAT.FILE THEN
+                  READBLK FILE.CONTENT FROM FLAT.FILE, 100000000 THEN
+                     RELEASE FLAT.FILE
+                     CLOSESEQ FLAT.FILE
+*
+                     RESPONSE(RESPONSE.STATUS.ATTRIBUTE) = 200
+                     RESPONSE(RESPONSE.CONTENT.ATTRIBUTE) = FILE.CONTENT
+                     GOSUB SEND.HTTP.RESPONSE
+                  END ELSE
+                     RESPONSE(RESPONSE.STATUS.ATTRIBUTE) = 500
+                     RESPONSE(RESPONSE.CONTENT.ATTRIBUTE) = 'Failed to read content.'
+                     GOSUB SEND.HTTP.RESPONSE
+                  END
+*
+               END ELSE
+                  RESPONSE(RESPONSE.STATUS.ATTRIBUTE) = 404
+                  RESPONSE(RESPONSE.CONTENT.ATTRIBUTE) = 'Page not found.'
+                  GOSUB SEND.HTTP.RESPONSE
+               END
             END
 *
             IF PROCEED THEN
@@ -636,8 +672,18 @@ GET.POST.DATA:NULL
 *
 SEND.HTTP.RESPONSE:NULL
 *
+*
+   IF MIME.TYPE = '' THEN
+      MIME.TYPE = 'text/html'
+   END
+*
    RESPONSE.STATUS = RESPONSE(RESPONSE.STATUS.ATTRIBUTE)
-   RESPONSE.BODY = CHANGE(RESPONSE(RESPONSE.CONTENT.ATTRIBUTE),@AM,CR:LF)
+*
+   IF MIME.TYPE[1,5] = 'text/' THEN
+      RESPONSE.BODY = CHANGE(RESPONSE(RESPONSE.CONTENT.ATTRIBUTE),@AM,CR:LF)
+   END ELSE
+      RESPONSE.BODY = RESPONSE(RESPONSE.CONTENT.ATTRIBUTE)
+   END
 *
    LOCATE(RESPONSE.STATUS,HTTP.STATUSES,1;POS) THEN
       STATUS.TEXT = HTTP.STATUSES<2,POS>
@@ -661,12 +707,11 @@ SEND.HTTP.RESPONSE:NULL
    END
 *
    BUFFER<-1> = 'Content-Length: ' : LEN(RESPONSE.BODY)
-   BUFFER<-1> = 'Content-Type: text/html'
+   BUFFER<-1> = 'Content-Type: ' : MIME.TYPE
    BUFFER<-1> = 'Connection: Closed'
 *
-   BUFFER = BUFFER : @AM : '' : @AM : RESPONSE.BODY
-*
    BUFFER = CHANGE(BUFFER,@AM,CR:LF)
+   BUFFER = BUFFER : CR:LF : CR:LF : RESPONSE.BODY
 *
    BUFFER.LENGTH = LEN(BUFFER)
 *
@@ -681,6 +726,8 @@ SEND.HTTP.RESPONSE:NULL
    $IFDEF DATABASE.UV
       CODE = writeSocket(FD,BUFFER,10000,1,WRITE.SIZE)
    $ENDIF
+*
+   MIME.TYPE = ''
 *
    RETURN
 *
@@ -701,4 +748,3 @@ LOG.RESPONSE:NULL
 *
    END
 *
-   
