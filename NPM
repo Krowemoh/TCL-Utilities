@@ -610,7 +610,7 @@ SETUP.PACKAGES:NULL
 *
    PACKAGES<1,-1> = 'IMPORT-TEMP'
    PACKAGES<2,-1> = 'Import Files from Directory'
-   PACKAGES<3,-1> = 'https://raw.githubusercontent.com/Krowemoh/TCL-Utilities/main/IMPORT-HTTP'
+   PACKAGES<3,-1> = 'https://raw.githubusercontent.com/Krowemoh/TCL-Utilities/main/IMPORT-TEST'
 *
    RETURN
 *
@@ -618,3 +618,4 @@ SETUP.PACKAGES:NULL
 *
    END
 *
+
