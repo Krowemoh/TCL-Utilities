@@ -1,0 +1,85 @@
+*
+   GIT.FILENAME = 'IMPORT-TEMP'
+   GIT.REPO = 'https://github.com/Krowemoh/TCL-Utilities.git'
+*
+* VERSION
+*
+   VERSION = '1'
+*
+   @USER1 = 'IMPORT-TEMP'
+   @USER2 = 'IMPORT-TEMP'
+*
+   EQU TRUE TO 1
+   EQU FALSE TO 0
+*
+   TEMP.FILE.NAME = 'IMPORT-TEMP-FILE'
+*
+   OPEN '',TEMP.FILE.NAME TO TEMP.FILE ELSE
+      PRINT 'IMPORT-TEMP-FILE does not exist in MD.'
+      STOP
+   END
+*
+   CALL GET.ARGUMENTS(ARGUMENTS)
+*
+   ARGS.LEN = DCOUNT(ARGUMENTS,@AM)
+*
+   IF ARGS.LEN = 1 THEN
+      PRINT 'IMPORT-TEMP - Import files from IMPORT-TEMP-FILE'
+      PRINT
+      PRINT '   Import all records in IMPORT-TEMP-FILE'
+      PRINT '        IMPORT-TEMP {DEST.FILE}'
+      PRINT
+      PRINT '   Import a specific record from IMPORT-TEMP-FILE'
+      PRINT '        IMPORT-TEMP {DEST.FILE} {RECORD}'
+      PRINT
+      STOP
+   END
+*
+   IF ARGS.LEN # 2 AND ARGS.LEN # 3 THEN
+      PRINT 'Invalid number of arguments.'
+      STOP
+   END
+*
+   DEST.FILE.NAME = ARGUMENTS<2>
+*
+   OPEN '',DEST.FILE.NAME TO DEST.FILE ELSE
+      PRINT 'Unable to open destination file: ' : DEST.FILE.NAME
+      STOP
+   END
+*
+   RECORD.ID = ARGUMENTS<3>
+*
+   IF RECORD.ID THEN
+      EXECUTE 'SELECT ' : TEMP.FILE.NAME : ' "' : RECORD.ID : '"'  CAPTURING RESULTS
+   END ELSE
+      EXECUTE 'SELECT ' : TEMP.FILE.NAME CAPTURING RESULTS
+   END
+*
+   IF @SELECTED = 0 THEN
+      PRINT 'Nothing to import.'
+      STOP
+   END
+*
+   LOOP
+      READNEXT ITEM.ID ELSE ITEM.ID = ''
+*
+   UNTIL ITEM.ID = '' DO
+      READ ITEM FROM TEMP.FILE,ITEM.ID ELSE
+         PRINT 'Failed to read: ' : ITEM.ID
+         STOP
+      END
+*
+      WRITE ITEM ON DEST.FILE,ITEM.ID ELSE
+         PRINT 'Failed to write: ' : ITEM.ID
+         STOP
+      END
+*
+      PRINT 'Imported: ' : DEST.FILE.NAME : ' ' : ITEM.ID
+   REPEAT
+*
+   STOP
+*
+* END OF PROGRAM
+*
+   END
+*
