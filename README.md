@@ -71,6 +71,18 @@ Regex search in BASIC, ^.*$:
 GREP [DICT] {FILE} {RECORD.ID} {REGEX}
 ```
 
+### IMPORT-TEMP
+
+Import records from IMPORT-TEMP-FILE
+
+```
+   Import all records in IMPORT-TEMP-FILE
+        IMPORT-TEMP {DEST.FILE}
+
+   Import a specific record from IMPORT-TEMP-FILE
+        IMPORT-TEMP {DEST.FILE} {RECORD}
+```
+
 ### MOVE
 
 Move records around in PICK:
