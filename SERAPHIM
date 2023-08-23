@@ -1,5 +1,5 @@
 *
-   GIT.FILENAME = 'HTTP.SERVER'
+   GIT.FILENAME = 'SERAPHIM'
    GIT.REPO = 'https://github.com/Krowemoh/TCL-Utilities.git'
 *
 * COMPILER DIRECTIVES
@@ -36,19 +36,19 @@
 *
    MAT RESPONSE = ''
 *
-   @USER1 = 'HTTP.SERVER'
-   @USER2 = 'HTTP.SERVER'
+   @USER1 = 'SERAPHIM'
+   @USER2 = 'SERAPHIM'
 *
    OPEN '','CONTROL-FILE' TO CONTROL.FILE ELSE
       PRINT 'Unable to open file: CONTROL-FILE':
       STOP
    END
 *
-   READ CONFIG FROM CONTROL.FILE,'HTTP.SERVER' THEN
+   READ CONFIG FROM CONTROL.FILE,'SERAPHIM' THEN
       SERVER.PORT = CONFIG<1>
       STATIC.FOLDER = CONFIG<2>
    END ELSE
-      PRINT 'Configuration not found: CONTROL-FILE HTTP.SERVER'
+      PRINT 'Configuration not found: CONTROL-FILE SERAPHIM'
       STOP
    END
 *
@@ -105,12 +105,12 @@
 *
    $IFDEF DATABASE.D3
       CLEARSELECT
-      FLASH.CMD = 'SELECT DICT BP HTTP.SERVER C/FLASH'
+      FLASH.CMD = 'SELECT DICT BP SERAPHIM C/FLASH'
       EXECUTE FLASH.CMD CAPTURING OUTPUT
       READNEXT FLASH.COMPILED ELSE FLASH.COMPILED = 0
 *
       IF NOT(FLASH.COMPILED) THEN
-         PRINT 'HTTP.SERVER is not flash compiled.'
+         PRINT 'SERAPHIM is not flash compiled.'
          STOP
       END
    $ENDIF
@@ -277,7 +277,7 @@
                CODE = closeSocket(SOCKET)
             $ENDIF
 *
-            CHAIN 'HTTP.SERVER'
+            CHAIN 'SERAPHIM'
 *
          CASE TRUE
             PROCEED = TRUE
@@ -400,7 +400,7 @@
                      CODE = closeSocket(SOCKET)
                   $ENDIF
 *
-                  EXECUTE 'PHANTOM HTTP.SERVER' CAPTURING RESULT
+                  EXECUTE 'PHANTOM SERAPHIM' CAPTURING RESULT
 *
                   PHANTOM.STARTED = INDEX(OCONV(RESULT,'MCU'),'STARTED',1) > 0
 *
@@ -722,7 +722,7 @@ SEND.HTTP.RESPONSE:NULL
    BUFFER = ''
    BUFFER<-1> = 'HTTP/1.1 ' : RESPONSE.STATUS : ' ' : STATUS.TEXT
    BUFFER<-1> = 'Date: ' : OCONV(DATE(),'D')
-   BUFFER<-1> = 'Server: HTTP.SERVER'
+   BUFFER<-1> = 'Server: SERAPHIM'
    BUFFER<-1> = 'Access-Control-Allow-Origin: *'
    BUFFER<-1> = 'Access-Control-Allow-Methods: GET, POST, OPTIONS, DELETE, PUT'
    BUFFER<-1> = 'Access-Control-Allow-Headers: *'
