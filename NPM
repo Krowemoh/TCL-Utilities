@@ -604,9 +604,9 @@ SETUP.PACKAGES:NULL
    PACKAGES<2,-1> = 'BASIC Template Language'
    PACKAGES<3,-1> = 'https://raw.githubusercontent.com/Krowemoh/basic-template-language/main/EVALUATE.BTL'
 *
-   PACKAGES<1,-1> = 'HTTP.SERVER'
+   PACKAGES<1,-1> = 'SERAPHIM'
    PACKAGES<2,-1> = 'Simple HTTP Server'
-   PACKAGES<3,-1> = 'https://raw.githubusercontent.com/Krowemoh/TCL-Utilities/main/HTTP.SERVER'
+   PACKAGES<3,-1> = 'https://raw.githubusercontent.com/Krowemoh/TCL-Utilities/main/SERAPHIM'
 *
    PACKAGES<1,-1> = 'IMPORT-TEMP'
    PACKAGES<2,-1> = 'Import Files from Directory'
@@ -618,4 +618,5 @@ SETUP.PACKAGES:NULL
 *
    END
 *
+
 
