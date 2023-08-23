@@ -334,10 +334,10 @@ Delete a key from a hash map:
 
 ## Programs
 
-#### HTTP.SERVER
+#### SERAPHIM
 
 A simple web server:
 
 ```
-    RUN BP HTTP.SERVER
+    RUN BP SERAPHIM
 ```
