@@ -131,8 +131,10 @@
 *
       ROUTE.ITEM<1,-1> = '/'
       ROUTE.ITEM<1,-1> = '/login'
+      ROUTE.ITEM<1,-1> = '/logout'
 *
       ROUTE.ITEM<2,-1> = 'WEB.INDEX'
+      ROUTE.ITEM<2,-1> = 'WEB.LOGIN'
       ROUTE.ITEM<2,-1> = 'WEB.LOGIN'
 *
       WRITE ROUTE.ITEM ON CONTROL.FILE,'ROUTES'
