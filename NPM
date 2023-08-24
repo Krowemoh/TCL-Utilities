@@ -620,6 +620,10 @@ SETUP.PACKAGES:NULL
    PACKAGES<2,-1> = 'Import Files from Directory'
    PACKAGES<3,-1> = 'https://raw.githubusercontent.com/Krowemoh/TCL-Utilities/main/IMPORT-TEMP'
 *
+   PACKAGES<1,-1> = 'RENDER.MARKDOWN'
+   PACKAGES<2,-1> = 'Render Markdown to HTML'
+   PACKAGES<3,-1> = 'https://raw.githubusercontent.com/Krowemoh/TCL-Utilities/main/RENDER.MARKDOWN'
+*
    RETURN
 *
 * END OF PROGRAM
