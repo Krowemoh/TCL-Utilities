@@ -22,6 +22,11 @@
       STOP
    END
 *
+   READ NPM FROM MD.FILE,'NPM' ELSE
+      PRINT 'Unable to find NPM in master dictionary.'
+      STOP
+   END
+*
    OPEN '','BP' TO BP.FILE ELSE
       $IFDEF DATABASE.UV
          EXECUTE 'CREATE-FILE BP 50,2,6 1,1,19'
@@ -38,11 +43,6 @@
          STOP
       END
       PRINT 'Created BP'
-   END
-*
-   READ NPM FROM MD.FILE,'NPM' ELSE
-      PRINT 'Unable to find NPM in master dictionary.'
-      STOP
    END
 *
 * Install required routines
