@@ -6,7 +6,7 @@ Package Manager
 Download NPM
 
 ```
-curl https://raw.githubusercontent.com/Krowemoh/npm/main/NPM -o /home/SYSPROG/BP/NPM
+curl https://raw.githubusercontent.com/Krowemoh/npm/main/NPM -o NPM
 ```
 
 Compile and catalog NPM
