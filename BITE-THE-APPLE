@@ -1,0 +1,508 @@
+*
+   GIT.FILENAME = 'BITE-THE-APPLE'
+   GIT.REPO = 'https://github.com/Krowemoh/TCL-Utilities.git'
+*
+* COMPILER DIRECTIVES
+*
+   $DEFINE DATABASE.UV
+   $DEFINE PLATFORM.LINUX
+*
+* VERSION
+*
+   VERSION = '1'
+*
+   @USER1 = 'SFTP'
+   @USER2 = 'SFTP'
+*
+   EQU TRUE TO 1
+   EQU FALSE TO 0
+*
+   OPEN '','VOC' TO MD.FILE ELSE
+      PRINT 'Unable to open master dictionary.'
+      STOP
+   END
+*
+   OPEN '','BP' TO BP.FILE ELSE
+      PRINT 'Unable to open required program file: BP'
+      STOP
+   END
+*
+   READ NPM FROM MD.FILE,'NPM' ELSE
+      PRINT 'Unable to find NPM in master dictionary.'
+      STOP
+   END
+*
+* Install required routines
+*
+   EXECUTE 'NPM INSTALL BP SERAPHIM --FORCE'
+*
+   EXECUTE 'NPM INSTALL BP MAP.SET --FORCE'
+   EXECUTE 'NPM INSTALL BP MAP.GET --FORCE'
+   EXECUTE 'NPM INSTALL BP MAP.HAS --FORCE'
+   EXECUTE 'NPM INSTALL BP MAP.DELETE --FORCE'
+*
+   EXECUTE 'NPM INSTALL BP RENDER --FORCE'
+   EXECUTE 'NPM INSTALL BP RAW.RENDER --FORCE'
+   EXECUTE 'NPM INSTALL BP EVALUATE.BTL --FORCE'
+*
+   EXECUTE 'NPM INSTALL BP JSON.PARSE --FORCE'
+   EXECUTE 'NPM INSTALL BP JSON.QUERY --FORCE'
+*
+   EXECUTE 'NPM INSTALL BP RENDER.MARKDOWN --FORCE'
+*
+   PRINT 'Downloaded and installed routines'
+*
+* Catalog the routines
+*
+   CATALOG = ''
+*
+* ScarletDME requires the LOCAL
+*
+   $IFDEF DATABASE.QM
+      CATALOG = 'LOCAL'
+   $ENDIF
+*
+   EXECUTE 'CATALOG BP SERAPHIM' : ' ' : CATALOG
+*
+   EXECUTE 'CATALOG BP MAP.SET' : ' ' : CATALOG
+   EXECUTE 'CATALOG BP MAP.GET' : ' ' : CATALOG
+   EXECUTE 'CATALOG BP MAP.HAS' : ' ' : CATALOG
+   EXECUTE 'CATALOG BP MAP.DELETE' : ' ' : CATALOG
+*
+   EXECUTE 'CATALOG BP RENDER' : ' ' : CATALOG
+   EXECUTE 'CATALOG BP RAW.RENDER' : ' ' : CATALOG
+   EXECUTE 'CATALOG BP EVALUATE.BTL' : ' ' : CATALOG
+*
+   EXECUTE 'CATALOG BP JSON.PARSE' : ' ' : CATALOG
+   EXECUTE 'CATALOG BP JSON.QUERY' : ' ' : CATALOG
+*
+   EXECUTE 'CATALOG BP RENDER.MARKDOWN' : ' ' : CATALOG
+*
+   PRINT 'Added routines to MD'
+*
+* Create CONTROL-FILE
+*
+   OPEN '','CONTROL-FILE' TO CONTROL.FILE ELSE
+      $IFDEF DATABASE.UV
+         EXECUTE 'CREATE-FILE CONTROL-FILE 50,2,6 100,4,18'
+      $ENDIF
+      $IFDEF DATABASE.D3
+         EXECUTE 'CREATE-FILE CONTROL-FILE 50,2,6 100,4,18'
+      $ENDIF
+      $IFDEF DATABASE.QM
+         EXECUTE 'CREATE-FILE CONTROL-FILE'
+      $ENDIF
+*
+      OPEN '','CONTROL-FILE' TO CONTROL.FILE ELSE
+         PRINT 'Failed to create CONTROL-FILE'
+         STOP
+      END
+      PRINT 'Created CONTROL-FILE'
+   END
+*
+* Create SERAPHIM configuration record
+*
+   READ CONFIG FROM CONTROL.FILE,'SERAPHIM' ELSE
+      CONFIG = ''
+      CONFIG<1> = '7122'
+      CONFIG<2> = ''
+*
+      WRITE CONFIG ON CONTROL.FILE,'SERAPHIM'
+      PRINT 'Created SERAPHIM entry in CONTROL-FILE'
+   END
+*
+* Create ROUTES record
+*
+   READ ROUTES FROM CONTROL.FILE,'ROUTES' ELSE
+      ROUTE.ITEM = ''
+*
+      ROUTE.ITEM<1,-1> = '/'
+      ROUTE.ITEM<1,-1> = '/login'
+*
+      ROUTE.ITEM<2,-1> = '/WEB.INDEX'
+      ROUTE.ITEM<2,-1> = '/WEB.LOGIN'
+*
+      WRITE ROUTE.ITEM ON CONTROL.FILE,'ROUTES'
+      PRINT 'Created ROUTES entry in CONTROL-FILE'
+   END
+*
+* Create SESSION-FILE
+*
+   OPEN '','SESSION-FILE' TO SESSION.FILE ELSE
+      $IFDEF DATABASE.UV
+         EXECUTE 'CREATE-FILE SESSION-FILE 50,2,6 100,4,18'
+      $ENDIF
+      $IFDEF DATABASE.D3
+         EXECUTE 'CREATE-FILE SESSION-FILE 50,2,6 100,4,18'
+      $ENDIF
+      $IFDEF DATABASE.QM
+         EXECUTE 'CREATE-FILE SESSION-FILE'
+      $ENDIF
+*
+      OPEN '','SESSION-FILE' TO SESSION.FILE ELSE
+         PRINT 'Failed to create SESSION-FILE'
+         STOP
+      END
+      PRINT 'Created SESSION-FILE'
+   END
+*
+* Create HTML
+*
+   OPEN '','HTML' TO HTML.FILE ELSE
+      $IFDEF DATABASE.UV
+         EXECUTE 'CREATE-FILE DATA HTML 1,1,19'
+      $ENDIF
+      $IFDEF DATABASE.D3
+         EXECUTE 'CREATE-FILE DATA HTML 1,1,19'
+      $ENDIF
+      $IFDEF DATABASE.QM
+         EXECUTE 'CREATE-FILE HTML DIRECTORY'
+      $ENDIF
+*
+      OPEN '','HTML' TO HTML.FILE ELSE
+         PRINT 'Failed to create HTML'
+         STOP
+      END
+      PRINT 'Created HTML'
+   END
+*
+* Create HTML-TEMPLATE-FILE
+*
+   OPEN '','HTML-TEMPLATE-FILE' TO HTML.TEMPLATE.FILE ELSE
+      $IFDEF DATABASE.UV
+         EXECUTE 'CREATE-FILE HTML-TEMPLATE-FILE 50,2,6 100,4,18'
+      $ENDIF
+      $IFDEF DATABASE.D3
+         EXECUTE 'CREATE-FILE HTML-TEMPLATE-FILE 50,2,6 100,4,18'
+      $ENDIF
+      $IFDEF DATABASE.QM
+         EXECUTE 'CREATE-FILE HTML-TEMPLATE-FILE'
+      $ENDIF
+*
+      OPEN '','HTML-TEMPLATE-FILE' TO HTML.TEMPLATE.FILE ELSE
+         PRINT 'Failed to create HTML-TEMPLATE-FILE'
+         STOP
+      END
+      PRINT 'Created HTML-TEMPLATE-FILE'
+   END
+*
+* Create templates - HEADER, FOOTER, INDEX, LOGIN
+*
+   READ TEMPLATE FROM HTML.TEMPLATE.FILE,'HEADER.HTML' ELSE
+      TEMPLATE = '<header>SERAPHIM Starter</header>'
+      WRITE TEMPLATE ON HTML.TEMPLATE.FILE,'HEADER.HTML'
+      PRINT 'Created HEADER.HTML in HTML-TEMPLATE-FILE'
+   END
+*
+   READ TEMPLATE FROM HTML.TEMPLATE.FILE,'FOOTER.HTML' ELSE
+      TEMPLATE = '<footer>2023</footer>'
+      WRITE TEMPLATE ON HTML.TEMPLATE.FILE,'FOOTER.HTML'
+      PRINT 'Created FOOTER.HTML in HTML-TEMPLATE-FILE'
+   END
+*
+   READ TEMPLATE FROM HTML.TEMPLATE.FILE,'INDEX.HTML' ELSE
+      TEMPLATE = ''
+*
+      TEMPLATE<-1> = ' <!DOCTYPE html>'
+      TEMPLATE<-1> = '<html lang="en">'
+      TEMPLATE<-1> = '   <head>'
+      TEMPLATE<-1> = '       <meta charset="utf-8">'
+      TEMPLATE<-1> = '       <meta name="viewport" content="width=device-width, initial-scale=1">'
+      TEMPLATE<-1> = '       <title>{{ TITLE }}</title>'
+      TEMPLATE<-1> = '   </head>'
+      TEMPLATE<-1> = '   <body>'
+      TEMPLATE<-1> = '       {{ INCLUDE "HEADER.HTML" }}'
+      TEMPLATE<-1> = '       {{ IF LOGGED.IN THEN }}'
+      TEMPLATE<-1> = '           <a href="/logout">Logout</a>'
+      TEMPLATE<-1> = '       {{ END ELSE }}'
+      TEMPLATE<-1> = '           <a href="/devlog">Blog</a>'
+      TEMPLATE<-1> = '       {{ END }}'
+      TEMPLATE<-1> = '       <hr>'
+      TEMPLATE<-1> = '       {{ IF LOGGED.IN THEN }}'
+      TEMPLATE<-1> = '           <h1>Hello, {{ USERNAME }}!</h1>'
+      TEMPLATE<-1> = '       {{ END ELSE }}'
+      TEMPLATE<-1> = '           <h1>Hello, Loser!</h1>'
+      TEMPLATE<-1> = '       {{ END }}'
+      TEMPLATE<-1> = '       {{ INCLUDE "FOOTER.HTML" }}'
+      TEMPLATE<-1> = '   </body>'
+      TEMPLATE<-1> = '</html>'
+*
+      WRITE TEMPLATE ON HTML.TEMPLATE.FILE,'INDEX.HTML'
+      PRINT 'Created INDEX.HTML in HTML-TEMPLATE-FILE'
+   END
+*
+   READ TEMPLATE FROM HTML.TEMPLATE.FILE,'LOGIN.HTML' ELSE
+      TEMPLATE = ''
+*
+      TEMPLATE<-1> = ' <!DOCTYPE html>'
+      TEMPLATE<-1> = '<html lang="en">'
+      TEMPLATE<-1> = '   <head>'
+      TEMPLATE<-1> = '       <meta charset="utf-8">'
+      TEMPLATE<-1> = '       <meta name="viewport" content="width=device-width, initial-scale=1">'
+      TEMPLATE<-1> = '       <title>{{ TITLE }}</title>'
+      TEMPLATE<-1> = '   </head>'
+      TEMPLATE<-1> = '   <body>'
+      TEMPLATE<-1> = '       {{ INCLUDE "HEADER.HTML" }}'
+      TEMPLATE<-1> = '        <h1>Login in Loser</h1>'
+      TEMPLATE<-1> = '       <form action="/login" method="post">'
+      TEMPLATE<-1> = '           <div>'
+      TEMPLATE<-1> = '               <label for="username">Username</label>'
+      TEMPLATE<-1> = '               <input type="text" name="username">'
+      TEMPLATE<-1> = '           </div>'
+      TEMPLATE<-1> = '           <div>'
+      TEMPLATE<-1> = '               <label for="password">Password</label>'
+      TEMPLATE<-1> = '               <input type="password" name="password">'
+      TEMPLATE<-1> = '           </div>'
+      TEMPLATE<-1> = '           <button>Login</button>'
+      TEMPLATE<-1> = '       </form>'
+      TEMPLATE<-1> = '       {{ INCLUDE "FOOTER.HTML" }}'
+      TEMPLATE<-1> = '   </body>'
+      TEMPLATE<-1> = '</html>'
+*
+      WRITE TEMPLATE ON HTML.TEMPLATE.FILE,'LOGIN.HTML'
+      PRINT 'Created LOGIN.HTML in HTML-TEMPLATE-FILE'
+   END
+*
+* Create BASIC Programs - WEB.INDEX, WEB.LOGIN
+*
+   READ TEMPLATE FROM BP.FILE,'WEB.INDEX' ELSE
+      TEMPLATE = ''
+*
+      TEMPLATE<-1> = '   SUBROUTINE WEB.LOGIN(MAT REQUEST,MAT RESPONSE)'
+      TEMPLATE<-1> = '*'
+      TEMPLATE<-1> = '   EQU TRUE TO 1'
+      TEMPLATE<-1> = '   EQU FALSE TO 0'
+      TEMPLATE<-1> = '*'
+      TEMPLATE<-1> = '   DIM REQUEST(11)'
+      TEMPLATE<-1> = '*'
+      TEMPLATE<-1> = '   EQU REQUEST.TYPE.ATTRIBUTE TO 1'
+      TEMPLATE<-1> = '   EQU REQUEST.VERSION.ATTRIBUTE TO 2'
+      TEMPLATE<-1> = '   EQU REQUEST.URL.ATTRIBUTE TO 3'
+      TEMPLATE<-1> = '   EQU REQUEST.SLUGS.ATTRIBUTE TO 4'
+      TEMPLATE<-1> = '   EQU REQUEST.QUERY.ATTRIBUTE TO 5'
+      TEMPLATE<-1> = '   EQU REQUEST.HEADERS.ATTRIBUTE TO 6'
+      TEMPLATE<-1> = '   EQU REQUEST.COOKIES.ATTRIBUTE TO 7'
+      TEMPLATE<-1> = '   EQU REQUEST.RAW.BODY.ATTRIBUTE TO 8'
+      TEMPLATE<-1> = '   EQU REQUEST.FORM.ATTRIBUTE TO 9'
+      TEMPLATE<-1> = '   EQU REQUEST.JSON.ATTRIBUTE TO 10'
+      TEMPLATE<-1> = '   EQU REQUEST.RAW.REQUEST.ATTRIBUTE TO 11'
+      TEMPLATE<-1> = '*'
+      TEMPLATE<-1> = '   DIM RESPONSE(3)'
+      TEMPLATE<-1> = '*'
+      TEMPLATE<-1> = '   EQU RESPONSE.STATUS.ATTRIBUTE TO 1'
+      TEMPLATE<-1> = '   EQU RESPONSE.HEADERS.ATTRIBUTE TO 2'
+      TEMPLATE<-1> = '   EQU RESPONSE.CONTENT.ATTRIBUTE TO 3'
+      TEMPLATE<-1> = '*'
+      TEMPLATE<-1> = '   OPEN "","HTML-TEMPLATE-FILE" TO HTML.TEMPLATE.FILE ELSE'
+      TEMPLATE<-1> = '      RESPONSE(RESPONSE.STATUS.ATTRIBUTE) = 500'
+      TEMPLATE<-1> = '      RESPONSE(RESPONSE.CONTENT.ATTRIBUTE) = "Unable to open file: HTML-TEMPLATE-FILE"'
+      TEMPLATE<-1> = '      RETURN'
+      TEMPLATE<-1> = '   END'
+      TEMPLATE<-1> = '*'
+      TEMPLATE<-1> = '   BEGIN CASE'
+      TEMPLATE<-1> = '      CASE REQUEST(REQUEST.TYPE.ATTRIBUTE) = "GET"'
+      TEMPLATE<-1> = '         GOSUB HANDLE.GET'
+      TEMPLATE<-1> = '*'
+      TEMPLATE<-1> = '      CASE TRUE'
+      TEMPLATE<-1> = '         RESPONSE(RESPONSE.STATUS.ATTRIBUTE) = 405'
+      TEMPLATE<-1> = '         RESPONSE(RESPONSE.CONTENT.ATTRIBUTE) = "Invalid type"'
+      TEMPLATE<-1> = '   END CASE'
+      TEMPLATE<-1> = '*'
+      TEMPLATE<-1> = '   RETURN'
+      TEMPLATE<-1> = '*'
+      TEMPLATE<-1> = '*********************  S U B R O U T I N E  *********************'
+      TEMPLATE<-1> = '*'
+      TEMPLATE<-1> = 'HANDLE.GET:NULL'
+      TEMPLATE<-1> = '*'
+      TEMPLATE<-1> = '   EQU ENV.SIZE TO 5000'
+      TEMPLATE<-1> = '   DIM ENV(ENV.SIZE)'
+      TEMPLATE<-1> = '*'
+      TEMPLATE<-1> = '   MAT ENV = ""'
+      TEMPLATE<-1> = '*'
+      TEMPLATE<-1> = '   CALL MAP.SET(MAT ENV,ENV.SIZE,"TITLE","Home")'
+      TEMPLATE<-1> = '*'
+      TEMPLATE<-1> = '   USERNAME = ""'
+      TEMPLATE<-1> = '   LOGGED.IN = FALSE'
+      TEMPLATE<-1> = '*'
+      TEMPLATE<-1> = '   LOCATE("session_id",REQUEST(REQUEST.COOKIES.ATTRIBUTE)<1>,1;ANYPOS) THEN'
+      TEMPLATE<-1> = '      SESSION.ID = REQUEST(REQUEST.COOKIES.ATTRIBUTE)<2,ANYPOS>'
+      TEMPLATE<-1> = '*'
+      TEMPLATE<-1> = '      OPEN "","SESSION-FILE" TO SESSION.FILE ELSE LOGGED.IN = FALSE'
+      TEMPLATE<-1> = '      READ SESSION.ITEM FROM SESSION.FILE,SESSION.ID THEN'
+      TEMPLATE<-1> = '         LOGGED.IN = TRUE'
+      TEMPLATE<-1> = '      END'
+      TEMPLATE<-1> = '   END'
+      TEMPLATE<-1> = '*'
+      TEMPLATE<-1> = '   IF LOGGED.IN THEN'
+      TEMPLATE<-1> = '      USERNAME = SESSION.ITEM<1>'
+      TEMPLATE<-1> = '   END'
+      TEMPLATE<-1> = '*'
+      TEMPLATE<-1> = '   CALL MAP.SET(MAT ENV,ENV.SIZE,"LOGGED.IN",LOGGED.IN)'
+      TEMPLATE<-1> = '   CALL MAP.SET(MAT ENV,ENV.SIZE,"USERNAME",USERNAME)'
+      TEMPLATE<-1> = '*'
+      TEMPLATE<-1> = '   TEMPLATE.ID = "INDEX.HTML"'
+      TEMPLATE<-1> = '*'
+      TEMPLATE<-1> = '   READ TEMPLATE FROM HTML.TEMPLATE.FILE,TEMPLATE.ID ELSE TEMPLATE = ""'
+      TEMPLATE<-1> = '   CALL RENDER(MAT ENV,ENV.SIZE,TEMPLATE,RESULT)'
+      TEMPLATE<-1> = '*'
+      TEMPLATE<-1> = '   RESPONSE(RESPONSE.STATUS.ATTRIBUTE) = 200'
+      TEMPLATE<-1> = '   RESPONSE(RESPONSE.CONTENT.ATTRIBUTE) = RESULT'
+      TEMPLATE<-1> = '*'
+      TEMPLATE<-1> = '   RETURN'
+      TEMPLATE<-1> = '*'
+      TEMPLATE<-1> = '* END OF PROGRAM'
+      TEMPLATE<-1> = '*'
+      TEMPLATE<-1> = '   END'
+      TEMPLATE<-1> = '*'
+*
+      WRITE TEMPLATE ON BP.FILE,'WEB.INDEX'
+      PRINT 'Created WEB.INDEX in BP'
+   END
+*
+   READ TEMPLATE FROM BP.FILE,'WEB.LOGIN' ELSE
+      TEMPLATE = ''
+*
+      TEMPLATE<-1> = '   SUBROUTINE WEB.LOGIN(MAT REQUEST,MAT RESPONSE)'
+      TEMPLATE<-1> = '*'
+      TEMPLATE<-1> = '   EQU TRUE TO 1'
+      TEMPLATE<-1> = '   EQU FALSE TO 0'
+      TEMPLATE<-1> = '*'
+      TEMPLATE<-1> = '   DIM REQUEST(11)'
+      TEMPLATE<-1> = '*'
+      TEMPLATE<-1> = '   EQU REQUEST.TYPE.ATTRIBUTE TO 1'
+      TEMPLATE<-1> = '   EQU REQUEST.VERSION.ATTRIBUTE TO 2'
+      TEMPLATE<-1> = '   EQU REQUEST.URL.ATTRIBUTE TO 3'
+      TEMPLATE<-1> = '   EQU REQUEST.SLUGS.ATTRIBUTE TO 4'
+      TEMPLATE<-1> = '   EQU REQUEST.QUERY.ATTRIBUTE TO 5'
+      TEMPLATE<-1> = '   EQU REQUEST.HEADERS.ATTRIBUTE TO 6'
+      TEMPLATE<-1> = '   EQU REQUEST.COOKIES.ATTRIBUTE TO 7'
+      TEMPLATE<-1> = '   EQU REQUEST.RAW.BODY.ATTRIBUTE TO 8'
+      TEMPLATE<-1> = '   EQU REQUEST.FORM.ATTRIBUTE TO 9'
+      TEMPLATE<-1> = '   EQU REQUEST.JSON.ATTRIBUTE TO 10'
+      TEMPLATE<-1> = '   EQU REQUEST.RAW.REQUEST.ATTRIBUTE TO 11'
+      TEMPLATE<-1> = '*'
+      TEMPLATE<-1> = '   DIM RESPONSE(3)'
+      TEMPLATE<-1> = '*'
+      TEMPLATE<-1> = '   EQU RESPONSE.STATUS.ATTRIBUTE TO 1'
+      TEMPLATE<-1> = '   EQU RESPONSE.HEADERS.ATTRIBUTE TO 2'
+      TEMPLATE<-1> = '   EQU RESPONSE.CONTENT.ATTRIBUTE TO 3'
+      TEMPLATE<-1> = '*'
+      TEMPLATE<-1> = '   OPEN "","HTML-TEMPLATE-FILE" TO HTML.TEMPLATE.FILE ELSE'
+      TEMPLATE<-1> = '      RESPONSE(RESPONSE.STATUS.ATTRIBUTE) = 500'
+      TEMPLATE<-1> = '      RESPONSE(RESPONSE.CONTENT.ATTRIBUTE) = "Failed to open templates."'
+      TEMPLATE<-1> = '      RETURN'
+      TEMPLATE<-1> = '   END'
+      TEMPLATE<-1> = '*'
+      TEMPLATE<-1> = '   BEGIN CASE'
+      TEMPLATE<-1> = '      CASE REQUEST(REQUEST.TYPE.ATTRIBUTE) = "GET"'
+      TEMPLATE<-1> = '         GOSUB HANDLE.GET'
+      TEMPLATE<-1> = '*'
+      TEMPLATE<-1> = '      CASE REQUEST(REQUEST.TYPE.ATTRIBUTE) = "POST"'
+      TEMPLATE<-1> = '         GOSUB HANDLE.POST'
+      TEMPLATE<-1> = '*'
+      TEMPLATE<-1> = '      CASE REQUEST(REQUEST.TYPE.ATTRIBUTE) = "DELETE"'
+      TEMPLATE<-1> = '         GOSUB HANDLE.DELETE'
+      TEMPLATE<-1> = '*'
+      TEMPLATE<-1> = '      CASE TRUE'
+      TEMPLATE<-1> = '         RESPONSE(RESPONSE.STATUS.ATTRIBUTE) = 405'
+      TEMPLATE<-1> = '         RESPONSE(RESPONSE.CONTENT.ATTRIBUTE) = "Invalid type"'
+      TEMPLATE<-1> = '   END CASE'
+      TEMPLATE<-1> = '*'
+      TEMPLATE<-1> = '   RETURN'
+      TEMPLATE<-1> = '*'
+      TEMPLATE<-1> = '*********************  S U B R O U T I N E  *********************'
+      TEMPLATE<-1> = '*'
+      TEMPLATE<-1> = 'HANDLE.GET:NULL'
+      TEMPLATE<-1> = '*'
+      TEMPLATE<-1> = '   EQU ENV.SIZE TO 5000'
+      TEMPLATE<-1> = '   DIM ENV(ENV.SIZE)'
+      TEMPLATE<-1> = '*'
+      TEMPLATE<-1> = '   MAT ENV = ""'
+      TEMPLATE<-1> = '*'
+      TEMPLATE<-1> = '   CALL MAP.SET(MAT ENV,ENV.SIZE,"title","Login")'
+      TEMPLATE<-1> = '*'
+      TEMPLATE<-1> = '   READ TEMPLATE FROM HTML.TEMPLATE.FILE,"LOGIN.HTML" ELSE TEMPLATE = "Invalid Template"'
+      TEMPLATE<-1> = '*'
+      TEMPLATE<-1> = '   CALL RENDER(MAT ENV,ENV.SIZE,TEMPLATE,RESULT)'
+      TEMPLATE<-1> = '*'
+      TEMPLATE<-1> = '   RESPONSE(RESPONSE.STATUS.ATTRIBUTE) = 200'
+      TEMPLATE<-1> = '   RESPONSE(RESPONSE.CONTENT.ATTRIBUTE) = RESULT'
+      TEMPLATE<-1> = '*'
+      TEMPLATE<-1> = '   RETURN'
+      TEMPLATE<-1> = '*'
+      TEMPLATE<-1> = '*********************  S U B R O U T I N E  *********************'
+      TEMPLATE<-1> = '*'
+      TEMPLATE<-1> = 'HANDLE.POST:NULL'
+      TEMPLATE<-1> = '*'
+      TEMPLATE<-1> = '   FORM.DATA = REQUEST(REQUEST.FORM.ATTRIBUTE)'
+      TEMPLATE<-1> = '*'
+      TEMPLATE<-1> = '   LOCATE("username",FORM.DATA,1;ANYPOS) THEN'
+      TEMPLATE<-1> = '      USERNAME = FORM.DATA<2,ANYPOS>'
+      TEMPLATE<-1> = '   END ELSE USERNAME = ""'
+      TEMPLATE<-1> = '*'
+      TEMPLATE<-1> = '   LOCATE("password",FORM.DATA,1;ANYPOS) THEN'
+      TEMPLATE<-1> = '      PASSWORD = FORM.DATA<2,ANYPOS>'
+      TEMPLATE<-1> = '   END ELSE PASSWORD = ""'
+      TEMPLATE<-1> = '*'
+      TEMPLATE<-1> = '   VALID = TRUE'
+      TEMPLATE<-1> = '*'
+      TEMPLATE<-1> = '   IF NOT(VALID) THEN'
+      TEMPLATE<-1> = '      RESPONSE(RESPONSE.STATUS.ATTRIBUTE) = 401'
+      TEMPLATE<-1> = '      RETURN'
+      TEMPLATE<-1> = '   END'
+      TEMPLATE<-1> = '*'
+      TEMPLATE<-1> = '   OPEN "","SESSION-FILE" TO SESSION.FILE ELSE'
+      TEMPLATE<-1> = '      PRINT "Unable to open file: -FILE - Press RETURN":'
+      TEMPLATE<-1> = '      INPUT ANYTHING'
+      TEMPLATE<-1> = '      STOP'
+      TEMPLATE<-1> = '   END'
+      TEMPLATE<-1> = '*'
+      TEMPLATE<-1> = '   SESSION.ITEM = USERNAME'
+      TEMPLATE<-1> = '*'
+      TEMPLATE<-1> = '   TEXT = TIME() : "SALT"'
+      TEMPLATE<-1> = '   CALL SHA256(TEXT,SESSION.ID)'
+      TEMPLATE<-1> = '   CONVERT "=" TO "" IN SESSION.ID'
+      TEMPLATE<-1> = '*'
+      TEMPLATE<-1> = '   WRITE SESSION.ITEM ON SESSION.FILE,SESSION.ID'
+      TEMPLATE<-1> = '*'
+      TEMPLATE<-1> = '   RESPONSE(RESPONSE.STATUS.ATTRIBUTE) = 302'
+      TEMPLATE<-1> = '   RESPONSE(RESPONSE.HEADERS.ATTRIBUTE)<-1> = "Location: /"'
+      TEMPLATE<-1> = '   RESPONSE(RESPONSE.HEADERS.ATTRIBUTE)<-1> = "Set-Cookie: session_id=" : SESSION.ID'
+      TEMPLATE<-1> = '   RESPONSE(RESPONSE.CONTENT.ATTRIBUTE) = ""'
+      TEMPLATE<-1> = '*'
+      TEMPLATE<-1> = '   RETURN'
+      TEMPLATE<-1> = '*'
+      TEMPLATE<-1> = '*********************  S U B R O U T I N E  *********************'
+      TEMPLATE<-1> = '*'
+      TEMPLATE<-1> = 'HANDLE.DELETE:NULL'
+      TEMPLATE<-1> = '*'
+      TEMPLATE<-1> = '   LOCATE("session_id",REQUEST(REQUEST.COOKIES.ATTRIBUTE)<1>,1;ANYPOS) THEN'
+      TEMPLATE<-1> = '      SESSION.ID = REQUEST(REQUEST.COOKIES.ATTRIBUTE)<2,ANYPOS>'
+      TEMPLATE<-1> = '*'
+      TEMPLATE<-1> = '      OPEN "","SESSION-FILE" TO SESSION.FILE ELSE LOGGED.IN = FALSE'
+      TEMPLATE<-1> = '      READU SESSION.ITEM FROM SESSION.FILE,SESSION.ID THEN'
+      TEMPLATE<-1> = '         DELETE SESSION.FILE,SESSION.ID'
+      TEMPLATE<-1> = '      END'
+      TEMPLATE<-1> = '   END'
+      TEMPLATE<-1> = '*'
+      TEMPLATE<-1> = '   RESPONSE(RESPONSE.STATUS.ATTRIBUTE) = 303'
+      TEMPLATE<-1> = '   RESPONSE(RESPONSE.HEADERS.ATTRIBUTE)<-1> = "Location: /"'
+      TEMPLATE<-1> = '   RESPONSE(RESPONSE.CONTENT.ATTRIBUTE) = ""'
+      TEMPLATE<-1> = '*'
+      TEMPLATE<-1> = '   RETURN'
+      TEMPLATE<-1> = '*'
+      TEMPLATE<-1> = '* END OF PROGRAM'
+      TEMPLATE<-1> = '*'
+      TEMPLATE<-1> = '   END'
+      TEMPLATE<-1> = '*'
+*
+      WRITE TEMPLATE ON BP.FILE,'WEB.LOGIN'
+      PRINT 'Created WEB.LOGIN in BP'
+   END
+*
+   PRINT 'DONE!'
+*
+* END OF PROGRAM
+*
+   END
+*
