@@ -513,7 +513,16 @@
       PRINT 'Created WEB.LOGIN in BP'
    END
 *
+   EXECUTE 'CATALOG BP WEB.INDEX' : ' ' : CATALOG
+   EXECUTE 'CATALOG BP WEB.LOGIN' : ' ' : CATALOG
+*
    PRINT 'DONE!'
+*
+   PRINT
+   PRINT 'Run the server by doing:'
+   PRINT
+   PRINT '   RUN BP SERAPHIM --NO-PHANTOM'
+   PRINT
 *
 * END OF PROGRAM
 *
