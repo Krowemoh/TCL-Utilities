@@ -16,15 +16,27 @@ BASIC BP NPM
 CATALOG BP NPM
 ```
 
-## Install Packages
+## Manual
 
 ```
-NPM INSTALL BP NSH
-NPM INSTALL BP EVA
-```
+NPM - Nova Package Manager
 
-## List Packages
+    INFO - Get system information
 
-```
-NPM LIST
+    CHECK - Display package conflicts
+
+    GET - Get a file
+        NPM GET <FILE> <RECORD> <URL>
+
+    COMPILE - Compile a file with conditional compilation
+        NPM COMPILE <FILE> <RECORD>
+
+    INSTALL - GET and COMPILE and CATALOG
+        NPM INSTALL <FILE> <RECORD> <URL>
+
+    LIST - List available packages
+        NPM LIST
+
+    SYNC - Install all available packages to FILE
+        NPM SYNC <FILE>
 ```
