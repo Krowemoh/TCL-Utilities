@@ -323,7 +323,7 @@
 *
             IF NOT(PROCEED) THEN
                FILE.PATH = STATIC.FOLDER : REQUEST.URL
-               FILE.EXT = FILE.PATH[3]
+               FILE.EXT = OCONV(FILE.PATH[3],'MCL')
 *
                BEGIN CASE
                   CASE FILE.EXT = 'css'
@@ -812,3 +812,4 @@ GET.ARGUMENTS:NULL
    END
 *
    
+
