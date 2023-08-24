@@ -228,7 +228,7 @@
       TEMPLATE<-1> = '       {{ IF LOGGED.IN THEN }}'
       TEMPLATE<-1> = '           <a href="/logout">Logout</a>'
       TEMPLATE<-1> = '       {{ END ELSE }}'
-      TEMPLATE<-1> = '           <a href="/devlog">Blog</a>'
+      TEMPLATE<-1> = '           <a href="/login">Login</a>'
       TEMPLATE<-1> = '       {{ END }}'
       TEMPLATE<-1> = '       <hr>'
       TEMPLATE<-1> = '       {{ IF LOGGED.IN THEN }}'
@@ -525,6 +525,13 @@
    PRINT 'Run the server by doing:'
    PRINT
    PRINT '   RUN BP SERAPHIM --NO-PHANTOM'
+   PRINT
+   PRINT 'Available routes:'
+   PRINT '   - /'
+   PRINT '   - /login'
+   PRINT '   - /logout'
+   PRINT '   - /kill'
+   PRINT '   - /restart'
    PRINT
 *
 * END OF PROGRAM
