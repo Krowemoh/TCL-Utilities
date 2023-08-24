@@ -23,8 +23,21 @@
    END
 *
    OPEN '','BP' TO BP.FILE ELSE
-      PRINT 'Unable to open required program file: BP'
-      STOP
+      $IFDEF DATABASE.UV
+         EXECUTE 'CREATE-FILE DATA BP 1,1,19'
+      $ENDIF
+      $IFDEF DATABASE.D3
+         EXECUTE 'CREATE-FILE DATA BP 1,1,19'
+      $ENDIF
+      $IFDEF DATABASE.QM
+         EXECUTE 'CREATE-FILE BP DIRECTORY'
+      $ENDIF
+*
+      OPEN '','BP' TO BP.FILE ELSE
+         PRINT 'Failed to create BP'
+         STOP
+      END
+      PRINT 'Created BP'
    END
 *
    READ NPM FROM MD.FILE,'NPM' ELSE
