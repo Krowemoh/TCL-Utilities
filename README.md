@@ -1,5 +1,6 @@
-# npm
-Package Manager
+# NPM 
+
+Nova Package Manager
 
 ## Installation Instructions
 
