@@ -334,6 +334,15 @@ Delete a key from a hash map:
 
 ## Programs
 
+
+#### BITE-THE-APPLE
+
+Set up a SERAPHIM project:
+
+```
+    RUN BP BITE-THE-APPLE
+```
+
 #### SERAPHIM
 
 A simple web server:
