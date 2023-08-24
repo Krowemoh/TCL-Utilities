@@ -624,6 +624,10 @@ SETUP.PACKAGES:NULL
    PACKAGES<2,-1> = 'Render Markdown to HTML'
    PACKAGES<3,-1> = 'https://raw.githubusercontent.com/Krowemoh/TCL-Utilities/main/RENDER.MARKDOWN'
 *
+   PACKAGES<1,-1> = 'BITE-THE-APPLE'
+   PACKAGES<2,-1> = 'Seraphim Project Starter'
+   PACKAGES<3,-1> = 'https://raw.githubusercontent.com/Krowemoh/TCL-Utilities/main/BITE-THE-APPLE'
+*
    RETURN
 *
 * END OF PROGRAM
