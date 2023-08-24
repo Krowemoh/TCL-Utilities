@@ -18,6 +18,12 @@
 *
    GOSUB GET.ARGUMENTS
 *
+   CONFIRM.DOWNLOAD = TRUE
+   LOCATE('--FORCE',ARGUMENTS;FLAG.POS) THEN
+      CONFIRM.DOWNLOAD = FALSE
+      ARGUMENTS = DELETE(ARGUMENTS,FLAG.POS)
+   END
+*
    ARG.LEN = DCOUNT(ARGUMENTS,@AM)
 *
    IF ARG.LEN = 1 THEN
@@ -238,10 +244,12 @@ GET.HANDLER:NULL
          PRINT 'URL: ' : URL
          PRINT 'Download package: (y/N) ' :
 *
-         INPUT ANS
-         IF ANS # 'Y' THEN
-            PRINT 'Did not download package.'
-            STOP
+         IF CONFIRM.DOWNLOAD THEN
+            INPUT ANS
+            IF ANS # 'Y' THEN
+               PRINT 'Did not download package.'
+               STOP
+            END
          END
 *
       END ELSE
@@ -618,5 +626,6 @@ SETUP.PACKAGES:NULL
 *
    END
 *
-
-
+   
+   
+   
