@@ -1,0 +1,117 @@
+*
+   GIT.FILENAME = 'SEARCH-ALL'
+   GIT.REPO = 'https://github.com/Krowemoh/TCL-Utilities.git'
+*
+* VERSION
+*
+   VERSION = '1'
+*
+   @USER1 = 'SEARCH-ALL'
+   @USER2 = 'SEARCH-ALL'
+*
+   EQU TRUE TO 1
+   EQU FALSE TO 0
+*
+   OPEN '','VOC' TO MD.FILE ELSE
+      PRINT 'Unable to open file: VOC.':
+      STOP
+   END
+*
+   CALL GET.ARGUMENTS(ARGS)
+   DELETE.FLAG = TRUE
+*
+   ARGS.LEN = DCOUNT(ARGS,@AM)
+*
+   IF ARGS.LEN = 1 THEN
+      PRINT 'SEARCH-ALL - Search All Files'
+      PRINT
+      PRINT '    Search all FILES'
+      PRINT '       SEARCH-ALL {NEEDLE}'
+      PRINT '       SEARCH-ALL {"NEEDLE WITH SPACES"}'
+      PRINT
+      PRINT '    Search specific FILES, delimit by |'
+      PRINT '       SEARCH-ALL {FILENAME|FILENAME} {NEEDLE}'
+      PRINT
+      STOP
+*
+   END ELSE IF ARGS.LEN # 2 AND ARGS.LEN # 3 THEN
+      PRINT 'Invalid option.'
+      STOP
+   END
+*
+   NEEDLE = ''
+   FILES = ''
+*
+   IF ARGS.LEN = 2 THEN
+      NEEDLE = ARGS<2>
+*
+   END ELSE IF ARGS.LEN = 3 THEN
+      FILES = ARGS<2>
+      CONVERT '|' TO @AM IN FILES
+      NEEDLE = ARGS<3>
+   END
+*
+   IF FILES = '' THEN
+      SELECT MD.FILE
+*
+      LOOP
+         READNEXT ITEM.ID ELSE ITEM.ID = ''
+      UNTIL ITEM.ID = '' DO
+         READ MD.ITEM FROM MD.FILE,ITEM.ID ELSE MD.ITEM = ''
+         IF MD.ITEM<1>[1,1] = 'F' AND MD.ITEM<2> # MD.ITEM<3> THEN
+            FILES<-1> = ITEM.ID
+         END
+      REPEAT
+   END
+*
+   NUMBER.OF.FILES = DCOUNT(FILES,@AM)
+   FOR I = 1 TO NUMBER.OF.FILES
+*
+      SOMETHING.PRINTED = FALSE
+      FILENAME = FILES<I>
+*
+      OPEN '',FILENAME TO FILE ELSE
+         PRINT 'Unable to open file: ' : FILENAME
+         PRINT
+         CONTINUE
+      END
+*
+      SELECT FILE
+*
+      LOOP
+         READNEXT ITEM.ID ELSE ITEM.ID = ''
+      UNTIL ITEM.ID = '' DO
+         READ ITEM FROM FILE,ITEM.ID ELSE ITEM = ''
+         NUMBER.OF.LINES = DCOUNT(ITEM,@AM)
+*
+         FOUND.POS = INDEX(ITEM,NEEDLE,1)
+*
+         IF  FOUND.POS # 0 THEN
+            FOUND.POS = FALSE
+*
+            FOR LINE.CTR = 1 TO NUMBER.OF.LINES UNTIL FOUND.POS
+               LINE = ITEM<LINE.CTR>
+               FOUND.POS = INDEX(LINE,NEEDLE,1)
+*
+               IF FOUND.POS THEN
+                  IF LEN(LINE) < 60 THEN
+                     PRINT FILENAME : '/' : ITEM.ID : ' ' : FOUND.POS : ': ' : LINE
+                  END ELSE
+                     PRINT FILENAME : '/' : ITEM.ID : ' ' : FOUND.POS : ': ': 'Line is too long to display.'
+                  END
+*
+                  SOMETHING.PRINTED = TRUE
+               END
+            NEXT LINE.CTR
+         END
+      REPEAT
+*
+      IF SOMETHING.PRINTED THEN
+         PRINT
+      END
+   NEXT I
+*
+* END OF PROGRAM
+*
+   END
+*
