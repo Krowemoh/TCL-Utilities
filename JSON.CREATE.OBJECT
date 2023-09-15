@@ -60,10 +60,12 @@ QUOTE.VALUE:NULL
     KEY = CHANGE(KEY,'\','\\')
     KEY = CHANGE(KEY,'"','\"')
     KEY = CHANGE(KEY,'/','\/')
+    KEY = CHANGE(KEY,CHAR(0),'\u0000')
 *
     VALUE = CHANGE(VALUE,'\','\\')
     VALUE = CHANGE(VALUE,'"','\"')
     VALUE = CHANGE(VALUE,'/','\/')
+    VALUE = CHANGE(VALUE,CHAR(0),'\u0000')
 *
     KEY.VALUE = '"' : KEY : '": "' : VALUE : '"'
 *
