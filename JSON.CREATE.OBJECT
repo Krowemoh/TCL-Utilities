@@ -57,8 +57,14 @@
 *
 QUOTE.VALUE:NULL
 *
+    KEY = CHANGE(KEY,'\','\\')
     KEY = CHANGE(KEY,'"','\"')
+    KEY = CHANGE(KEY,'/','\/')
+*
+    VALUE = CHANGE(VALUE,'\','\\')
     VALUE = CHANGE(VALUE,'"','\"')
+    VALUE = CHANGE(VALUE,'/','\/')
+*
     KEY.VALUE = '"' : KEY : '": "' : VALUE : '"'
 *
     RETURN
@@ -67,4 +73,5 @@ QUOTE.VALUE:NULL
 *
     END
 *
+
 
