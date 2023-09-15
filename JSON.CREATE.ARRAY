@@ -45,7 +45,10 @@
 *
 QUOTE.VALUE:NULL
 *
+    VALUE = CHANGE(VALUE,'\','\\')
     VALUE = CHANGE(VALUE,'"','\"')
+    VALUE = CHANGE(VALUE,'/','\/')
+*
     JSON<-1> = '"' : VALUE : '"'
 *
     RETURN
@@ -54,4 +57,3 @@ QUOTE.VALUE:NULL
 *
     END
 *
-
