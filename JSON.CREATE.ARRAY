@@ -49,13 +49,13 @@ QUOTE.VALUE:NULL
     VALUE = CHANGE(VALUE,'"','\"')
     VALUE = CHANGE(VALUE,'/','\/')
 *
-    VALUE = CHANGE(VALUE,CHAR(0),'\0')
     VALUE = CHANGE(VALUE,CHAR(8),'\b')
     VALUE = CHANGE(VALUE,CHAR(9),'\t')
     VALUE = CHANGE(VALUE,CHAR(10),'\n')
     VALUE = CHANGE(VALUE,CHAR(12),'\f')
     VALUE = CHANGE(VALUE,CHAR(13),'\r')
 *
+    VALUE = CHANGE(VALUE,CHAR(0),'\u0000')
 *
     JSON<-1> = '"' : VALUE : '"'
 *
