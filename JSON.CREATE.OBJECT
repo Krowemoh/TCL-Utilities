@@ -28,6 +28,9 @@
             GOSUB QUOTE.VALUE
             JSON<KEY.POS> = KEY.VALUE
 *
+        END ELSE IF VALUE = 0 THEN
+            JSON<KEY.POS> = '"' : KEY : '": ' : VALUE
+*
         END ELSE IF VALUE[1,1] = '0' THEN
             GOSUB QUOTE.VALUE
             JSON<KEY.POS> = KEY.VALUE
@@ -89,5 +92,6 @@ QUOTE.VALUE:NULL
 *
     END
 *
+
 
 
