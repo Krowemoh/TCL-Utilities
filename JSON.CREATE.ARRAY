@@ -19,6 +19,9 @@
         IF VALUE = '' THEN
             GOSUB QUOTE.VALUE 
 *
+        END ELSE IF VALUE = 0 THEN
+            JSON<-1> = VALUE
+*
         END ELSE IF VALUE[1,1] = '0' THEN
             GOSUB QUOTE.VALUE 
 *
@@ -65,3 +68,4 @@ QUOTE.VALUE:NULL
 *
     END
 *
+
