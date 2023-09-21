@@ -40,7 +40,12 @@
    @USER2 = 'SERAPHIM'
 *
    OPEN '','CONTROL-FILE' TO CONTROL.FILE ELSE
-      PRINT 'Unable to open file: CONTROL-FILE':
+      PRINT 'Unable to open file: CONTROL-FILE'
+      STOP
+   END
+*
+   OPEN '','BINARY-FILE' TO BINARY.FILE ELSE
+      PRINT 'Unable to open file: BINARY-FILE'
       STOP
    END
 *
@@ -322,8 +327,7 @@
             NEXT ROUTE.CTR
 *
             IF NOT(PROCEED) THEN
-               FILE.PATH = STATIC.FOLDER : REQUEST.URL
-               FILE.EXT = OCONV(FILE.PATH[3],'MCL')
+               FILE.EXT = OCONV(REQUEST.URL[3],'MCL')
 *
                BEGIN CASE
                   CASE FILE.EXT = 'css'
@@ -336,24 +340,35 @@
                      MIME.TYPE = 'text/html'
                END CASE
 *
-               OPENSEQ FILE.PATH TO FLAT.FILE THEN
-                  READBLK FILE.CONTENT FROM FLAT.FILE, 100000000 THEN
-                     RELEASE FLAT.FILE
-                     CLOSESEQ FLAT.FILE
+               FILE.PATH = STATIC.FOLDER : REQUEST.URL
 *
-                     RESPONSE(RESPONSE.STATUS.ATTRIBUTE) = 200
-                     RESPONSE(RESPONSE.CONTENT.ATTRIBUTE) = FILE.CONTENT
-                     GOSUB SEND.HTTP.RESPONSE
-                  END ELSE
-                     RESPONSE(RESPONSE.STATUS.ATTRIBUTE) = 500
-                     RESPONSE(RESPONSE.CONTENT.ATTRIBUTE) = 'Failed to read content.'
-                     GOSUB SEND.HTTP.RESPONSE
-                  END
+               READ BINARY.ITEM FROM BINARY.FILE,REQUEST.URL THEN
+                  RESPONSE(RESPONSE.STATUS.ATTRIBUTE) = 200
+                  FILE.CONTENT = BINARY.ITEM<10>
+                  FILE.CONTENT = ICONV(FILE.CONTENT,'MX0C')
+                  RESPONSE(RESPONSE.CONTENT.ATTRIBUTE) = FILE.CONTENT
+                  GOSUB SEND.HTTP.RESPONSE
 *
                END ELSE
-                  RESPONSE(RESPONSE.STATUS.ATTRIBUTE) = 404
-                  RESPONSE(RESPONSE.CONTENT.ATTRIBUTE) = 'Page not found.'
-                  GOSUB SEND.HTTP.RESPONSE
+                  OPENSEQ FILE.PATH TO FLAT.FILE THEN
+                     READBLK FILE.CONTENT FROM FLAT.FILE, 100000000 THEN
+                        RELEASE FLAT.FILE
+                        CLOSESEQ FLAT.FILE
+*
+                        RESPONSE(RESPONSE.STATUS.ATTRIBUTE) = 200
+                        RESPONSE(RESPONSE.CONTENT.ATTRIBUTE) = FILE.CONTENT
+                        GOSUB SEND.HTTP.RESPONSE
+                     END ELSE
+                        RESPONSE(RESPONSE.STATUS.ATTRIBUTE) = 500
+                        RESPONSE(RESPONSE.CONTENT.ATTRIBUTE) = 'Failed to read content.'
+                        GOSUB SEND.HTTP.RESPONSE
+                     END
+*
+                  END ELSE
+                     RESPONSE(RESPONSE.STATUS.ATTRIBUTE) = 404
+                     RESPONSE(RESPONSE.CONTENT.ATTRIBUTE) = 'Page not found.'
+                     GOSUB SEND.HTTP.RESPONSE
+                  END
                END
             END
 *
@@ -409,7 +424,6 @@
                   END ELSE
                      DONE = FALSE
                   END
-*
                END
 *
                CALL @FUNC(MAT REQUEST,MAT RESPONSE)
@@ -812,4 +826,4 @@ GET.ARGUMENTS:NULL
    END
 *
    
-
+   
