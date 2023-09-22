@@ -58,7 +58,10 @@ QUOTE.VALUE:NULL
     VALUE = CHANGE(VALUE,CHAR(12),'\f')
     VALUE = CHANGE(VALUE,CHAR(13),'\r')
 *
-    VALUE = CHANGE(VALUE,CHAR(0),'\u0000')
+   FOR I = 0 TO 31
+      ESCAPED.CHAR = FMT(I,'4"0"R')
+      VALUE = CHANGE(VALUE,CHAR(I),ESCAPED.CHAR)
+   NEXT I
 *
     JSON<-1> = '"' : VALUE : '"'
 *
@@ -68,4 +71,5 @@ QUOTE.VALUE:NULL
 *
     END
 *
+
 
