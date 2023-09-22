@@ -1,97 +1,104 @@
-    SUBROUTINE JSON.CREATE.OBJECT(BUFFER)
+   SUBROUTINE JSON.CREATE.OBJECT(BUFFER)
 *
-    GIT.FILENAME = 'JSON.CREATE.OBJECT'
-    GIT.REPO = 'https://github.com/Krowemoh/TCL-Utilities.git'
+   GIT.FILENAME = 'JSON.CREATE.OBJECT'
+   GIT.REPO = 'https://github.com/Krowemoh/TCL-Utilities.git'
 *
 * VERSION
 *
-    VERSION = '1'
+   VERSION = '1'
 *
-    @USER1 = 'JSON.CREATE.OBJECT'
-    @USER2 = 'JSON.CREATE.OBJECT'
+   @USER1 = 'JSON.CREATE.OBJECT'
+   @USER2 = 'JSON.CREATE.OBJECT'
 *
-    NUMBER.OF.KEYS = DCOUNT(BUFFER,@AM)
+   NUMBER.OF.KEYS = DCOUNT(BUFFER,@AM)
 *
-    KEYS = ''
-    JSON = ''
+   KEYS = ''
+   JSON = ''
 *
-    FOR I = 1 TO NUMBER.OF.KEYS
-        KEY = BUFFER<I,1>
-        VALUE = BUFFER<I,2>
+   FOR I = 1 TO NUMBER.OF.KEYS
+      KEY = BUFFER<I,1>
+      VALUE = BUFFER<I,2>
 *
-        LOCATE(KEY,KEYS;KEY.POS) ELSE
-            KEYS<-1> = KEY
-            KEY.POS = -1
-        END
+      LOCATE(KEY,KEYS;KEY.POS) ELSE
+         KEYS<-1> = KEY
+         KEY.POS = -1
+      END
 *
-        IF VALUE = '' THEN
-            GOSUB QUOTE.VALUE
-            JSON<KEY.POS> = KEY.VALUE
+      IF VALUE = '' THEN
+         GOSUB QUOTE.VALUE
+         JSON<KEY.POS> = KEY.VALUE
 *
-        END ELSE IF VALUE = 0 THEN
-            JSON<KEY.POS> = '"' : KEY : '": ' : VALUE
+      END ELSE IF VALUE = 0 THEN
+         JSON<KEY.POS> = '"' : KEY : '": ' : VALUE
 *
-        END ELSE IF VALUE[1,1] = '0' THEN
-            GOSUB QUOTE.VALUE
-            JSON<KEY.POS> = KEY.VALUE
+      END ELSE IF VALUE[1,1] = '0' THEN
+         GOSUB QUOTE.VALUE
+         JSON<KEY.POS> = KEY.VALUE
 *
-        END ELSE IF VALUE[1,1] = '.' THEN
-            GOSUB QUOTE.VALUE
-            JSON<KEY.POS> = KEY.VALUE
+      END ELSE IF VALUE[1,1] = '.' THEN
+         GOSUB QUOTE.VALUE
+         JSON<KEY.POS> = KEY.VALUE
 *
-        END ELSE IF (VALUE[1,1] = '[' OR VALUE[1,1] = '{' OR NUM(VALUE)) THEN
-            JSON<KEY.POS> = '"' : KEY : '": ' : VALUE
+      END ELSE IF (VALUE[1,1] = '[' OR VALUE[1,1] = '{' OR NUM(VALUE)) THEN
+         JSON<KEY.POS> = '"' : KEY : '": ' : VALUE
 *
-        END ELSE
-            GOSUB QUOTE.VALUE
-            JSON<KEY.POS> = KEY.VALUE
-        END
-    NEXT I
+      END ELSE
+         GOSUB QUOTE.VALUE
+         JSON<KEY.POS> = KEY.VALUE
+      END
+   NEXT I
 *
-    CONVERT @AM TO ',' IN JSON
+   CONVERT @AM TO ',' IN JSON
 *
-    JSON = '{ ' : JSON : ' }'
+   JSON = '{ ' : JSON : ' }'
 *
-    BUFFER = JSON
+   BUFFER = JSON
 *
-    RETURN
+   RETURN
 *
 *********************  S U B R O U T I N E  *********************
 *
 QUOTE.VALUE:NULL
 *
-    KEY = CHANGE(KEY,'\','\\')
-    KEY = CHANGE(KEY,'"','\"')
-    KEY = CHANGE(KEY,'/','\/')
+   KEY = CHANGE(KEY,'\','\\')
+   KEY = CHANGE(KEY,'"','\"')
+   KEY = CHANGE(KEY,'/','\/')
 *
-    KEY = CHANGE(KEY,CHAR(8),'\b')
-    KEY = CHANGE(KEY,CHAR(9),'\t')
-    KEY = CHANGE(KEY,CHAR(10),'\n')
-    KEY = CHANGE(KEY,CHAR(12),'\f')
-    KEY = CHANGE(KEY,CHAR(13),'\r')
+   KEY = CHANGE(KEY,CHAR(8),'\b')
+   KEY = CHANGE(KEY,CHAR(9),'\t')
+   KEY = CHANGE(KEY,CHAR(10),'\n')
+   KEY = CHANGE(KEY,CHAR(12),'\f')
+   KEY = CHANGE(KEY,CHAR(13),'\r')
 *
-    KEY = CHANGE(KEY,CHAR(0),'\u0000')
+   FOR I = 0 TO 31
+      ESCAPED.CHAR = FMT(I,'4"0"R')
+      KEY = CHANGE(KEY,CHAR(I),ESCAPED.CHAR)
+   NEXT I
 *
-    VALUE = CHANGE(VALUE,'\','\\')
-    VALUE = CHANGE(VALUE,'"','\"')
-    VALUE = CHANGE(VALUE,'/','\/')
+   VALUE = CHANGE(VALUE,'\','\\')
+   VALUE = CHANGE(VALUE,'"','\"')
+   VALUE = CHANGE(VALUE,'/','\/')
 *
-    VALUE = CHANGE(VALUE,CHAR(8),'\b')
-    VALUE = CHANGE(VALUE,CHAR(9),'\t')
-    VALUE = CHANGE(VALUE,CHAR(10),'\n')
-    VALUE = CHANGE(VALUE,CHAR(12),'\f')
-    VALUE = CHANGE(VALUE,CHAR(13),'\r')
+   VALUE = CHANGE(VALUE,CHAR(8),'\b')
+   VALUE = CHANGE(VALUE,CHAR(9),'\t')
+   VALUE = CHANGE(VALUE,CHAR(10),'\n')
+   VALUE = CHANGE(VALUE,CHAR(12),'\f')
+   VALUE = CHANGE(VALUE,CHAR(13),'\r')
 *
-    VALUE = CHANGE(VALUE,CHAR(0),'\u0000')
+   FOR I = 0 TO 31
+      ESCAPED.CHAR = FMT(I,'4"0"R')
+      VALUE = CHANGE(VALUE,CHAR(I),ESCAPED.CHAR)
+   NEXT I
 *
-    KEY.VALUE = '"' : KEY : '": "' : VALUE : '"'
+   KEY.VALUE = '"' : KEY : '": "' : VALUE : '"'
 *
-    RETURN
+   RETURN
 *
 * END OF PROGRAM
 *
-    END
+   END
 *
-
-
-
+   
+   
+   
+   
