@@ -39,6 +39,22 @@
 *
          GOSUB BUILD.BLOCK
 *
+      END ELSE IF LINE[1,6] = '<html>' THEN
+         IF BLOCK.TYPE THEN
+            GOSUB BUILD.BLOCK
+         END
+*
+         BLOCK.TYPE = 'HTML'
+*
+         LOOP
+            I = I + 1
+            LINE = MARKDOWN<I>
+         UNTIL LINE = '</html>' OR I > NUMBER.OF.LINES DO
+            BLOCK = BLOCK : LINE : CHAR(10)
+         REPEAT
+*
+         GOSUB BUILD.BLOCK
+*
       END ELSE IF LINE[1,4] = SPACE(4) THEN
          IF BLOCK.TYPE THEN
             GOSUB BUILD.BLOCK
@@ -373,7 +389,12 @@ BUILD.BLOCK:NULL
       HTML = HTML : '<p>' : BLOCK : '</p>' : CHAR(10)
 *
    END ELSE IF BLOCK.TYPE = 'CODE' THEN
+      BLOCK = CHANGE(BLOCK,'<','&lt;')
+      BLOCK = CHANGE(BLOCK,'>','&gt;')
       HTML = HTML : '<pre><code>' : BLOCK : '</code></pre>' : CHAR(10)
+*
+   END ELSE IF BLOCK.TYPE = 'HTML' THEN
+      HTML = BLOCK
 *
    END ELSE IF BLOCK.TYPE = 'BLOCKQUOTE' THEN
       HTML = HTML : '<blockquote>' : CHAR(10) : BLOCK : '</blockquote>' : CHAR(10)
@@ -411,3 +432,4 @@ BUILD.BLOCK:NULL
 *
    END
 *
+
