@@ -5,6 +5,11 @@ Helpful Commands for PICK TCL
 
 A set of utilities to make PICK easier to manage. Square brackets mean the word is optional. Curly braces are where you can substitute what you want in the command.
 
+| Command | Description |
+|---------|-------------|
+| ADD-DICT | Add dictionary entries to a file |
+
+
 ### ADD-DICT
 
 Add a A type and an S type PICK style dictionary to a file:
