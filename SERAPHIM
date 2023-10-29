@@ -543,8 +543,6 @@ READ.REQUEST:NULL
       END
    REPEAT
 *
-   PRINT LEN(RAW.REQUEST)
-*
    RETURN
 *
 *********************  S U B R O U T I N E  *********************
