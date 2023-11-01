@@ -830,7 +830,7 @@ SEND.HTTP.RESPONSE:NULL
    BUFFER<-1> = 'Date: ' : OCONV(DATE(),'D')
    BUFFER<-1> = 'Server: SERAPHIM'
    BUFFER<-1> = 'Access-Control-Allow-Origin: *'
-   BUFFER<-1> = 'Access-Control-Allow-Methods: GET, POST, OPTIONS, DELETE, PUT'
+   BUFFER<-1> = 'Access-Control-Allow-Methods: GET, POST, OPTIONS, DELETE, HEAD, PUT'
    BUFFER<-1> = 'Access-Control-Allow-Headers: *'
 *
    IF HEADERS THEN
