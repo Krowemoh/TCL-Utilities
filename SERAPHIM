@@ -871,7 +871,7 @@ LOG.RESPONSE:NULL
 *
    PRINT '> [' : OCONV(DATE(),'D') : ' ' :
    PRINT OCONV(TIME(),'MTH') : '] ' :
-   PRINT REQUEST.TYPE : ' ' :
+   PRINT RAW.REQUEST.TYPE : ' ' :
    PRINT REQUEST.URL : ' ' :
    PRINT RESPONSE.STATUS : ' ' :
    PRINT TIME.TAKEN : 's '
@@ -920,3 +920,4 @@ GET.ARGUMENTS:NULL
 *
    END
 *
+
