@@ -582,6 +582,8 @@ READ.REQUEST:NULL
 *
 GET.STATUS.LINE:NULL
 *
+   RAW.REQUEST.TYPE = ''
+*
    IF RAW.REQUEST = '' THEN
       REQUEST.ERROR = 'Invalid request - request is blank.'
       RETURN
