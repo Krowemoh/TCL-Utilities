@@ -7,7 +7,7 @@
    $DEFINE DATABASE.UV
    $DEFINE PLATFORM.LINUX
 *
-   $DEFINE HTTP
+   $DEFINE HTTPS
 *
    EQU TRUE TO 1
    EQU FALSE TO 0
@@ -226,8 +226,7 @@
             CODE = STATUS()
             IF CODE THEN
                CRT 'ERROR ' : CODE : ' = Accept Secure failed.'
-               CLOSE.SECURE.SOCKET SOCKET
-               STOP
+               CONTINUE
             END
          $ENDIF
       $ENDIF
