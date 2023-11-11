@@ -69,13 +69,6 @@
 *
    GOSUB GET.ARGUMENTS
 *
-   PHANTOM.MODE = TRUE
-*
-   LOCATE('--NO-PHANTOM',ARGUMENTS;FLAG.POS) THEN
-      PHANTOM.MODE = FALSE
-      ARGUMENTS = DELETE(ARGUMENTS,FLAG.POS)
-   END
-*
    CR = CHAR(13)
    LF = CHAR(10)
 *
@@ -193,15 +186,6 @@
 *
 *
    CRT 'Listening on: 0.0.0.0:' : SERVER.PORT
-*
-   IF PHANTOM.MODE THEN
-      PRINT 'Started in PHANTOM.'
-*
-   END ELSE
-      PRINT 'Started in non-PHANTOM mode.'
-   END
-*
-   CRT
 *
    OPEN '','CONTROL-FILE' TO CONTROL.FILE ELSE
       PRINT 'Unable to open file: CONTROL-FILE - Press RETURN':
@@ -452,35 +436,6 @@
             END
 *
             IF PROCEED THEN
-               IF PHANTOM.MODE THEN
-                  $IFDEF DATABASE.D3
-                     %CLOSESOCKET(SOCKET)
-                  $ENDIF
-*
-                  $IFDEF DATABASE.QM
-                     $IFDEF HTTP
-                        CLOSE.SOCKET SOCKET
-                     $ENDIF
-                     $IFDEF HTTPS
-                        CLOSE.SECURE.SOCKET SOCKET
-                     $ENDIF
-                  $ENDIF
-*
-                  $IFDEF DATABASE.UV
-                     CODE = closeSocket(SOCKET)
-                  $ENDIF
-*
-                  EXECUTE 'PHANTOM SERAPHIM' CAPTURING RESULT
-*
-                  PHANTOM.STARTED = INDEX(OCONV(RESULT,'MCU'),'STARTED',1) > 0
-*
-                  IF PHANTOM.STARTED THEN
-                     DONE = TRUE
-                  END ELSE
-                     DONE = FALSE
-                  END
-               END
-*
                CALL @FUNC(MAT REQUEST,MAT RESPONSE)
                GOSUB SEND.HTTP.RESPONSE
             END
