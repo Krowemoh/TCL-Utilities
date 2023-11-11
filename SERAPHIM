@@ -7,6 +7,8 @@
    $DEFINE DATABASE.UV
    $DEFINE PLATFORM.LINUX
 *
+   $DEFINE HTTP
+*
    EQU TRUE TO 1
    EQU FALSE TO 0
 *
@@ -54,6 +56,12 @@
    READ CONFIG FROM CONTROL.FILE,'SERAPHIM' THEN
       SERVER.PORT = CONFIG<1>
       STATIC.FOLDER = CONFIG<2>
+*
+      $IFDEF HTTPS
+         CERTIFICATE.PATH = CONFIG<3>
+         KEY.PATH = CONFIG<4>
+      $ENDIF
+*
    END ELSE
       PRINT 'Configuration not found: CONTROL-FILE SERAPHIM'
       STOP
@@ -153,13 +161,25 @@
    $ENDIF
 *
    $IFDEF DATABASE.QM
-      SOCKET = CREATE.SERVER.SOCKET('0.0.0.0',SERVER.PORT,0)
-      CODE = STATUS()
-      IF CODE THEN
-         CRT 'ERROR ' : CODE : ' - CREATE.SERVER.SOCKET failed.'
-         CLOSE.SOCKET SOCKET
-         STOP
-      END
+      $IFDEF HTTP
+         SOCKET = CREATE.SERVER.SOCKET('0.0.0.0',SERVER.PORT,0)
+         CODE = STATUS()
+         IF CODE THEN
+            CRT 'ERROR ' : CODE : ' - CREATE.SERVER.SOCKET failed.'
+            CLOSE.SOCKET SOCKET
+            STOP
+         END
+      $ENDIF
+*
+      $IFDEF HTTPS
+         SOCKET = CREATE.SECURE.SERVER.SOCKET('0.0.0.0',SERVER.PORT,0,CERTIFICATE.PATH,KEY.PATH)
+         CODE = STATUS()
+         IF CODE THEN
+            CRT 'ERROR ' : CODE : ' - CREATE.SECURE.SERVER.SOCKET failed.'
+            CLOSE.SECURE.SOCKET SOCKET
+            STOP
+         END
+      $ENDIF
    $ENDIF
 *
    $IFDEF DATABASE.UV
@@ -208,13 +228,24 @@
       $ENDIF
 *
       $IFDEF DATABASE.QM
-         FD = ACCEPT.SOCKET.CONNECTION(SOCKET,0)
-         CODE = STATUS()
-         IF CODE THEN
-            CRT 'ERROR ' : CODE : ' = Accept failed.'
-            CLOSE.SOCKET SOCKET
-            STOP
-         END
+         $IFDEF HTTP
+            FD = ACCEPT.SOCKET.CONNECTION(SOCKET,0)
+            CODE = STATUS()
+            IF CODE THEN
+               CRT 'ERROR ' : CODE : ' = Accept failed.'
+               CLOSE.SOCKET SOCKET
+               STOP
+            END
+         $ENDIF
+         $IFDEF HTTPS
+            FD = ACCEPT.SECURE.SOCKET.CONNECTION(SOCKET,0)
+            CODE = STATUS()
+            IF CODE THEN
+               CRT 'ERROR ' : CODE : ' = Accept Secure failed.'
+               CLOSE.SECURE.SOCKET SOCKET
+               STOP
+            END
+         $ENDIF
       $ENDIF
 *
       $IFDEF DATABASE.UV
@@ -285,8 +316,14 @@
             $ENDIF
 *
             $IFDEF DATABASE.QM
-               CLOSE.SOCKET FD
-               CLOSE.SOCKET SOCKET
+               $IFDEF HTTP
+                  CLOSE.SOCKET FD
+                  CLOSE.SOCKET SOCKET
+               $ENDIF
+               $IFDEF HTTPS
+                  CLOSE.SECURE.SOCKET FD
+                  CLOSE.SECURE.SOCKET SOCKET
+               $ENDIF
             $ENDIF
 *
             $IFDEF DATABASE.UV
@@ -421,7 +458,12 @@
                   $ENDIF
 *
                   $IFDEF DATABASE.QM
-                     CLOSE.SOCKET SOCKET
+                     $IFDEF HTTP
+                        CLOSE.SOCKET SOCKET
+                     $ENDIF
+                     $IFDEF HTTPS
+                        CLOSE.SECURE.SOCKET SOCKET
+                     $ENDIF
                   $ENDIF
 *
                   $IFDEF DATABASE.UV
@@ -455,7 +497,12 @@
       $ENDIF
 *
       $IFDEF DATABASE.QM
-         CLOSE.SOCKET FD
+         $IFDEF HTTP
+            CLOSE.SOCKET FD
+         $ENDIF
+         $IFDEF HTTPS
+            CLOSE.SECURE.SOCKET FD
+         $ENDIF
       $ENDIF
 *
       $IFDEF DATABASE.UV
@@ -468,7 +515,12 @@
    $ENDIF
 *
    $IFDEF DATABASE.QM
-      CLOSE.SOCKET SOCKET
+      $IFDEF HTTP
+         CLOSE.SOCKET SOCKET
+      $ENDIF
+      $IFDEF HTTPS
+         CLOSE.SECURE.SOCKET SOCKET
+      $ENDIF
    $ENDIF
 *
    $IFDEF DATABASE.UV
@@ -532,8 +584,14 @@ READ.REQUEST:NULL
       $ENDIF
 *
       $IFDEF DATABASE.QM
-         BUFFER = READ.SOCKET(FD,BUFFER.SIZE,1,0)
-         READ.SIZE = LEN(BUFFER)
+         $IFDEF HTTP
+            BUFFER = READ.SOCKET(FD,BUFFER.SIZE,1,0)
+            READ.SIZE = LEN(BUFFER)
+         $ENDIF
+         $IFDEF HTTPS
+            BUFFER = READ.SECURE.SOCKET(FD,BUFFER.SIZE,1,0)
+            READ.SIZE = LEN(BUFFER)
+         $ENDIF
       $ENDIF
 *
       $IFDEF DATABASE.UV
@@ -881,7 +939,12 @@ SEND.HTTP.RESPONSE:NULL
    $ENDIF
 *
    $IFDEF DATABASE.QM
-      WRITE.SIZE = WRITE.SOCKET(FD,BUFFER,0,0)
+      $IFDEF HTTP
+         WRITE.SIZE = WRITE.SOCKET(FD,BUFFER,0,0)
+      $ENDIF
+      $IFDEF HTTPS
+         WRITE.SIZE = WRITE.SECURE.SOCKET(FD,BUFFER,0,0)
+      $ENDIF
    $ENDIF
 *
    $IFDEF DATABASE.UV
@@ -947,6 +1010,7 @@ GET.ARGUMENTS:NULL
 *
    END
 *
+   
    
    
    
