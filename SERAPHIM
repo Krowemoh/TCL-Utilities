@@ -7,6 +7,8 @@
    $DEFINE DATABASE.UV
    $DEFINE PLATFORM.LINUX
 *
+   $DEFINE HTTPS
+*
    EQU TRUE TO 1
    EQU FALSE TO 0
 *
@@ -27,8 +29,6 @@
 *
    MAT REQUEST = ''
 *
-   MIME.TYPE = ''
-*
    DIM RESPONSE(4)
 *
    EQU RESPONSE.STATUS.ATTRIBUTE TO 1
@@ -41,31 +41,41 @@
    @USER1 = 'SERAPHIM'
    @USER2 = 'SERAPHIM'
 *
-   OPEN '','CONTROL-FILE' TO CONTROL.FILE ELSE
-      PRINT 'Unable to open file: CONTROL-FILE'
-      STOP
-   END
-*
-   OPEN '','BINARY-FILE' TO BINARY.FILE ELSE
-      PRINT 'Unable to open file: BINARY-FILE'
-      STOP
-   END
-*
-   READ CONFIG FROM CONTROL.FILE,'SERAPHIM' THEN
-      SERVER.PORT = CONFIG<1>
-      STATIC.FOLDER = CONFIG<2>
-   END ELSE
-      PRINT 'Configuration not found: CONTROL-FILE SERAPHIM'
-      STOP
-   END
-*
    GOSUB GET.ARGUMENTS
+   ARGS.LEN = DCOUNT(ARGUMENTS,@AM)
 *
-   PHANTOM.MODE = TRUE
+   IF ARGS.LEN = 1 THEN
+      PRINT 'SERAPHIM - Web Server'
+      PRINT '   Add an application to the BOOK-OF-LIFE.'
+      PRINT
+      PRINT '   Run - SERAPHIM {APPLICATION}'
+      PRINT
+      STOP
+   END
 *
-   LOCATE('--NO-PHANTOM',ARGUMENTS;FLAG.POS) THEN
-      PHANTOM.MODE = FALSE
-      ARGUMENTS = DELETE(ARGUMENTS,FLAG.POS)
+   APPLICATION = ARGUMENTS<2>
+*
+   OPEN '','BOOK-OF-LIFE' TO BOOK.OF.LIFE.FILE ELSE
+      PRINT 'Unable to open file: BOOK-OF-LIFE'
+      STOP
+   END
+*
+   READ CONFIG FROM BOOK.OF.LIFE.FILE,APPLICATION THEN
+      SERVER.IP = CONFIG<1>
+      SERVER.PORT = CONFIG<2>
+*
+      $IFDEF HTTPS
+         CERTIFICATE.PATH = CONFIG<3>
+         KEY.PATH = CONFIG<4>
+      $ENDIF
+*
+      ROUTES = ''
+      ROUTES<1> = CONFIG<5>
+      ROUTES<2> = CONFIG<6>
+*
+   END ELSE
+      PRINT 'Configuration not found: BOOK-OF-LIFE BLOG'
+      STOP
    END
 *
    CR = CHAR(13)
@@ -153,17 +163,29 @@
    $ENDIF
 *
    $IFDEF DATABASE.QM
-      SOCKET = CREATE.SERVER.SOCKET('0.0.0.0',SERVER.PORT,0)
-      CODE = STATUS()
-      IF CODE THEN
-         CRT 'ERROR ' : CODE : ' - CREATE.SERVER.SOCKET failed.'
-         CLOSE.SOCKET SOCKET
-         STOP
-      END
+      $IFDEF HTTP
+         SOCKET = CREATE.SERVER.SOCKET(SERVER.IP,SERVER.PORT,0)
+         CODE = STATUS()
+         IF CODE THEN
+            CRT 'ERROR ' : CODE : ' - CREATE.SERVER.SOCKET failed.'
+            CLOSE.SOCKET SOCKET
+            STOP
+         END
+      $ENDIF
+*
+      $IFDEF HTTPS
+         SOCKET = CREATE.SECURE.SERVER.SOCKET(SERVER.IP,SERVER.PORT,0,CERTIFICATE.PATH,KEY.PATH)
+         CODE = STATUS()
+         IF CODE THEN
+            CRT 'ERROR ' : CODE : ' - CREATE.SECURE.SERVER.SOCKET failed.'
+            CLOSE.SECURE.SOCKET SOCKET
+            STOP
+         END
+      $ENDIF
    $ENDIF
 *
    $IFDEF DATABASE.UV
-      CODE = initServerSocket('0.0.0.0',SERVER.PORT,1,SOCKET)
+      CODE = initServerSocket(SERVER.IP,SERVER.PORT,1,SOCKET)
       IF CODE # 0 THEN
          CRT 'ERROR ' : SYSTEM(0) : ' - initServerSocket failed.'
          CODE = closeSocket(SOCKET)
@@ -172,22 +194,12 @@
    $ENDIF
 *
 *
-   CRT 'Listening on: 0.0.0.0:' : SERVER.PORT
-*
-   IF PHANTOM.MODE THEN
-      PRINT 'Started in PHANTOM.'
-*
-   END ELSE
-      PRINT 'Started in non-PHANTOM mode.'
-   END
-*
-   CRT
-*
-   OPEN '','CONTROL-FILE' TO CONTROL.FILE ELSE
-      PRINT 'Unable to open file: CONTROL-FILE - Press RETURN':
-      INPUT ANYTHING
-      STOP
-   END
+   PRINT 'Application : ' : APPLICATION
+   PRINT 'Server      : ' : SERVER.IP
+   PRINT 'Port        : ' : SERVER.PORT
+   PRINT
+   PRINT 'Listening on ' : SERVER.IP : ':' : SERVER.PORT
+   PRINT
 *
    DONE = FALSE
 *
@@ -196,7 +208,7 @@
 *
    LOOP UNTIL DONE DO
 *
-      READ ROUTES FROM CONTROL.FILE,'ROUTES' ELSE ROUTES = ''
+      CHILD.PID = 0
 *
       $IFDEF DATABASE.D3
          FD = %ACCEPT(SOCKET,&CLIENT.ADDRESS,&CLIENT.PORT)
@@ -208,13 +220,31 @@
       $ENDIF
 *
       $IFDEF DATABASE.QM
-         FD = ACCEPT.SOCKET.CONNECTION(SOCKET,0)
-         CODE = STATUS()
-         IF CODE THEN
-            CRT 'ERROR ' : CODE : ' = Accept failed.'
-            CLOSE.SOCKET SOCKET
-            STOP
+         $IFDEF HTTP
+            FD = ACCEPT.SOCKET.CONNECTION(SOCKET,0)
+            CODE = STATUS()
+            IF CODE THEN
+               CRT 'ERROR ' : CODE : ' = Accept failed.'
+               CLOSE.SOCKET SOCKET
+               STOP
+            END
+         $ENDIF
+*
+         $IFDEF HTTPS
+            FD = ACCEPT.SECURE.SOCKET.CONNECTION(SOCKET,0)
+            CODE = STATUS()
+            IF CODE THEN
+               CRT 'ERROR ' : CODE : ' = Accept Secure failed.'
+               CONTINUE
+            END
+         $ENDIF
+*
+         CHILD.PID = FORK()
+         IF CHILD.PID < 0 THEN
+            CRT 'ERROR ' : CHILD.PID : ' = Fork Failed.'
+            CHILD.PID = 0
          END
+*
       $ENDIF
 *
       $IFDEF DATABASE.UV
@@ -226,241 +256,13 @@
          END
       $ENDIF
 *
-      GOSUB INITIALIZE.REQUEST
-      MAT RESPONSE = ''
+      IF CHILD.PID = 0 THEN
+         GOSUB PROCESS.REQUEST
 *
-      GOSUB READ.REQUEST
-      REQUEST(REQUEST.RAW.REQUEST.ATTRIBUTE) = RAW.REQUEST
-*
-      GOSUB GET.STATUS.LINE
-      REQUEST(REQUEST.TYPE.ATTRIBUTE) = REQUEST.TYPE
-      REQUEST(REQUEST.VERSION.ATTRIBUTE) = REQUEST.VERSION
-      REQUEST(REQUEST.URL.ATTRIBUTE) = REQUEST.URL
-      REQUEST(REQUEST.QUERY.ATTRIBUTE) = REQUEST.QUERY
-*
-      GOSUB GET.HEADERS
-      REQUEST(REQUEST.HEADERS.ATTRIBUTE) = REQUEST.HEADERS
-      REQUEST(REQUEST.COOKIES.ATTRIBUTE) = REQUEST.COOKIES
-*
-      IF REQUEST.TYPE = 'POST' THEN
-         GOSUB GET.POST.DATA
-         REQUEST(REQUEST.RAW.BODY.ATTRIBUTE) = REQUEST.RAW.BODY
-         REQUEST(REQUEST.FORM.ATTRIBUTE) = REQUEST.FORM
-         REQUEST(REQUEST.FILES.ATTRIBUTE) = REQUEST.FILES
-         REQUEST(REQUEST.JSON.ATTRIBUTE) = REQUEST.JSON
+         $IFDEF DATABASE.QM
+            EXIT.CHILD
+         $ENDIF
       END
-*
-      T1 = TIME()
-*
-      BEGIN CASE
-         CASE REQUEST.ERROR # ''
-            PRINT REQUEST.ERROR
-*
-            RESPONSE(RESPONSE.STATUS.ATTRIBUTE) = 400
-            RESPONSE(RESPONSE.CONTENT.ATTRIBUTE) = 'Bad request.'
-            GOSUB SEND.HTTP.RESPONSE
-*
-         CASE REQUEST.TYPE = 'OPTIONS'
-            RESPONSE(RESPONSE.STATUS.ATTRIBUTE) = 204
-            RESPONSE(RESPONSE.CONTENT.ATTRIBUTE) = ''
-            GOSUB SEND.HTTP.RESPONSE
-*
-         CASE REQUEST.URL = '/kill'
-            DONE = TRUE
-*
-            RESPONSE(RESPONSE.STATUS.ATTRIBUTE) = 200
-            RESPONSE(RESPONSE.CONTENT.ATTRIBUTE) = 'Killing server.'
-            GOSUB SEND.HTTP.RESPONSE
-*
-         CASE REQUEST.URL = '/restart'
-            DONE = TRUE
-*
-            RESPONSE(RESPONSE.STATUS.ATTRIBUTE) = 200
-            RESPONSE(RESPONSE.CONTENT.ATTRIBUTE) = 'Restarting server.'
-            GOSUB SEND.HTTP.RESPONSE
-*
-            $IFDEF DATABASE.D3
-               %CLOSESOCKET(FD)
-               %CLOSESOCKET(SOCKET)
-            $ENDIF
-*
-            $IFDEF DATABASE.QM
-               CLOSE.SOCKET FD
-               CLOSE.SOCKET SOCKET
-            $ENDIF
-*
-            $IFDEF DATABASE.UV
-               CODE = closeSocket(FD)
-               CODE = closeSocket(SOCKET)
-            $ENDIF
-*
-            CHAIN 'SERAPHIM'
-*
-         CASE TRUE
-            PROCEED = TRUE
-*
-            NUMBER.OF.ROUTES = DCOUNT(ROUTES<1>,@VM)
-            PROCEED = FALSE
-*
-            FOR ROUTE.CTR = 1 TO NUMBER.OF.ROUTES UNTIL PROCEED = TRUE
-               ROUTE = ROUTES<1,ROUTE.CTR>
-*
-               ROUTE.PATTERN = ''
-               SLUG.PATTERN = "0X'{'0X'}'0X"
-               SLUG.CTR = 0
-*
-               LOOP UNTIL NOT(ROUTE MATCHES SLUG.PATTERN) DO
-                  ONE = MATCHFIELD(ROUTE,SLUG.PATTERN,1)
-                  SLUG = MATCHFIELD(ROUTE,SLUG.PATTERN,3)
-                  THREE = MATCHFIELD(ROUTE,SLUG.PATTERN,5)
-*
-                  ROUTE = "'" : ONE : "'0X'" : THREE : "'"
-*
-                  IF REQUEST.URL MATCHES ROUTE THEN
-                     SLUG.CTR = SLUG.CTR + 2
-*
-                     REQUEST(REQUEST.SLUGS.ATTRIBUTE)<1,-1> = SLUG
-*
-                     SLUG.VALUE = MATCHFIELD(REQUEST.URL,ROUTE,SLUG.CTR)
-                     REQUEST(REQUEST.SLUGS.ATTRIBUTE)<2,-1> = SLUG.VALUE
-                  END
-               REPEAT
-*
-               ROUTE.PATTERN = ROUTE
-*
-               IF REQUEST.URL MATCHES ROUTE.PATTERN THEN
-                  PROCEED = TRUE
-                  ROUTE.POS = ROUTE.CTR
-               END ELSE
-                  REQUEST(REQUEST.SLUGS.ATTRIBUTE)<1> = ''
-                  REQUEST(REQUEST.SLUGS.ATTRIBUTE)<2> = ''
-               END
-            NEXT ROUTE.CTR
-*
-            IF NOT(PROCEED) THEN
-               FILE.EXT = OCONV(REQUEST.URL[3],'MCL')
-*
-               BEGIN CASE
-                  CASE FILE.EXT = 'css'
-                     MIME.TYPE = 'text/css'
-                  CASE FILE.EXT = 'jpg'
-                     MIME.TYPE = 'image/jpeg'
-                  CASE FILE.EXT = 'png'
-                     MIME.TYPE = 'image/png'
-                  CASE TRUE
-                     MIME.TYPE = 'text/html'
-               END CASE
-*
-               FILE.PATH = STATIC.FOLDER : REQUEST.URL
-*
-               READ BINARY.ITEM FROM BINARY.FILE,REQUEST.URL THEN
-                  RESPONSE(RESPONSE.STATUS.ATTRIBUTE) = 200
-                  FILE.CONTENT = BINARY.ITEM<10>
-                  FILE.CONTENT = ICONV(FILE.CONTENT,'MX0C')
-                  RESPONSE(RESPONSE.CONTENT.ATTRIBUTE) = FILE.CONTENT
-                  RESPONSE(RESPONSE.CONTENT.TYPE.ATTRIBUTE) = MIME.TYPE
-                  GOSUB SEND.HTTP.RESPONSE
-*
-               END ELSE
-                  OPENSEQ FILE.PATH TO FLAT.FILE THEN
-                     READBLK FILE.CONTENT FROM FLAT.FILE, 100000000 THEN
-                        RELEASE FLAT.FILE
-                        CLOSESEQ FLAT.FILE
-*
-                        RESPONSE(RESPONSE.STATUS.ATTRIBUTE) = 200
-                        RESPONSE(RESPONSE.CONTENT.ATTRIBUTE) = FILE.CONTENT
-                        RESPONSE(RESPONSE.CONTENT.TYPE.ATTRIBUTE) = MIME.TYPE
-                        GOSUB SEND.HTTP.RESPONSE
-                     END ELSE
-                        RESPONSE(RESPONSE.STATUS.ATTRIBUTE) = 500
-                        RESPONSE(RESPONSE.CONTENT.ATTRIBUTE) = 'Failed to read content.'
-                        GOSUB SEND.HTTP.RESPONSE
-                     END
-*
-                  END ELSE
-                     RESPONSE(RESPONSE.STATUS.ATTRIBUTE) = 404
-                     RESPONSE(RESPONSE.CONTENT.ATTRIBUTE) = 'Page not found.'
-                     GOSUB SEND.HTTP.RESPONSE
-                  END
-               END
-            END
-*
-            IF PROCEED THEN
-               FUNC = TRIM(ROUTES<2,ROUTE.POS>)
-*
-               READ MD.ITEM FROM MD.FILE,FUNC ELSE
-                  RESPONSE(RESPONSE.STATUS.ATTRIBUTE) = 500
-                  RESPONSE(RESPONSE.CONTENT.ATTRIBUTE) = 'Subroutine "' : FUNC : '" was not cataloged.'
-                  GOSUB SEND.HTTP.RESPONSE
-                  PROCEED = FALSE
-               END
-            END
-*
-            IF PROCEED THEN
-               $IFDEF DATABASE.D3
-                  PROGRAM.FOLDER.NAME = TRIM(FIELD(MD.ITEM<4>,' ',1))
-*
-                  CLEARSELECT
-                  FLASH.CMD = 'SELECT DICT ' : PROGRAM.FOLDER.NAME : ' ' : FUNC : ' C/FLASH'
-                  EXECUTE FLASH.CMD
-                  READNEXT FLASH.COMPILED ELSE FLASH.COMPILED = 0
-*
-                  IF NOT(FLASH.COMPILED) THEN
-                     RESPONSE(RESPONSE.STATUS.ATTRIBUTE) = 500
-                     RESPONSE(RESPONSE.CONTENT.ATTRIBUTE) = 'Subroutine "' : FUNC : '" was not flash compiled.'
-                     GOSUB SEND.HTTP.RESPONSE
-                     PROCEED = FALSE
-                  END
-               $ENDIF
-            END
-*
-            IF PROCEED THEN
-               IF PHANTOM.MODE THEN
-                  $IFDEF DATABASE.D3
-                     %CLOSESOCKET(SOCKET)
-                  $ENDIF
-*
-                  $IFDEF DATABASE.QM
-                     CLOSE.SOCKET SOCKET
-                  $ENDIF
-*
-                  $IFDEF DATABASE.UV
-                     CODE = closeSocket(SOCKET)
-                  $ENDIF
-*
-                  EXECUTE 'PHANTOM SERAPHIM' CAPTURING RESULT
-*
-                  PHANTOM.STARTED = INDEX(OCONV(RESULT,'MCU'),'STARTED',1) > 0
-*
-                  IF PHANTOM.STARTED THEN
-                     DONE = TRUE
-                  END ELSE
-                     DONE = FALSE
-                  END
-               END
-*
-               CALL @FUNC(MAT REQUEST,MAT RESPONSE)
-               GOSUB SEND.HTTP.RESPONSE
-            END
-*
-      END CASE
-*
-      T2 = TIME()
-*
-      TIME.TAKEN = T2 - T1
-      GOSUB LOG.RESPONSE
-*
-      $IFDEF DATABASE.D3
-         %CLOSESOCKET(FD)
-      $ENDIF
-*
-      $IFDEF DATABASE.QM
-         CLOSE.SOCKET FD
-      $ENDIF
-*
-      $IFDEF DATABASE.UV
-         CODE = closeSocket(FD)
-      $ENDIF
    REPEAT
 *
    $IFDEF DATABASE.D3
@@ -468,7 +270,12 @@
    $ENDIF
 *
    $IFDEF DATABASE.QM
-      CLOSE.SOCKET SOCKET
+      $IFDEF HTTP
+         CLOSE.SOCKET SOCKET
+      $ENDIF
+      $IFDEF HTTPS
+         CLOSE.SECURE.SOCKET SOCKET
+      $ENDIF
    $ENDIF
 *
    $IFDEF DATABASE.UV
@@ -476,6 +283,162 @@
    $ENDIF
 *
    STOP
+*
+*********************  S U B R O U T I N E  *********************
+*
+PROCESS.REQUEST:NULL
+*
+   T1 = TIME()
+*
+   GOSUB INITIALIZE.REQUEST
+   MAT RESPONSE = ''
+*
+   GOSUB READ.REQUEST
+   REQUEST(REQUEST.RAW.REQUEST.ATTRIBUTE) = RAW.REQUEST
+*
+   GOSUB GET.STATUS.LINE
+   REQUEST(REQUEST.TYPE.ATTRIBUTE) = REQUEST.TYPE
+   REQUEST(REQUEST.VERSION.ATTRIBUTE) = REQUEST.VERSION
+   REQUEST(REQUEST.URL.ATTRIBUTE) = REQUEST.URL
+   REQUEST(REQUEST.QUERY.ATTRIBUTE) = REQUEST.QUERY
+*
+   GOSUB GET.HEADERS
+   REQUEST(REQUEST.HEADERS.ATTRIBUTE) = REQUEST.HEADERS
+   REQUEST(REQUEST.COOKIES.ATTRIBUTE) = REQUEST.COOKIES
+*
+   IF REQUEST.TYPE = 'POST' THEN
+      GOSUB GET.POST.DATA
+      REQUEST(REQUEST.RAW.BODY.ATTRIBUTE) = REQUEST.RAW.BODY
+      REQUEST(REQUEST.FORM.ATTRIBUTE) = REQUEST.FORM
+      REQUEST(REQUEST.FILES.ATTRIBUTE) = REQUEST.FILES
+      REQUEST(REQUEST.JSON.ATTRIBUTE) = REQUEST.JSON
+   END
+*
+   BEGIN CASE
+      CASE REQUEST.ERROR # ''
+         PRINT REQUEST.ERROR
+*
+         RESPONSE(RESPONSE.STATUS.ATTRIBUTE) = 400
+         RESPONSE(RESPONSE.CONTENT.ATTRIBUTE) = 'Bad request.'
+         GOSUB SEND.HTTP.RESPONSE
+*
+      CASE REQUEST.TYPE = 'OPTIONS'
+         RESPONSE(RESPONSE.STATUS.ATTRIBUTE) = 204
+         RESPONSE(RESPONSE.CONTENT.ATTRIBUTE) = ''
+         GOSUB SEND.HTTP.RESPONSE
+*
+      CASE REQUEST.URL = '/kill'
+         DONE = TRUE
+*
+         RESPONSE(RESPONSE.STATUS.ATTRIBUTE) = 200
+         RESPONSE(RESPONSE.CONTENT.ATTRIBUTE) = 'Killing server.'
+         GOSUB SEND.HTTP.RESPONSE
+*
+      CASE TRUE
+         PROCEED = TRUE
+*
+         NUMBER.OF.ROUTES = DCOUNT(ROUTES<1>,@VM)
+         PROCEED = FALSE
+*
+         FOR ROUTE.CTR = 1 TO NUMBER.OF.ROUTES UNTIL PROCEED = TRUE
+            ROUTE = ROUTES<1,ROUTE.CTR>
+*
+            ROUTE.PATTERN = ''
+            SLUG.PATTERN = "0X'{'0X'}'0X"
+            SLUG.CTR = 0
+*
+            LOOP UNTIL NOT(ROUTE MATCHES SLUG.PATTERN) DO
+               ONE = MATCHFIELD(ROUTE,SLUG.PATTERN,1)
+               SLUG = MATCHFIELD(ROUTE,SLUG.PATTERN,3)
+               THREE = MATCHFIELD(ROUTE,SLUG.PATTERN,5)
+*
+               ROUTE = "'" : ONE : "'0X'" : THREE : "'"
+*
+               IF REQUEST.URL MATCHES ROUTE THEN
+                  SLUG.CTR = SLUG.CTR + 2
+*
+                  REQUEST(REQUEST.SLUGS.ATTRIBUTE)<1,-1> = SLUG
+*
+                  SLUG.VALUE = MATCHFIELD(REQUEST.URL,ROUTE,SLUG.CTR)
+                  REQUEST(REQUEST.SLUGS.ATTRIBUTE)<2,-1> = SLUG.VALUE
+               END
+            REPEAT
+*
+            ROUTE.PATTERN = ROUTE
+*
+            IF REQUEST.URL MATCHES ROUTE.PATTERN THEN
+               PROCEED = TRUE
+               ROUTE.POS = ROUTE.CTR
+            END ELSE
+               REQUEST(REQUEST.SLUGS.ATTRIBUTE)<1> = ''
+               REQUEST(REQUEST.SLUGS.ATTRIBUTE)<2> = ''
+            END
+         NEXT ROUTE.CTR
+*
+         IF PROCEED THEN
+            FUNC = TRIM(ROUTES<2,ROUTE.POS>)
+*
+            READ MD.ITEM FROM MD.FILE,FUNC ELSE
+               RESPONSE(RESPONSE.STATUS.ATTRIBUTE) = 500
+               RESPONSE(RESPONSE.CONTENT.ATTRIBUTE) = 'Subroutine "' : FUNC : '" was not cataloged.'
+               GOSUB SEND.HTTP.RESPONSE
+               PROCEED = FALSE
+            END
+         END
+*
+         IF PROCEED THEN
+            $IFDEF DATABASE.D3
+               PROGRAM.FOLDER.NAME = TRIM(FIELD(MD.ITEM<4>,' ',1))
+*
+               CLEARSELECT
+               FLASH.CMD = 'SELECT DICT ' : PROGRAM.FOLDER.NAME : ' ' : FUNC : ' C/FLASH'
+               EXECUTE FLASH.CMD
+               READNEXT FLASH.COMPILED ELSE FLASH.COMPILED = 0
+*
+               IF NOT(FLASH.COMPILED) THEN
+                  RESPONSE(RESPONSE.STATUS.ATTRIBUTE) = 500
+                  RESPONSE(RESPONSE.CONTENT.ATTRIBUTE) = 'Subroutine "' : FUNC : '" was not flash compiled.'
+                  GOSUB SEND.HTTP.RESPONSE
+                  PROCEED = FALSE
+               END
+            $ENDIF
+         END
+*
+         IF PROCEED THEN
+            CALL @FUNC(MAT REQUEST,MAT RESPONSE)
+            GOSUB SEND.HTTP.RESPONSE
+         END ELSE
+*
+            RESPONSE(RESPONSE.STATUS.ATTRIBUTE) = 404
+            RESPONSE(RESPONSE.CONTENT.ATTRIBUTE) = 'Page not found.'
+            GOSUB SEND.HTTP.RESPONSE
+         END
+*
+   END CASE
+*
+   T2 = TIME()
+*
+   TIME.TAKEN = T2 - T1
+   GOSUB LOG.RESPONSE
+*
+   $IFDEF DATABASE.D3
+      %CLOSESOCKET(FD)
+   $ENDIF
+*
+   $IFDEF DATABASE.QM
+      $IFDEF HTTP
+         CLOSE.SOCKET FD
+      $ENDIF
+      $IFDEF HTTPS
+         CLOSE.SECURE.SOCKET FD
+      $ENDIF
+   $ENDIF
+*
+   $IFDEF DATABASE.UV
+      CODE = closeSocket(FD)
+   $ENDIF
+*
+   RETURN
 *
 *********************  S U B R O U T I N E  *********************
 *
@@ -532,8 +495,14 @@ READ.REQUEST:NULL
       $ENDIF
 *
       $IFDEF DATABASE.QM
-         BUFFER = READ.SOCKET(FD,BUFFER.SIZE,1,0)
-         READ.SIZE = LEN(BUFFER)
+         $IFDEF HTTP
+            BUFFER = READ.SOCKET(FD,BUFFER.SIZE,1,0)
+            READ.SIZE = LEN(BUFFER)
+         $ENDIF
+         $IFDEF HTTPS
+            BUFFER = READ.SECURE.SOCKET(FD,BUFFER.SIZE,1,0)
+            READ.SIZE = LEN(BUFFER)
+         $ENDIF
       $ENDIF
 *
       $IFDEF DATABASE.UV
@@ -581,6 +550,8 @@ READ.REQUEST:NULL
 *********************  S U B R O U T I N E  *********************
 *
 GET.STATUS.LINE:NULL
+*
+   RAW.REQUEST.TYPE = ''
 *
    IF RAW.REQUEST = '' THEN
       REQUEST.ERROR = 'Invalid request - request is blank.'
@@ -835,7 +806,7 @@ SEND.HTTP.RESPONSE:NULL
 *
    RESPONSE.STATUS = RESPONSE(RESPONSE.STATUS.ATTRIBUTE)
 *
-   IF MIME.TYPE[1,5] = 'text/' THEN
+   IF CONTENT.TYPE[1,5] = 'text/' THEN
       RESPONSE.BODY = CHANGE(RESPONSE(RESPONSE.CONTENT.ATTRIBUTE),@AM,CR:LF)
    END ELSE
       RESPONSE.BODY = RESPONSE(RESPONSE.CONTENT.ATTRIBUTE)
@@ -879,14 +850,17 @@ SEND.HTTP.RESPONSE:NULL
    $ENDIF
 *
    $IFDEF DATABASE.QM
-      WRITE.SIZE = WRITE.SOCKET(FD,BUFFER,0,0)
+      $IFDEF HTTP
+         WRITE.SIZE = WRITE.SOCKET(FD,BUFFER,0,0)
+      $ENDIF
+      $IFDEF HTTPS
+         WRITE.SIZE = WRITE.SECURE.SOCKET(FD,BUFFER,0,0)
+      $ENDIF
    $ENDIF
 *
    $IFDEF DATABASE.UV
       CODE = writeSocket(FD,BUFFER,10000,1,WRITE.SIZE)
    $ENDIF
-*
-   MIME.TYPE = ''
 *
    RETURN
 *
@@ -945,7 +919,3 @@ GET.ARGUMENTS:NULL
 *
    END
 *
-   
-   
-   
-
