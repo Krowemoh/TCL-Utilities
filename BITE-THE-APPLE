@@ -93,52 +93,43 @@
 *
    PRINT 'Added routines to MD'
 *
-* Create CONTROL-FILE
+* Create BOOK-OF-LIFE
 *
-   OPEN '','CONTROL-FILE' TO CONTROL.FILE ELSE
+   OPEN '','BOOK-OF-LIFE' TO BOOK.OF.LIFE.FILE ELSE
       $IFDEF DATABASE.UV
-         EXECUTE 'CREATE-FILE CONTROL-FILE 50,2,6 100,4,18'
+         EXECUTE 'CREATE-FILE BOOK-OF-FILE 50,2,6 100,4,18'
       $ENDIF
       $IFDEF DATABASE.D3
-         EXECUTE 'CREATE-FILE CONTROL-FILE 50,2,6 100,4,18'
+         EXECUTE 'CREATE-FILE BOOK-OF-FILE 50,2,6 100,4,18'
       $ENDIF
       $IFDEF DATABASE.QM
-         EXECUTE 'CREATE-FILE CONTROL-FILE'
+         EXECUTE 'CREATE-FILE BOOK-OF-FILE'
       $ENDIF
 *
-      OPEN '','CONTROL-FILE' TO CONTROL.FILE ELSE
-         PRINT 'Failed to create CONTROL-FILE'
+      OPEN '','BOOK-OF-LIFE' TO BOOK.OF.LIFE.FILE ELSE
+         PRINT 'Failed to create BOOK-OF-LIFE'
          STOP
       END
-      PRINT 'Created CONTROL-FILE'
+      PRINT 'Created BOOK-OF-LIFE'
    END
 *
 * Create SERAPHIM configuration record
 *
-   READ CONFIG FROM CONTROL.FILE,'SERAPHIM' ELSE
+   READ CONFIG FROM BOOK.OF.LIFE.FILE,'DEMO' ELSE
       CONFIG = ''
-      CONFIG<1> = '7122'
-      CONFIG<2> = ''
+      CONFIG<1> = '0.0.0.0'
+      CONFIG<2> = '7122'
 *
-      WRITE CONFIG ON CONTROL.FILE,'SERAPHIM'
-      PRINT 'Created SERAPHIM entry in CONTROL-FILE'
-   END
+      CONFIG<5,-1> = '/'
+      CONFIG<5,-1> = '/login'
+      CONFIG<5,-1> = '/logout'
 *
-* Create ROUTES record
+      CONFIG<6,-1> = 'WEB.INDEX'
+      CONFIG<6,-1> = 'WEB.LOGIN'
+      CONFIG<6,-1> = 'WEB.LOGIN'
 *
-   READ ROUTES FROM CONTROL.FILE,'ROUTES' ELSE
-      ROUTE.ITEM = ''
-*
-      ROUTE.ITEM<1,-1> = '/'
-      ROUTE.ITEM<1,-1> = '/login'
-      ROUTE.ITEM<1,-1> = '/logout'
-*
-      ROUTE.ITEM<2,-1> = 'WEB.INDEX'
-      ROUTE.ITEM<2,-1> = 'WEB.LOGIN'
-      ROUTE.ITEM<2,-1> = 'WEB.LOGIN'
-*
-      WRITE ROUTE.ITEM ON CONTROL.FILE,'ROUTES'
-      PRINT 'Created ROUTES entry in CONTROL-FILE'
+      WRITE CONFIG ON BOOK.OF.LIFE.FILE,'DEMO'
+      PRINT 'Created DEMO entry in BOOK-OF-LIFE'
    END
 *
 * Create SESSION-FILE
@@ -548,4 +539,5 @@
 *
    END
 *
+
 
