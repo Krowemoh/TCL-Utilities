@@ -525,7 +525,7 @@
    PRINT
    PRINT 'Run the server by doing:'
    PRINT
-   PRINT '   RUN BP SERAPHIM --NO-PHANTOM'
+   PRINT '   SERAPHIM DEMO'
    PRINT
    PRINT 'Available routes:'
    PRINT '   - /'
