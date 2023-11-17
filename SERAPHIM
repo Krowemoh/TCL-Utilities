@@ -29,8 +29,6 @@
 *
    MAT REQUEST = ''
 *
-   MIME.TYPE = ''
-*
    DIM RESPONSE(4)
 *
    EQU RESPONSE.STATUS.ATTRIBUTE TO 1
@@ -43,31 +41,42 @@
    @USER1 = 'SERAPHIM'
    @USER2 = 'SERAPHIM'
 *
-   OPEN '','CONTROL-FILE' TO CONTROL.FILE ELSE
-      PRINT 'Unable to open file: CONTROL-FILE'
+   GOSUB GET.ARGUMENTS
+   ARGS.LEN = DCOUNT(ARGUMENTS,@AM)
+*
+   IF ARGS.LEN = 1 THEN
+      PRINT 'SERAPHIM - Web Server'
+      PRINT '   Add an application to the BOOK-OF-LIFE.'
+      PRINT
+      PRINT '   Run - SERAPHIM {APPLICATION}'
+      PRINT
       STOP
    END
 *
-   OPEN '','BINARY-FILE' TO BINARY.FILE ELSE
-      PRINT 'Unable to open file: BINARY-FILE'
+   APPLICATION = ARGUMENTS<2>
+*
+   OPEN '','BOOK-OF-LIFE' TO BOOK.OF.LIFE.FILE ELSE
+      PRINT 'Unable to open file: BOOK-OF-LIFE'
       STOP
    END
 *
-   READ CONFIG FROM CONTROL.FILE,'SERAPHIM' THEN
-      SERVER.PORT = CONFIG<1>
-      STATIC.FOLDER = CONFIG<2>
+   READ CONFIG FROM BOOK.OF.LIFE.FILE,APPLICATION THEN
+      SERVER.IP = CONFIG<1>
+      SERVER.PORT = CONFIG<2>
 *
       $IFDEF HTTPS
          CERTIFICATE.PATH = CONFIG<3>
          KEY.PATH = CONFIG<4>
       $ENDIF
 *
+      ROUTES = ''
+      ROUTES<1> = CONFIG<5>
+      ROUTES<2> = CONFIG<6>
+*
    END ELSE
-      PRINT 'Configuration not found: CONTROL-FILE SERAPHIM'
+      PRINT 'Configuration not found: BOOK-OF-LIFE BLOG'
       STOP
    END
-*
-   GOSUB GET.ARGUMENTS
 *
    CR = CHAR(13)
    LF = CHAR(10)
@@ -155,7 +164,7 @@
 *
    $IFDEF DATABASE.QM
       $IFDEF HTTP
-         SOCKET = CREATE.SERVER.SOCKET('0.0.0.0',SERVER.PORT,0)
+         SOCKET = CREATE.SERVER.SOCKET(SERVER.IP,SERVER.PORT,0)
          CODE = STATUS()
          IF CODE THEN
             CRT 'ERROR ' : CODE : ' - CREATE.SERVER.SOCKET failed.'
@@ -165,7 +174,7 @@
       $ENDIF
 *
       $IFDEF HTTPS
-         SOCKET = CREATE.SECURE.SERVER.SOCKET('0.0.0.0',SERVER.PORT,0,CERTIFICATE.PATH,KEY.PATH)
+         SOCKET = CREATE.SECURE.SERVER.SOCKET(SERVER.IP,SERVER.PORT,0,CERTIFICATE.PATH,KEY.PATH)
          CODE = STATUS()
          IF CODE THEN
             CRT 'ERROR ' : CODE : ' - CREATE.SECURE.SERVER.SOCKET failed.'
@@ -176,7 +185,7 @@
    $ENDIF
 *
    $IFDEF DATABASE.UV
-      CODE = initServerSocket('0.0.0.0',SERVER.PORT,1,SOCKET)
+      CODE = initServerSocket(SERVER.IP,SERVER.PORT,1,SOCKET)
       IF CODE # 0 THEN
          CRT 'ERROR ' : SYSTEM(0) : ' - initServerSocket failed.'
          CODE = closeSocket(SOCKET)
@@ -185,7 +194,12 @@
    $ENDIF
 *
 *
-   CRT 'Listening on: 0.0.0.0:' : SERVER.PORT
+   PRINT 'Application : ' : APPLICATION 
+   PRINT 'Server      : ' : SERVER.IP 
+   PRINT 'Port        : ' : SERVER.PORT
+   PRINT
+   PRINT 'Listening on ' : SERVER.IP : ':' : SERVER.PORT
+   PRINT
 *
    OPEN '','CONTROL-FILE' TO CONTROL.FILE ELSE
       PRINT 'Unable to open file: CONTROL-FILE - Press RETURN':
@@ -199,8 +213,6 @@
    CLIENT.PORT = 0
 *
    LOOP UNTIL DONE DO
-*
-      READ ROUTES FROM CONTROL.FILE,'ROUTES' ELSE ROUTES = ''
 *
       CHILD.PID = 0
 *
@@ -369,53 +381,6 @@ PROCESS.REQUEST:NULL
             END
          NEXT ROUTE.CTR
 *
-         IF NOT(PROCEED) THEN
-            FILE.EXT = OCONV(REQUEST.URL[3],'MCL')
-*
-            BEGIN CASE
-               CASE FILE.EXT = 'css'
-                  MIME.TYPE = 'text/css'
-               CASE FILE.EXT = 'jpg'
-                  MIME.TYPE = 'image/jpeg'
-               CASE FILE.EXT = 'png'
-                  MIME.TYPE = 'image/png'
-               CASE TRUE
-                  MIME.TYPE = 'text/html'
-            END CASE
-*
-            FILE.PATH = STATIC.FOLDER : REQUEST.URL
-*
-            READ BINARY.ITEM FROM BINARY.FILE,REQUEST.URL THEN
-               RESPONSE(RESPONSE.STATUS.ATTRIBUTE) = 200
-               FILE.CONTENT = BINARY.ITEM<10>
-               FILE.CONTENT = ICONV(FILE.CONTENT,'MX0C')
-               RESPONSE(RESPONSE.CONTENT.ATTRIBUTE) = FILE.CONTENT
-               RESPONSE(RESPONSE.CONTENT.TYPE.ATTRIBUTE) = MIME.TYPE
-               GOSUB SEND.HTTP.RESPONSE
-*
-            END ELSE
-               OPENSEQ FILE.PATH TO FLAT.FILE THEN
-                  READBLK FILE.CONTENT FROM FLAT.FILE, 100000000 THEN
-                     RELEASE FLAT.FILE
-                     CLOSESEQ FLAT.FILE
-*
-                     RESPONSE(RESPONSE.STATUS.ATTRIBUTE) = 200
-                     RESPONSE(RESPONSE.CONTENT.ATTRIBUTE) = FILE.CONTENT
-                     RESPONSE(RESPONSE.CONTENT.TYPE.ATTRIBUTE) = MIME.TYPE
-                     GOSUB SEND.HTTP.RESPONSE
-                  END ELSE
-                     RESPONSE(RESPONSE.STATUS.ATTRIBUTE) = 500
-                     RESPONSE(RESPONSE.CONTENT.ATTRIBUTE) = 'Failed to read content.'
-                     GOSUB SEND.HTTP.RESPONSE
-                  END
-*
-               END ELSE
-                  RESPONSE(RESPONSE.STATUS.ATTRIBUTE) = 404
-                  RESPONSE(RESPONSE.CONTENT.ATTRIBUTE) = 'Page not found.'
-                  GOSUB SEND.HTTP.RESPONSE
-               END
-            END
-         END
 *
          IF PROCEED THEN
             FUNC = TRIM(ROUTES<2,ROUTE.POS>)
@@ -843,7 +808,7 @@ SEND.HTTP.RESPONSE:NULL
 *
    RESPONSE.STATUS = RESPONSE(RESPONSE.STATUS.ATTRIBUTE)
 *
-   IF MIME.TYPE[1,5] = 'text/' THEN
+   IF CONTENT.TYPE[1,5] = 'text/' THEN
       RESPONSE.BODY = CHANGE(RESPONSE(RESPONSE.CONTENT.ATTRIBUTE),@AM,CR:LF)
    END ELSE
       RESPONSE.BODY = RESPONSE(RESPONSE.CONTENT.ATTRIBUTE)
@@ -898,8 +863,6 @@ SEND.HTTP.RESPONSE:NULL
    $IFDEF DATABASE.UV
       CODE = writeSocket(FD,BUFFER,10000,1,WRITE.SIZE)
    $ENDIF
-*
-   MIME.TYPE = ''
 *
    RETURN
 *
@@ -958,8 +921,3 @@ GET.ARGUMENTS:NULL
 *
    END
 *
-   
-   
-   
-   
-   
