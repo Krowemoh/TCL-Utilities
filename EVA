@@ -7063,7 +7063,10 @@ ADD.DEFAULT.SNIPPETS:NULL
    SNIPPETS<202,3,1> = "OPENDEV device TO file.variable [LOCKED statements] {THEN statements"
    SNIPPETS<203,1> = 'OPENPATH'
    SNIPPETS<203,2> = 'The OPENPATH statement is similar to the OPEN statement, except that the pathname of the file is specified.'
-   SNIPPETS<203,3,1> = "OPENPATH pathname [TO file.variable] [ON ERROR statements] {THEN"
+   SNIPPETS<203,3,1> = "OPENPATH '/' TO .FILE ELSE"
+   SNIPPETS<203,3,2> = "   PRINT 'Failed to open: '"
+   SNIPPETS<203,3,3> = "   STOP"
+   SNIPPETS<203,3,4> = "END"
    SNIPPETS<204,1> = 'OPENSEQ'
    SNIPPETS<204,2> = 'Use the OPENSEQ statement to open a file for sequential processing.'
    SNIPPETS<204,3,1> = "PATH = '/home/export/'"
@@ -7467,6 +7470,7 @@ ADD.MARKDOWN.SNIPPETS:NULL
 *
    
    
+
 
 
 
