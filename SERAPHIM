@@ -8,6 +8,7 @@
    $DEFINE PLATFORM.LINUX
 *
    $DEFINE HTTPS
+*TEMP    $DEFINE FORK.ENABLED
 *
    EQU TRUE TO 1
    EQU FALSE TO 0
@@ -239,11 +240,13 @@
             END
          $ENDIF
 *
-         CHILD.PID = FORK()
-         IF CHILD.PID < 0 THEN
-            CRT 'ERROR ' : CHILD.PID : ' = Fork Failed.'
-            CHILD.PID = 0
-         END
+         $IFDEF FORK.ENABLED
+            CHILD.PID = FORK()
+            IF CHILD.PID < 0 THEN
+               CRT 'ERROR ' : CHILD.PID : ' = Fork Failed.'
+               CHILD.PID = 0
+            END
+         $ENDIF
 *
       $ENDIF
 *
@@ -260,7 +263,9 @@
          GOSUB PROCESS.REQUEST
 *
          $IFDEF DATABASE.QM
-            EXIT.CHILD
+            $IFDEF FORK.ENABLED
+               EXIT.CHILD
+            $ENDIF
          $ENDIF
       END
    REPEAT
