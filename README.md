@@ -353,5 +353,14 @@ Set up a SERAPHIM project:
 A simple web server:
 
 ```
-    RUN BP SERAPHIM
+    SERAPHIM {APPLICATION}
+```
+
+#### METATRON
+
+Manage SERAPHIM Servers:
+
+```
+    METATRON START {APPLICATION}
+    METATRON STOP {APPLICATION}
 ```
