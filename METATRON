@@ -1,0 +1,115 @@
+*
+   GIT.FILENAME = 'METATRON'
+   GIT.REPO = 'https://github.com/Krowemoh/TCL-Utilities.git'
+*
+* COMPILER DIRECTIVES
+*
+   $DEFINE DATABASE.UV
+   $DEFINE PLATFORM.LINUX
+*
+   EQU TRUE TO 1
+   EQU FALSE TO 0
+*
+   @USER1 = 'METATRON'
+   @USER2 = 'METATRON'
+*
+   GOSUB GET.ARGUMENTS
+   ARGS.LEN = DCOUNT(ARGUMENTS,@AM)
+*
+   IF ARGS.LEN = 1 THEN
+      PRINT 'METATRON - SERAPHIM Supervisor'
+      PRINT '   Manage SERAPHIM servers'
+      PRINT
+      PRINT '   METATRON START {APPLICATION}'
+      PRINT '   METATRON STOP {APPLICATION}'
+      PRINT
+      STOP
+   END
+*
+   OPEN '','BOOK-OF-LIFE' TO BOOK.OF.LIFE.FILE ELSE
+      PRINT 'Unable to open file: BOOK-OF-LIFE'
+      STOP
+   END
+*
+   ACTION = ARGUMENTS<2>
+*
+   IF ACTION # 'START' AND ACTION # 'STOP' THEN
+      PRINT 'Invalid action.'
+      STOP
+   END
+*
+   APPLICATION = ARGUMENTS<3>
+*
+   READ CONFIG FROM BOOK.OF.LIFE.FILE,APPLICATION THEN
+      ALL.PORTS = CONFIG<2>
+*
+   END ELSE
+      PRINT 'Entry not found in BOOK-OF-LIFE: ' : APPLICATION
+      STOP
+   END
+*
+   NUMBER.OF.PORTS = DCOUNT(ALL.PORTS,@VM)
+*
+   BEGIN CASE
+      CASE ACTION = 'START'
+         FOR I = 1 TO NUMBER.OF.PORTS
+            SERVER.PORT = ALL.PORTS<1,I>
+            EXECUTE 'PHANTOM SERAPHIM ' : APPLICATION : ' --PORT ' : SERVER.PORT CAPTURING RESULTS
+            PRINT SERVER.PORT : ': ' : RESULTS
+         NEXT I
+*
+      CASE ACTION = 'STOP'
+         FOR I = 1 TO NUMBER.OF.PORTS
+            SERVER.PORT = ALL.PORTS<1,I>
+            EXECUTE 'SH -c "curl -s http://0.0.0.0:' : SERVER.PORT : '/kill"' CAPTURING RESULTS
+            PRINT SERVER.PORT : ': ' : RESULTS
+         NEXT I
+*
+      CASE TRUE
+         NULL
+   END CASE
+*
+   STOP
+*
+*********************  S U B R O U T I N E  *********************
+*
+GET.ARGUMENTS:NULL
+*
+   COMMAND = SENTENCE()
+*
+   ARGUMENTS = ''
+   TOKEN = ''
+*
+   FOR LETTER.CTR = 1 TO LEN(COMMAND)
+      CHARACTER = COMMAND[LETTER.CTR,1]
+      IF CHARACTER = ' ' THEN
+         IF TOKEN # '' THEN ARGUMENTS<-1> = TOKEN
+         TOKEN = ''
+*
+      END ELSE IF CHARACTER = '"' THEN
+         IF TOKEN # '' THEN ARGUMENTS<-1> = TOKEN
+         TOKEN = ''
+*
+         LOOP
+            LETTER.CTR = LETTER.CTR + 1
+            CHARACTER = COMMAND[LETTER.CTR,1]
+         UNTIL CHARACTER = '"' OR LETTER.CTR > LEN(COMMAND) DO
+            TOKEN = TOKEN : CHARACTER
+         REPEAT
+*
+         IF TOKEN # '' THEN ARGUMENTS<-1> = TOKEN
+         TOKEN = ''
+*
+      END ELSE
+         TOKEN = TOKEN : CHARACTER
+      END
+   NEXT LETTER.CTR
+*
+   IF TOKEN # '' THEN ARGUMENTS<-1> = TOKEN
+*
+   RETURN
+*
+* END OF PROGRAM
+*
+   END
+*
