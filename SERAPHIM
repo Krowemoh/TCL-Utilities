@@ -50,11 +50,26 @@
       PRINT '   Add an application to the BOOK-OF-LIFE.'
       PRINT
       PRINT '   Run - SERAPHIM {APPLICATION}'
+      PRINT '   Run - SERAPHIM {APPLICATION} --PORT 7123'
       PRINT
       STOP
    END
 *
    APPLICATION = ARGUMENTS<2>
+*
+   SERVER.PORT = ''
+*
+   LOCATE('--PORT',ARGUMENTS;PORT.POS) THEN
+      SERVER.PORT = ARGUMENTS<PORT.POS+1>
+      IF SERVER.PORT = '' THEN
+         PRINT 'Port cannot be blank.'
+         STOP
+      END
+      IF NOT(NUM(SERVER.PORT)) THEN
+         PRINT 'Port has to be a number.'
+         STOP
+      END
+   END
 *
    OPEN '','BOOK-OF-LIFE' TO BOOK.OF.LIFE.FILE ELSE
       PRINT 'Unable to open file: BOOK-OF-LIFE'
@@ -63,7 +78,10 @@
 *
    READ CONFIG FROM BOOK.OF.LIFE.FILE,APPLICATION THEN
       SERVER.IP = CONFIG<1>
-      SERVER.PORT = CONFIG<2>
+*
+      IF SERVER.PORT = '' THEN
+         SERVER.PORT = CONFIG<2,1>
+      END
 *
       $IFDEF HTTPS
          CERTIFICATE.PATH = CONFIG<3>
@@ -924,3 +942,4 @@ GET.ARGUMENTS:NULL
 *
    END
 *
+   
