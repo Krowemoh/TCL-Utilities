@@ -723,6 +723,10 @@ SETUP.PACKAGES:NULL
    PACKAGES<2,-1> = 'Simple HTTP Server'
    PACKAGES<3,-1> = 'https://raw.githubusercontent.com/Krowemoh/TCL-Utilities/main/SERAPHIM'
 *
+   PACKAGES<1,-1> = 'METATRON'
+   PACKAGES<2,-1> = 'Manage SERAPHIM Servers'
+   PACKAGES<3,-1> = 'https://raw.githubusercontent.com/Krowemoh/TCL-Utilities/main/METATRON'
+*
    PACKAGES<1,-1> = 'IMPORT-TEMP'
    PACKAGES<2,-1> = 'Import Files from Directory'
    PACKAGES<3,-1> = 'https://raw.githubusercontent.com/Krowemoh/TCL-Utilities/main/IMPORT-TEMP'
@@ -749,4 +753,3 @@ SETUP.PACKAGES:NULL
 *
    END
 *
-
