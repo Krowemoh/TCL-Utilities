@@ -1,0 +1,46 @@
+   SUBROUTINE STACK.POP(MAT STACK,SIZE,VALUE)
+*
+   GIT.FILENAME = 'STACK.POP'
+   GIT.REPO = 'https://github.com/Krowemoh/TCL-Utilities.git'
+*
+* VERSION
+*
+   VERSION = '1'
+*
+   EQU TRUE TO 1
+   EQU FALSE TO 0
+*
+   @USER1 = 'STACK.POP'
+   @USER2 = 'STACK.POP'
+*
+   DIM STACK(SIZE)
+*
+   VALUE = ''
+*
+   STACK.CTR = STACK(1)
+*
+   IF STACK.CTR = '' THEN
+      PRINT 'Nothing to pop.'
+      STOP
+   END
+*
+   IF NOT(NUM(STACK.CTR)) THEN
+      PRINT 'Invalid stack counter in (1).'
+      STOP
+   END
+*
+   IF STACK.CTR <= 1 THEN
+      PRINT 'Nothing to pop.'
+      STOP
+   END
+*
+   VALUE = STACK(STACK.CTR)
+*
+   STACK(1) = STACK.CTR - 1
+*
+   RETURN
+*
+* END OF PROGRAM
+*
+   END
+*
