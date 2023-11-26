@@ -303,7 +303,7 @@ Convert a json object to a multivalue string that can be queried.
     CALL JSON.QUERY(JSON,'.firstName',FIRST.NAME)
 ```
 
-## Hashmap Subroutines
+## Data Structures
 
 #### MAP.SET
 
@@ -335,6 +335,21 @@ Delete a key from a hash map:
 
 ```
     SUBROUTINE MAP.DELETE(MAT MAP,SIZE,KEY)
+```
+
+#### STACK.PUSH
+
+Push something onto the stack:
+
+```
+    SUBROUTINE STACK.PUSH(MAT STACK,SIZE,VALUE)
+```
+#### STACK.POP
+
+Pop something off the stack:
+
+```
+    SUBROUTINE STACK.POP(MAT STACK,SIZE,VALUE)
 ```
 
 ## Programs
