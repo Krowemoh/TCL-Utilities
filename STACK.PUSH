@@ -1,0 +1,45 @@
+   SUBROUTINE STACK.PUSH(MAT STACK,SIZE,VALUE)
+*
+   GIT.FILENAME = 'STACK.PUSH'
+   GIT.REPO = 'https://github.com/Krowemoh/TCL-Utilities.git'
+*
+* VERSION
+*
+   VERSION = '1'
+*
+   EQU TRUE TO 1
+   EQU FALSE TO 0
+*
+   @USER1 = 'STACK.PUSH'
+   @USER2 = 'STACK.PUSH'
+*
+   DIM STACK(SIZE)
+*
+   STACK.CTR = STACK(1)
+*
+   IF STACK.CTR = '' THEN
+      STACK(1) = 1
+      STACK.CTR = 1
+   END
+*
+   IF NOT(NUM(STACK.CTR)) THEN
+      PRINT 'Invalid stack counter in (1).'
+      STOP
+   END
+*
+   IF STACK.CTR >= SIZE THEN
+      PRINT 'Stack exceeded, maximum capacity is: ' : SIZE - 1
+      STOP
+   END
+*
+   STACK.CTR = STACK.CTR + 1
+*
+   STACK(STACK.CTR) = VALUE
+   STACK(1) = STACK.CTR
+*
+   RETURN
+*
+* END OF PROGRAM
+*
+   END
+*
