@@ -1,0 +1,44 @@
+   SUBROUTINE STACK.PEEK(MAT STACK,SIZE,VALUE)
+*
+   GIT.FILENAME = 'STACK.PEEK'
+   GIT.REPO = 'https://github.com/Krowemoh/TCL-Utilities.git'
+*
+* VERSION
+*
+   VERSION = '1'
+*
+   EQU TRUE TO 1
+   EQU FALSE TO 0
+*
+   @USER1 = 'STACK.PEEK'
+   @USER2 = 'STACK.PEEK'
+*
+   DIM STACK(SIZE)
+*
+   VALUE = ''
+*
+   STACK.CTR = STACK(1)
+*
+   IF STACK.CTR = '' THEN
+      PRINT 'Nothing to peek.'
+      STOP
+   END
+*
+   IF NOT(NUM(STACK.CTR)) THEN
+      PRINT 'Invalid stack counter in (1).'
+      STOP
+   END
+*
+   IF STACK.CTR <= 1 THEN
+      PRINT 'Nothing to peek.'
+      STOP
+   END
+*
+   VALUE = STACK(STACK.CTR)
+*
+   RETURN
+*
+* END OF PROGRAM
+*
+   END
+*
