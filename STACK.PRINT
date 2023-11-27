@@ -1,0 +1,25 @@
+   SUBROUTINE PRINT.STACK(MAT STACK,SIZE)
+*
+   GIT.FILENAME = 'STACK.PRINT'
+   GIT.REPO = 'https://github.com/Krowemoh/TCL-Utilities.git'
+*
+* VERSION
+*
+   VERSION = '1'
+*
+   DIM STACK(SIZE)
+*
+   REAL.STACK.SIZE = STACK(1)
+*
+   FOR I = 2 TO REAL.STACK.SIZE
+      PRINT STACK(I) :
+   NEXT I
+*
+   PRINT
+*
+   RETURN
+*
+* END OF PROGRAM
+*
+   END
+*
