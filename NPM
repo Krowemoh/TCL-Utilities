@@ -747,9 +747,26 @@ SETUP.PACKAGES:NULL
    PACKAGES<2,-1> = 'Generate JSON From Data'
    PACKAGES<3,-1> = 'https://raw.githubusercontent.com/Krowemoh/TCL-Utilities/main/GENERATE.JSON'
 *
+   PACKAGES<1,-1> = 'STACK.PUSH'
+   PACKAGES<2,-1> = 'Push something onto a stack.'
+   PACKAGES<3,-1> = 'https://raw.githubusercontent.com/Krowemoh/TCL-Utilities/main/STACK.PUSH'
+*
+   PACKAGES<1,-1> = 'STACK.POP'
+   PACKAGES<2,-1> = 'Pop a value from the stack.'
+   PACKAGES<3,-1> = 'https://raw.githubusercontent.com/Krowemoh/TCL-Utilities/main/STACK.POP'
+*
+   PACKAGES<1,-1> = 'STACK.PEEK'
+   PACKAGES<2,-1> = 'Get a value froma stack without popping it.'
+   PACKAGES<3,-1> = 'https://raw.githubusercontent.com/Krowemoh/TCL-Utilities/main/STACK.PEEK'
+*
+   PACKAGES<1,-1> = 'STACK.PRINT'
+   PACKAGES<2,-1> = 'Print a given stack'
+   PACKAGES<3,-1> = 'https://raw.githubusercontent.com/Krowemoh/TCL-Utilities/main/STACK.PRINT'
+*
    RETURN
 *
 * END OF PROGRAM
 *
    END
 *
+
