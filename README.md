@@ -352,6 +352,14 @@ Pop something off the stack:
     SUBROUTINE STACK.POP(MAT STACK,SIZE,VALUE)
 ```
 
+#### STACK.PEEK
+
+Get something from the stack without popping it:
+
+```
+    SUBROUTINE STACK.PEEK(MAT STACK,SIZE,VALUE)
+```
+
 ## Programs
 
 
