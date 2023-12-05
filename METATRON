@@ -61,7 +61,17 @@
       CASE ACTION = 'STOP'
          FOR I = 1 TO NUMBER.OF.PORTS
             SERVER.PORT = ALL.PORTS<1,I>
-            EXECUTE 'SH -c "curl -s http://0.0.0.0:' : SERVER.PORT : '/kill"' CAPTURING RESULTS
+*
+            $IFDEF DATABASE.UV
+               EXECUTE 'SH -c "curl -s http://0.0.0.0:' : SERVER.PORT : '/kill"' CAPTURING RESULTS
+            $ENDIF
+            $IFDEF DATABASE.D3
+               EXECUTE '!curl -s http://0.0.0.0:' : SERVER.PORT : '/kill' CAPTURING RESULTS
+            $ENDIF
+            $IFDEF DATABASE.QM
+               EXECUTE '!curl -sk https://0.0.0.0:' : SERVER.PORT : '/kill' CAPTURING RESULTS
+            $ENDIF
+*
             PRINT SERVER.PORT : ': ' : RESULTS
          NEXT I
 *
