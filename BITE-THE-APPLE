@@ -380,7 +380,7 @@
       TEMPLATE<-1> = '   EQU TRUE TO 1'
       TEMPLATE<-1> = '   EQU FALSE TO 0'
       TEMPLATE<-1> = '*'
-      TEMPLATE<-1> = '   DIM REQUEST(11)'
+      TEMPLATE<-1> = '   DIM REQUEST(12)'
       TEMPLATE<-1> = '*'
       TEMPLATE<-1> = '   EQU REQUEST.TYPE.ATTRIBUTE TO 1'
       TEMPLATE<-1> = '   EQU REQUEST.VERSION.ATTRIBUTE TO 2'
