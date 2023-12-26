@@ -1,0 +1,48 @@
+   SUBROUTINE LIST.DIRECTORY(PATH,FILE.LIST)
+*
+   GIT.FILENAME = 'LIST.DIRECTORY'
+   GIT.REPO = 'https://github.com/Krowemoh/TCL-Utilities.git'
+*
+* COMPILER DIRECTIVES
+*
+   $DEFINE DATABASE.UV
+   $DEFINE PLATFORM.LINUX
+*
+* VERSION
+*
+   VERSION = '1'
+*
+   @USER1 = 'LIST.DIRECTORY'
+   @USER2 = 'LIST.DIRECTORY'
+*
+   FILE.LIST = ''
+*
+   OPENPATH PATH TO FILE ELSE
+      FILE.LIST<1> = PATH
+      FILE.LIST<2> = 'DIR'
+      RETURN
+   END
+*
+   SELECT FILE
+*
+   LOOP
+      READNEXT ITEM.ID ELSE ITEM.ID = ''
+   UNTIL ITEM.ID = '' DO
+      FILE.PATH = PATH : '/' : ITEM.ID
+*
+      OPENPATH FILE.PATH TO TEST.FILE THEN
+         FILE.TYPE = 'DIR'
+      END ELSE
+         FILE.TYPE = 'FILE'
+      END
+*
+      FILE.LIST<1,-1> = FILE.PATH
+      FILE.LIST<2,-1> = FILE.TYPE
+   REPEAT
+*
+   RETURN
+*
+* END OF PROGRAM
+*
+   END
+*
