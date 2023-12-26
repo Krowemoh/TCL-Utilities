@@ -359,6 +359,15 @@ Get something from the stack without popping it:
 ```
     SUBROUTINE STACK.PEEK(MAT STACK,SIZE,VALUE)
 ```
+## File Operations
+
+#### LIST.DIRECTORY
+
+List a directory, this returns a list of paths and their types:
+
+```
+    SUBROUTINE LIST.DIRECTORY(PATH,FILE.LIST)
+```
 
 ## Programs
 
