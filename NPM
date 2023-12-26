@@ -763,10 +763,15 @@ SETUP.PACKAGES:NULL
    PACKAGES<2,-1> = 'Print a given stack'
    PACKAGES<3,-1> = 'https://raw.githubusercontent.com/Krowemoh/TCL-Utilities/main/STACK.PRINT'
 *
+   PACKAGES<1,-1> = 'LIST.DIRECTORY'
+   PACKAGES<2,-1> = 'List a directory'
+   PACKAGES<3,-1> = 'https://raw.githubusercontent.com/Krowemoh/TCL-Utilities/main/LIST.DIRECTORY'
+*
    RETURN
 *
 * END OF PROGRAM
 *
    END
 *
+
 
