@@ -12,10 +12,6 @@
    EQU TRUE TO 1
    EQU FALSE TO 0
 *
-   OPEN '','NPM-HASH-FILE' TO NPM.HASH.FILE ELSE
-      GOSUB CREATE.NPM.HASH.FILE
-   END
-*
    GOSUB SETUP.PACKAGES
 *
    CHECK.OVERWRITE = FALSE
@@ -227,21 +223,7 @@ INSTALL.PACKAGE:NULL
 *
    GOSUB GET.HANDLER
 *
-   GOSUB UPDATE.NPM.HASH.FILE
-*
    GOSUB COMPILE.HANDLER
-*
-   RETURN
-*
-*********************  S U B R O U T I N E  *********************
-*
-UPDATE.NPM.HASH.FILE:NULL
-*
-   NPM.ENTRY = ''
-   NPM.ENTRY<1> = URL
-   NPM.ENTRY<2> = LOWER(RESPONSE)
-   NPM.ENTRY<3> = DATE()
-   WRITE NPM.ENTRY ON NPM.HASH.FILE,RECORD.ID
 *
    RETURN
 *
@@ -469,88 +451,6 @@ UNDEF:NULL
       CLEAN.CODE<-1> = LINE
 *
    REPEAT
-*
-   RETURN
-*
-*********************  S U B R O U T I N E  *********************
-*
-CREATE.NPM.HASH.FILE:NULL
-*
-   EXECUTE 'CREATE-FILE NPM-HASH-FILE 1,11 11,1' CAPTURING RESULTS
-*
-   PRINT
-   PRINT 'Created the NPM-HASH-FILE.'
-   PRINT
-*
-   OPEN '','NPM-HASH-FILE' TO NPM.HASH.FILE ELSE
-      PRINT 'Unable to open file: NPM-HASH-FILE'
-      STOP
-   END
-*
-   OPEN 'DICT ','NPM-HASH-FILE' TO DICT.NPM.HASH.FILE ELSE
-      PRINT 'Unable to open file: DICT NPM-HASH-FILE'
-      STOP
-   END
-*
-   NPM.DICT = ''
-   NPM.DICT<1> = 'S'
-   NPM.DICT<2> = '1'
-   NPM.DICT<3> = 'URL'
-   NPM.DICT<9> = 'L'
-   NPM.DICT<10> = '25'
-*
-   WRITE NPM.DICT ON DICT.NPM.HASH.FILE,'1'
-*
-   NPM.DICT = ''
-   NPM.DICT<1> = 'A'
-   NPM.DICT<2> = '1'
-   NPM.DICT<3> = 'URL'
-   NPM.DICT<9> = 'L'
-   NPM.DICT<10> = '25'
-*
-   WRITE NPM.DICT ON DICT.NPM.HASH.FILE,'URL'
-*
-   NPM.DICT = ''
-   NPM.DICT<1> = 'S'
-   NPM.DICT<2> = '2'
-   NPM.DICT<3> = 'HASH'
-   NPM.DICT<9> = 'L'
-   NPM.DICT<10> = '0'
-*
-   WRITE NPM.DICT ON DICT.NPM.HASH.FILE,'2'
-*
-   NPM.DICT = ''
-   NPM.DICT<1> = 'A'
-   NPM.DICT<2> = '2'
-   NPM.DICT<3> = 'HASH'
-   NPM.DICT<9> = 'L'
-   NPM.DICT<10> = '0'
-*
-   WRITE NPM.DICT ON DICT.NPM.HASH.FILE,'HASH'
-*
-   NPM.DICT = ''
-   NPM.DICT<1> = 'S'
-   NPM.DICT<2> = '3'
-   NPM.DICT<3> = 'INSTALL.DATE'
-   NPM.DICT<9> = 'L'
-   NPM.DICT<10> = '25'
-*
-   WRITE NPM.DICT ON DICT.NPM.HASH.FILE,'3'
-*
-   NPM.DICT = ''
-   NPM.DICT<1> = 'A'
-   NPM.DICT<2> = '3'
-   NPM.DICT<3> = 'INSTALL.DATE'
-   NPM.DICT<9> = 'L'
-   NPM.DICT<10> = '25'
-*
-   WRITE NPM.DICT ON DICT.NPM.HASH.FILE,'INSTALL.DATE'
-*
-   NPM.DICT = ''
-   NPM.DICT<1> = 'PH'
-   NPM.DICT<2> = '1 2 3'
-*
-   WRITE NPM.DICT ON DICT.NPM.HASH.FILE,'@'
 *
    RETURN
 *
