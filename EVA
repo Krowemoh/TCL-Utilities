@@ -1481,7 +1481,21 @@ MAIN:NULL
          END
 *
       END ELSE IF CHR = '$' THEN
+         REAL.LINE.NUMBER = LINE.NUMBERS<CURRENT.LINE>
+         NUMBER.OF.LINES = DCOUNT(LINES,@AM)
+*
+         Y.POS = Y.POS - 1
+         FOR LS.POS = CURRENT.LINE TO NUMBER.OF.LINES
+            IF LINE.NUMBERS<LS.POS> = REAL.LINE.NUMBER THEN
+               Y.POS = Y.POS + 1
+            END ELSE
+               EXIT
+            END
+         NEXT LS.POS
+*
+         CURRENT.LINE = LS.POS - 1
          LINE.LEN = LEN(LINES<CURRENT.LINE>)
+*
          X.POS = MARGIN.LEFT + LINE.LEN - 1
          PRINT @(X.POS,Y.POS) :
 *
@@ -7480,4 +7494,4 @@ ADD.MARKDOWN.SNIPPETS:NULL
    END
 *
    
-
+   
