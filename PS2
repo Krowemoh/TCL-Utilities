@@ -29,6 +29,23 @@
       STOP
    END
 *
+   OPEN '','VOC' TO VOC.FILE ELSE
+      PRINT 'Unable to open file: VOC'
+      STOP
+   END
+*
+   READ ANYTHING FROM VOC.FILE,'PORT.STATUS' ELSE
+      MD.ENTRY = ''
+*
+      MD.ENTRY<1> = 'Verb - Display process information about UniVerse users'
+      MD.ENTRY<2> = 'list_readu'
+      MD.ENTRY<3> = 'E'
+      MD.ENTRY<4> = 'BV'
+      MD.ENTRY<5> = 'port.status'
+*
+      WRITE MD.ENTRY ON VOC.FILE,'PORT.STATUS'
+   END
+*
    VERB = ARGS<2>
 *
    IF VERB = 'LIST' THEN
