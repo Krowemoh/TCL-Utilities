@@ -1,0 +1,142 @@
+*
+   GIT.FILENAME = 'PS2'
+   GIT.REPO = 'https://github.com/Krowemoh/TCL-Utilities.git'
+*
+* VERSION
+*
+   VERSION = '1'
+*
+   @USER1 = 'PS2'
+   @USER2 = 'PS2'
+*
+   EQU TRUE TO 1
+   EQU FALSE TO 0
+*
+   CALL GET.ARGUMENTS(ARGS)
+*
+   ARGS.LEN = DCOUNT(ARGS,@AM)
+*
+   IF ARGS.LEN = 1 THEN
+      PRINT 'PS2 - Better PORT.STATUS'
+      PRINT
+      PRINT '    PS2 LIST - List universe processes'
+      PRINT '    PS2 {SEARCH.TERM} - Search the processes'
+      PRINT
+      STOP
+*
+   END ELSE IF ARGS.LEN # 2 THEN
+      PRINT 'Invalid option'
+      STOP
+   END
+*
+   VERB = ARGS<2>
+*
+   IF VERB = 'LIST' THEN
+      SEARCH.TERM = ''
+   END ELSE
+      SEARCH.TERM = VERB
+   END
+*
+   GOSUB GET.PROCESS.DATA
+   GOSUB PRINT.OUTPUT
+*
+   IF SEARCH.TERM = '' THEN
+      GOSUB PRINT.LICENSE.INFORMATION
+   END
+*
+   STOP
+*
+*********************  S U B R O U T I N E  *********************
+*
+GET.PROCESS.DATA:NULL
+*
+   EXECUTE 'PORT.STATUS INTERNAL' CAPTURING RESULTS
+*
+   NUMBER.OF.PROCESSES = DCOUNT(RESULTS,@AM)
+*
+   OUTPUT.DATA = ''
+*
+   PROCESS.INFORMATION = RESULTS<1>
+*
+   FOR I = 2 TO NUMBER.OF.PROCESSES
+      PROCESS = RESULTS<I>
+      IF PROCESS = '' THEN CONTINUE
+*
+      PID = TRIM(PROCESS<1,1>)
+      NAME = TRIM(PROCESS<1,2>)
+      PORT = TRIM(PROCESS<1,3>)
+      TTY = TRIM(PROCESS<1,4>)
+      CMD = TRIM(PROCESS<1,5>)
+*
+      BUFFER = NAME 'L#10' : PID 'R#5' : PORT 'R#5' : SPACE(3) :  TTY 'L#15' : CMD
+*
+      IF SEARCH.TERM = '' THEN
+         SEARCH.FOUND = TRUE
+      END ELSE
+         HAYSTACK = OCONV(BUFFER,'MCU')
+         NEEDLE = OCONV(SEARCH.TERM,'MCU')
+         SEARCH.FOUND = INDEX(HAYSTACK,NEEDLE,1)
+      END
+*
+      IF NOT(SEARCH.FOUND) THEN
+         CONTINUE
+      END
+*
+      LOCATE(NAME,OUTPUT.DATA,1;NAME.POS;'AL') THEN
+         LOCATE(PID,OUTPUT.DATA,2,NAME.POS;PID.POS;'AR') THEN
+            OUTPUT.DATA = INSERT(OUTPUT.DATA,3,NAME.POS,PID.POS,BUFFER)
+         END ELSE
+            OUTPUT.DATA = INSERT(OUTPUT.DATA,2,NAME.POS,PID.POS,PID)
+            OUTPUT.DATA = INSERT(OUTPUT.DATA,3,NAME.POS,PID.POS,BUFFER)
+         END
+*
+      END ELSE
+         OUTPUT.DATA = INSERT(OUTPUT.DATA,1,NAME.POS,0,NAME)
+         OUTPUT.DATA = INSERT(OUTPUT.DATA,2,NAME.POS,0,PID)
+         OUTPUT.DATA = INSERT(OUTPUT.DATA,3,NAME.POS,0,BUFFER)
+      END
+   NEXT I
+*
+   RETURN
+*
+*********************  S U B R O U T I N E  *********************
+*
+PRINT.OUTPUT:NULL
+*
+   LINES = OUTPUT.DATA<3>
+*
+   CONVERT @VM TO @AM IN LINES
+   CONVERT @SVM TO @AM IN LINES
+*
+   NUMBER.OF.LINES = DCOUNT(LINES,@AM)
+*
+   FOR I = 1 TO NUMBER.OF.LINES
+      BUFFER = LINES<I>
+      PRINT BUFFER
+   NEXT I
+*
+   RETURN
+*
+*********************  S U B R O U T I N E  *********************
+*
+PRINT.LICENSE.INFORMATION:NULL
+*
+   PRINT
+*
+   EXECUTE 'SH -c "uvlictool"' CAPTURING LICENSE.DATA
+*
+   NUMBER.OF.LINES = DCOUNT(LICENSE.DATA,@AM)
+*
+   FOR I = 1 TO NUMBER.OF.LINES
+      LINE = LICENSE.DATA<I>
+      IF INDEX(LINE,'license seats',1) THEN
+         PRINT LINE
+      END
+   NEXT I
+*
+   RETURN
+*
+* END OF PROGRAM
+*
+   END
+*
