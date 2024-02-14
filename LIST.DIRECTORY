@@ -28,7 +28,11 @@
    LOOP
       READNEXT ITEM.ID ELSE ITEM.ID = ''
    UNTIL ITEM.ID = '' DO
-      FILE.PATH = PATH : '/' : ITEM.ID
+      IF PATH[1] = '/' THEN
+         FILE.PATH = PATH : ITEM.ID
+      END ELSE
+         FILE.PATH = PATH : '/' : ITEM.ID
+      END
 *
       OPENPATH FILE.PATH TO TEST.FILE THEN
          FILE.TYPE = 'DIR'
@@ -36,8 +40,10 @@
          FILE.TYPE = 'FILE'
       END
 *
-      FILE.LIST<1,-1> = FILE.PATH
-      FILE.LIST<2,-1> = FILE.TYPE
+      LOCATE(FILE.PATH,FILE.LIST,1;F.POS;'AR') ELSE
+         FILE.LIST = INSERT(FILE.LIST,1,F.POS,0,FILE.PATH)
+         FILE.LIST = INSERT(FILE.LIST,2,F.POS,0,FILE.TYPE)
+      END
    REPEAT
 *
    RETURN
@@ -46,3 +52,4 @@
 *
    END
 *
+   
