@@ -1214,11 +1214,20 @@ MAIN:NULL
             END ELSE
                RAW.LINE = '*TEMP ' : RAW.LINE
             END
+*
          END ELSE IF FILETYPE = 'PROC' THEN
             IF RAW.LINE[1,8] = 'C *TEMP ' THEN
                RAW.LINE = CHANGE(RAW.LINE,'C *TEMP ','',1)
             END ELSE
                RAW.LINE = 'C *TEMP ' : RAW.LINE
+            END
+*
+         END ELSE IF FILETYPE = 'HTML' THEN
+            IF RAW.LINE[1,5] = '<!-- ' THEN
+               RAW.LINE = CHANGE(RAW.LINE,'<!-- ','',1)
+               RAW.LINE = CHANGE(RAW.LINE,' -->','',1)
+            END ELSE
+               RAW.LINE = '<!-- ' : RAW.LINE : ' -->'
             END
          END
          
@@ -1587,6 +1596,9 @@ SYNTAX.INIT:NULL
    END ELSE IF FILETYPE = 'HTML' THEN
       GOSUB SYNTAX.INIT.HTML
 *
+   END ELSE IF FILETYPE = 'MARKDOWN' THEN
+      GOSUB SYNTAX.INIT.MARKDOWN
+*
    END ELSE IF FILETYPE = 'PROC' THEN
       GOSUB SYNTAX.INIT.PROC
 *
@@ -1725,6 +1737,27 @@ SYNTAX.INIT.HTML:NULL
    CONVERT ' ' TO @AM IN SPECIALS
 *
    BREAK.CHARACTERS = '= ( ) , : + - / ; * < > #'
+   CONVERT ' ' TO @AM IN BREAK.CHARACTERS
+*
+   RETURN
+*
+*********************  S U B R O U T I N E  *********************
+*
+SYNTAX.INIT.MARKDOWN:NULL
+*
+   STATEMENTS = '# ## ###'
+   CONVERT ' ' TO @AM IN STATEMENTS
+*
+   FUNCTIONS = ''
+   CONVERT ' ' TO @AM IN FUNCTIONS
+*
+   OPERATORS = ''
+   CONVERT ' ' TO @AM IN OPERATORS
+*
+   SPECIALS = ''
+   CONVERT ' ' TO @AM IN SPECIALS
+*
+   BREAK.CHARACTERS = '= ( ) , : + - / ; * < >'
    CONVERT ' ' TO @AM IN BREAK.CHARACTERS
 *
    RETURN
@@ -2511,7 +2544,7 @@ COLORIZE.TOKEN:NULL
 *
 TOKENIZE.LINE:NULL
 *
-   IF FILETYPE = 'BASIC' OR FILETYPE = 'HTML' THEN
+   IF FILETYPE = 'BASIC' OR FILETYPE = 'HTML' OR FILETYPE = 'MARKDOWN' THEN
       GOSUB TOKENIZE.LINE.BASIC
 *
    END ELSE IF FILETYPE = 'PROC' THEN
