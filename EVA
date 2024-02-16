@@ -3590,15 +3590,25 @@ PROCESS.EDITOR.COMMAND:NULL
       GOSUB PUT.CURSOR.TOP.LEFT
 *
    END ELSE IF EDITOR.COMMAND = 'vim' THEN
-      PASTE.FILENAME = '/tmp/eva.paste.' : USER.NAME : '.txt'
+      $IFDEF PLATFORM.LINUX
+         PASTE.FILENAME = '/tmp/eva.paste.' : USER.NAME : '.txt'
 *
-      EXECUTE 'SH -c "vim ' : PASTE.FILENAME : '"'
+         EXECUTE 'SH -c "vim ' : PASTE.FILENAME : '"'
 *
-      EXECUTE 'EVA ' : PASTE.FILENAME
+         OPENSEQ PASTE.FILENAME TO PASTE.FLAT.FILE THEN
+            READBLK YANKED.LINES FROM PASTE.FLAT.FILE, 100000000 THEN
+               RELEASE PASTE.FLAT.FILE
+               CLOSESEQ PASTE.FLAT.FILE
+            END
+            YANKED.LINES = YANKED.LINES[1,LEN(YANKED.LINES)-1]
+            YANKED.LINES = CHANGE(YANKED.LINES,CHAR(10),@VM)
+         END
+      $ENDIF
+      $IFDEF PLATFORM.WINDOWS
+         PRINT BOTTOM : MESSAGE.COLOR : CLEAR.REST.OF.LINE :
+         PRINT 'Not available on Windows.'
+      $ENDIF
 *
-      READV YANKED.LINES FROM EVA.HISTORY.FILE, EVA.HISTORY.NAME,EVA.YANKED.ATTRIBUTE ELSE YANKED.LINES = ''
-*
-      GOSUB DISPLAY.LINES
       PRINT @(X.POS,Y.POS) :
 *
    END ELSE IF EDITOR.COMMAND = 'vlist' THEN
@@ -6429,6 +6439,7 @@ BUILD.HELP.LINES:NULL
    HELP.LINES<-1> = '    :{lineNumber} - This will put the cursor on that line number  '
    HELP.LINES<-1> = '    :e - Go to %END'
    HELP.LINES<-1> = '    :gf - Typing gf on a CALL SUBROUTINE will open the subroutine in a view only buffer '
+   HELP.LINES<-1> = '    :vim - Open vim as a paste buffer'
    HELP.LINES<-1> = '*'
    HELP.LINES<-1> = '    :invert - This will inverse the case of a line  '
    HELP.LINES<-1> = '    :lower - Transform the line to lowercase  '
