@@ -1,3 +1,4 @@
+   SUBROUTINE SERAPHIM(SERVER.IP,SERVER.PORT,SSL.PATHS,ROUTES)
 *
    GIT.FILENAME = 'SERAPHIM'
    GIT.REPO = 'https://github.com/Krowemoh/TCL-Utilities.git'
@@ -6,9 +7,6 @@
 *
    $DEFINE DATABASE.UV
    $DEFINE PLATFORM.LINUX
-*
-   $DEFINE HTTPS
-*TEMP    $DEFINE FORK.ENABLED
 *
    EQU TRUE TO 1
    EQU FALSE TO 0
@@ -41,61 +39,6 @@
 *
    @USER1 = 'SERAPHIM'
    @USER2 = 'SERAPHIM'
-*
-   GOSUB GET.ARGUMENTS
-   ARGS.LEN = DCOUNT(ARGUMENTS,@AM)
-*
-   IF ARGS.LEN = 1 THEN
-      PRINT 'SERAPHIM - Web Server'
-      PRINT '   Add an application to the BOOK-OF-LIFE.'
-      PRINT
-      PRINT '   Run - SERAPHIM {APPLICATION}'
-      PRINT '   Run - SERAPHIM {APPLICATION} --PORT 7123'
-      PRINT
-      STOP
-   END
-*
-   APPLICATION = ARGUMENTS<2>
-*
-   SERVER.PORT = ''
-*
-   LOCATE('--PORT',ARGUMENTS;PORT.POS) THEN
-      SERVER.PORT = ARGUMENTS<PORT.POS+1>
-      IF SERVER.PORT = '' THEN
-         PRINT 'Port cannot be blank.'
-         STOP
-      END
-      IF NOT(NUM(SERVER.PORT)) THEN
-         PRINT 'Port has to be a number.'
-         STOP
-      END
-   END
-*
-   OPEN '','BOOK-OF-LIFE' TO BOOK.OF.LIFE.FILE ELSE
-      PRINT 'Unable to open file: BOOK-OF-LIFE'
-      STOP
-   END
-*
-   READ CONFIG FROM BOOK.OF.LIFE.FILE,APPLICATION THEN
-      SERVER.IP = CONFIG<1>
-*
-      IF SERVER.PORT = '' THEN
-         SERVER.PORT = CONFIG<2,1>
-      END
-*
-      $IFDEF HTTPS
-         CERTIFICATE.PATH = CONFIG<3>
-         KEY.PATH = CONFIG<4>
-      $ENDIF
-*
-      ROUTES = ''
-      ROUTES<1> = CONFIG<5>
-      ROUTES<2> = CONFIG<6>
-*
-   END ELSE
-      PRINT 'Configuration not found: BOOK-OF-LIFE BLOG'
-      STOP
-   END
 *
    CR = CHAR(13)
    LF = CHAR(10)
@@ -185,17 +128,9 @@
    $ENDIF
 *
    $IFDEF DATABASE.QM
-      $IFDEF HTTP
-         SOCKET = CREATE.SERVER.SOCKET(SERVER.IP,SERVER.PORT,0)
-         CODE = STATUS()
-         IF CODE THEN
-            CRT 'ERROR ' : CODE : ' - CREATE.SERVER.SOCKET failed.'
-            CLOSE.SOCKET SOCKET
-            STOP
-         END
-      $ENDIF
-*
-      $IFDEF HTTPS
+      IF SSL.PATHS THEN
+         CERTIFICATE.PATH = SSL.PATHS<1>
+         KEY.PATH = SSL.PATHS<2>
          SOCKET = CREATE.SECURE.SERVER.SOCKET(SERVER.IP,SERVER.PORT,0,CERTIFICATE.PATH,KEY.PATH)
          CODE = STATUS()
          IF CODE THEN
@@ -203,7 +138,15 @@
             CLOSE.SECURE.SOCKET SOCKET
             STOP
          END
-      $ENDIF
+      END ELSE
+         SOCKET = CREATE.SERVER.SOCKET(SERVER.IP,SERVER.PORT,0)
+         CODE = STATUS()
+         IF CODE THEN
+            CRT 'ERROR ' : CODE : ' - CREATE.SERVER.SOCKET failed.'
+            CLOSE.SOCKET SOCKET
+            STOP
+         END
+      END
    $ENDIF
 *
    $IFDEF DATABASE.UV
@@ -215,8 +158,6 @@
       END
    $ENDIF
 *
-*
-   PRINT 'Application : ' : APPLICATION
    PRINT 'Server      : ' : SERVER.IP
    PRINT 'Port        : ' : SERVER.PORT
    PRINT
@@ -308,7 +249,7 @@
       CODE = closeSocket(SOCKET)
    $ENDIF
 *
-   STOP
+   RETURN
 *
 *********************  S U B R O U T I N E  *********************
 *
@@ -370,7 +311,7 @@ PROCESS.REQUEST:NULL
             ROUTE = ROUTES<1,ROUTE.CTR>
 *
             ROUTE.PATTERN = ''
-            SLUG.PATTERN = "0X'{'0X'}'0X"
+            SLUG.PATTERN = "0X'<'0X'>'0X"
             SLUG.CTR = 0
 *
             LOOP UNTIL NOT(ROUTE MATCHES SLUG.PATTERN) DO
@@ -903,46 +844,7 @@ LOG.RESPONSE:NULL
 *
    RETURN
 *
-*********************  S U B R O U T I N E  *********************
-*
-GET.ARGUMENTS:NULL
-*
-   COMMAND = SENTENCE()
-*
-   ARGUMENTS = ''
-   TOKEN = ''
-*
-   FOR LETTER.CTR = 1 TO LEN(COMMAND)
-      CHARACTER = COMMAND[LETTER.CTR,1]
-      IF CHARACTER = ' ' THEN
-         IF TOKEN # '' THEN ARGUMENTS<-1> = TOKEN
-         TOKEN = ''
-*
-      END ELSE IF CHARACTER = '"' THEN
-         IF TOKEN # '' THEN ARGUMENTS<-1> = TOKEN
-         TOKEN = ''
-*
-         LOOP
-            LETTER.CTR = LETTER.CTR + 1
-            CHARACTER = COMMAND[LETTER.CTR,1]
-         UNTIL CHARACTER = '"' OR LETTER.CTR > LEN(COMMAND) DO
-            TOKEN = TOKEN : CHARACTER
-         REPEAT
-*
-         IF TOKEN # '' THEN ARGUMENTS<-1> = TOKEN
-         TOKEN = ''
-*
-      END ELSE
-         TOKEN = TOKEN : CHARACTER
-      END
-   NEXT LETTER.CTR
-*
-   IF TOKEN # '' THEN ARGUMENTS<-1> = TOKEN
-*
-   RETURN
-*
 * END OF PROGRAM
 *
    END
 *
-   
