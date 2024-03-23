@@ -47,6 +47,7 @@
 *
 * Install required routines
 *
+   EXECUTE 'NPM INSTALL BP GET.ARGUMENTS --FORCE'
    EXECUTE 'NPM INSTALL BP SERAPHIM --FORCE'
    EXECUTE 'NPM INSTALL BP METATRON --FORCE'
 *
@@ -233,11 +234,14 @@
    END
 *
 * CREATE DEMO.SERVER
+*
    READ TEMPLATE FROM BP.FILE,'DEMO.SERVER' ELSE
       TEMPLATE = ''
 *
       TEMPLATE<-1> = "*"
       TEMPLATE<-1> = "   SERVER.PORT = ''"
+      TEMPLATE<-1> = "*"
+      TEMPLATE<-1> = "   GOSUB GET.PORT"
       TEMPLATE<-1> = "*"
       TEMPLATE<-1> = "   SERVER.IP = '0.0.0.0'"
       TEMPLATE<-1> = "   SERVER.PORT = '7121'"
@@ -266,6 +270,28 @@
       TEMPLATE<-1> = "*"
       TEMPLATE<-1> = "   ROUTES<1,-1> = '/logout'"
       TEMPLATE<-1> = "   ROUTES<2,-1> = 'WEB.LOGIN'"
+      TEMPLATE<-1> = "*"
+      TEMPLATE<-1> = "   RETURN"
+      TEMPLATE<-1> = "*"
+      TEMPLATE<-1> = "*********************  S U B R O U T I N E  *********************"
+      TEMPLATE<-1> = "*"
+      TEMPLATE<-1> = "GET.PORT:NULL"
+      TEMPLATE<-1> = "*"
+      TEMPLATE<-1> = "   CALL GET.ARGUMENTS(ARGUMENTS)"
+      TEMPLATE<-1> = "*"
+      TEMPLATE<-1> = "   LOCATE('--PORT',ARGUMENTS;PORT.POS) THEN"
+      TEMPLATE<-1> = "      SERVER.PORT = ARGUMENTS<PORT.POS+1>"
+      TEMPLATE<-1> = "*"
+      TEMPLATE<-1> = "      IF SERVER.PORT = '' THEN"
+      TEMPLATE<-1> = "         PRINT 'Port cannot be blank.'"
+      TEMPLATE<-1> = "         STOP"
+      TEMPLATE<-1> = "      END"
+      TEMPLATE<-1> = "*"
+      TEMPLATE<-1> = "      IF NOT(NUM(SERVER.PORT)) THEN"
+      TEMPLATE<-1> = "         PRINT 'Port has to be a number.'"
+      TEMPLATE<-1> = "         STOP"
+      TEMPLATE<-1> = "      END"
+      TEMPLATE<-1> = "   END"
       TEMPLATE<-1> = "*"
       TEMPLATE<-1> = "   RETURN"
       TEMPLATE<-1> = "*"
