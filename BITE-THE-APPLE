@@ -95,45 +95,6 @@
 *
    PRINT 'Added routines to MD'
 *
-* Create BOOK-OF-LIFE
-*
-   OPEN '','BOOK-OF-LIFE' TO BOOK.OF.LIFE.FILE ELSE
-      $IFDEF DATABASE.UV
-         EXECUTE 'CREATE-FILE BOOK-OF-LIFE 50,2,6 100,4,18'
-      $ENDIF
-      $IFDEF DATABASE.D3
-         EXECUTE 'CREATE-FILE BOOK-OF-LIFE 50,2,6 100,4,18'
-      $ENDIF
-      $IFDEF DATABASE.QM
-         EXECUTE 'CREATE-FILE BOOK-OF-LIFE'
-      $ENDIF
-*
-      OPEN '','BOOK-OF-LIFE' TO BOOK.OF.LIFE.FILE ELSE
-         PRINT 'Failed to create BOOK-OF-LIFE'
-         STOP
-      END
-      PRINT 'Created BOOK-OF-LIFE'
-   END
-*
-* Create SERAPHIM configuration record
-*
-   READ CONFIG FROM BOOK.OF.LIFE.FILE,'DEMO' ELSE
-      CONFIG = ''
-      CONFIG<1> = '0.0.0.0'
-      CONFIG<2> = '7122'
-*
-      CONFIG<5,-1> = '/'
-      CONFIG<5,-1> = '/login'
-      CONFIG<5,-1> = '/logout'
-*
-      CONFIG<6,-1> = 'WEB.INDEX'
-      CONFIG<6,-1> = 'WEB.LOGIN'
-      CONFIG<6,-1> = 'WEB.LOGIN'
-*
-      WRITE CONFIG ON BOOK.OF.LIFE.FILE,'DEMO'
-      PRINT 'Created DEMO entry in BOOK-OF-LIFE'
-   END
-*
 * Create SESSION-FILE
 *
    OPEN '','SESSION-FILE' TO SESSION.FILE ELSE
@@ -269,6 +230,54 @@
 *
       WRITE TEMPLATE ON HTML.TEMPLATE.FILE,'LOGIN.HTML'
       PRINT 'Created LOGIN.HTML in HTML-TEMPLATE-FILE'
+   END
+*
+* CREATE DEMO.SERVER
+   READ TEMPLATE FROM BP.FILE,'DEMO.SERVER' ELSE
+      TEMPLATE = ''
+*
+      TEMPLATE<-1> = "*"
+      TEMPLATE<-1> = "   SERVER.PORT = ''"
+      TEMPLATE<-1> = "*"
+      TEMPLATE<-1> = "   SERVER.IP = '0.0.0.0'"
+      TEMPLATE<-1> = "   SERVER.PORT = '7121'"
+      TEMPLATE<-1> = "*"
+      TEMPLATE<-1> = "   SSL = ''"
+      TEMPLATE<-1> = "   SSL<1> = '/etc/letsencrypt/live/permutation.town/fullchain.pem'"
+      TEMPLATE<-1> = "   SSL<2> = '/etc/letsencrypt/live/permutation.town/privkey.pem'"
+      TEMPLATE<-1> = "*"
+      TEMPLATE<-1> = "   GOSUB SETUP.ROUTES"
+      TEMPLATE<-1> = "*"
+      TEMPLATE<-1> = "   CALL SERAPHIM(SERVER.IP,SERVER.PORT,SSL,ROUTES)"
+      TEMPLATE<-1> = "*"
+      TEMPLATE<-1> = "   STOP"
+      TEMPLATE<-1> = "*"
+      TEMPLATE<-1> = "*********************  S U B R O U T I N E  *********************"
+      TEMPLATE<-1> = "*"
+      TEMPLATE<-1> = "SETUP.ROUTES:NULL"
+      TEMPLATE<-1> = "*"
+      TEMPLATE<-1> = "   ROUTES = ''"
+      TEMPLATE<-1> = "*"
+      TEMPLATE<-1> = "   ROUTES<1,-1> = '/'"
+      TEMPLATE<-1> = "   ROUTES<2,-1> = 'WEB.INDEX'"
+      TEMPLATE<-1> = "*"
+      TEMPLATE<-1> = "   ROUTES<1,-1> = '/login'"
+      TEMPLATE<-1> = "   ROUTES<2,-1> = 'WEB.LOGIN'"
+      TEMPLATE<-1> = "*"
+      TEMPLATE<-1> = "   ROUTES<1,-1> = '/logout'"
+      TEMPLATE<-1> = "   ROUTES<2,-1> = 'WEB.LOGIN'"
+      TEMPLATE<-1> = "*"
+      TEMPLATE<-1> = "   RETURN"
+      TEMPLATE<-1> = "*"
+      TEMPLATE<-1> = "* END OF PROGRAM"
+      TEMPLATE<-1> = "*"
+      TEMPLATE<-1> = "   END"
+*
+      WRITE TEMPLATE ON BP.FILE,'DEMO.SERVER'
+      EXECUTE 'BASIC BP DEMO.SERVER' : ' ' : CATALOG
+      EXECUTE 'CATALOG BP DEMO.SERVER' : ' ' : CATALOG
+*
+      PRINT 'Created DEMO.SERVER in BP'
    END
 *
 * Create BASIC Programs - WEB.INDEX, WEB.LOGIN
@@ -527,7 +536,7 @@
    PRINT
    PRINT 'Run the server by doing:'
    PRINT
-   PRINT '   SERAPHIM DEMO'
+   PRINT '   RUN BP DEMO.SERVER'
    PRINT
    PRINT 'Available routes:'
    PRINT '   - /'
