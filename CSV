@@ -1,0 +1,261 @@
+*
+   GIT.FILENAME = 'CSV'
+   GIT.REPO = 'https://github.com/Krowemoh/TCL-Utilities.git'
+*
+* COMPILER DIRECTIVES
+*
+   $DEFINE DATABASE.UV
+   $DEFINE PLATFORM.LINUX
+*
+* VERSION
+*
+   VERSION = '1'
+*
+   @USER1 = 'CSV'
+   @USER2 = 'CSV'
+*
+   EQU TRUE TO 1
+   EQU FALSE TO 0
+*
+   PROMPT ''
+*
+* SET VOC
+*
+   $IFDEF DATABASE.UV
+      VOC = 'VOC'
+   $ENDIF
+   $IFDEF DATABASE.D3
+      VOC = 'MD'
+   $ENDIF
+*
+   PROMPT ''
+*
+   OPEN '',VOC TO VOC.FILE ELSE
+      PRINT 'Failed to open VOC.'
+      RETURN
+   END
+*
+   PRINT.TO.FILE = TRUE
+*
+   COMMAND = SENTENCE()
+   COMMAND = COMMAND[INDEX(COMMAND,' ',1)+1,9999]
+*
+   LIST.COMMAND = TRIM(FIELD(COMMAND,'>',1))
+   DESTINATION = TRIM(FIELD(COMMAND,'>',2))
+*
+   IF LIST.COMMAND = 'CSV' THEN
+      PRINT 'CSV - Convert the output of a LIST command to CSV.'
+      PRINT
+      PRINT 'The first attribute is the KEY, @ID is a good one to use.'
+      PRINT
+      PRINT '    CSV <FILE> @ID F1 F2'
+      PRINT '    CSV <FILE> @ID F1 F2 > TEMP TEST.CSV'
+      PRINT '    CSV <FILE> @ID F1 F2 > /home/export/TEST.CSV'
+      PRINT
+      PRINT 'Use | to add which attributes will be the columns:'
+      PRINT
+      PRINT '    CSV <FILE> | @ID F1 F2 | > /home/export/TEST.CSV'
+      PRINT
+*
+      STOP
+   END
+*
+   IN.HEADER = FALSE
+   HEADERS.ENDED = FALSE
+*
+   HEADERS = ''
+*
+   FOR I = 1 TO DCOUNT(LIST.COMMAND,' ')
+      PARAM = FIELD(LIST.COMMAND,' ',I)
+*
+      IF IN.HEADER THEN
+         IF PARAM # '|' THEN
+            HEADERS<-1> = PARAM
+         END
+      END
+*
+      IF PARAM = '|' AND IN.HEADER THEN
+         IN.HEADER = FALSE
+*
+      END ELSE IF PARAM = '|' THEN
+         IN.HEADER = TRUE
+      END
+   NEXT I
+*
+   FOR I = 1 TO DCOUNT(HEADERS,@AM)
+      HEADERS<I> = '"' : HEADERS<I> : '"'
+   NEXT I
+*
+   CONVERT @AM TO ',' IN HEADERS
+*
+   CONVERT '|' TO '' IN LIST.COMMAND
+*
+   IF DESTINATION = '' THEN
+      PRINT.TO.FILE = FALSE
+*
+      GOSUB REFORMAT.LIST
+      GOSUB EXPORT.CSV
+*
+   END ELSE IF DESTINATION[1,1] = '/' THEN
+      FULL.PATH = DESTINATION
+*
+      GOSUB REFORMAT.LIST
+      GOSUB EXPORT.CSV
+*
+   END ELSE
+      FILENAME = FIELD(DESTINATION,' ',1)
+*
+      GOSUB BUILD.FULL.PATH
+      GOSUB REFORMAT.LIST
+      GOSUB EXPORT.CSV
+   END
+*
+   IF PRINT.TO.FILE THEN
+      IF HEADERS # '' THEN
+         PRINT "Headers: " : HEADERS
+      END
+      PRINT 'Exported to: ' : FULL.PATH
+   END
+*
+   RETURN
+*
+*********************  S U B R O U T I N E  *********************
+*
+BUILD.FULL.PATH:NULL
+*
+   READ VOC.MATRIX FROM VOC.FILE,FILENAME ELSE
+      PRINT 'Failed to read VOC item: ' : FILENAME
+      STOP
+   END
+*
+   PATH = VOC.MATRIX<3>
+*
+   IF PATH[1,1] # '/' THEN
+      PATH = @PATH : '/' : VOC.MATRIX<2>
+   END
+*
+   IF VOC.MATRIX<1>[1,1] # 'F' THEN
+      PRINT 'File is not type F: ' : FILENAME
+      STOP
+   END
+*
+   RECORD.ID = FIELD(DESTINATION,' ',2)
+*
+   FULL.PATH = PATH : '/' : RECORD.ID
+*
+   RETURN
+*
+*********************  S U B R O U T I N E  *********************
+*
+REFORMAT.LIST:NULL
+*
+   IF PRINT.TO.FILE THEN
+      OPENSEQ FULL.PATH TO FLAT.FILE THEN
+         PRINT 'File already exists. Do you want to overwrite? (y/N) ' :
+         INPUT ANS
+*
+         IF OCONV(ANS,'MCU') # 'Y' THEN
+            PRINT 'Nothing done.'
+            STOP
+         END
+*
+      END ELSE
+         CREATE FLAT.FILE ELSE
+            PRINT 'Failed to open/create file: ' : FULL.PATH
+            STOP
+         END
+      END
+*
+      WEOFSEQ FLAT.FILE
+   END
+*
+   TEMP.FILE.NAME = 'CSV-' : @ACCOUNT : '-' : @USERNO : '-' : DATE()
+*
+   $IFDEF DATABASE.UV
+      EXECUTE 'CREATE-FILE ' : TEMP.FILE.NAME : ' 53,2,6 101,4,18' CAPTURING RESULTS
+   $ENDIF
+*
+   $IFDEF DATABASE.D3
+      EXECUTE 'CREATE-FILE ' : TEMP.FILE.NAME : ' 53,2,6 101,4,18' CAPTURING RESULTS
+   $ENDIF
+*
+   REFORMAT.COMMAND = 'SREFORMAT ' : LIST.COMMAND
+*
+   ECHO OFF
+*
+   DATA TEMP.FILE.NAME
+   EXECUTE REFORMAT.COMMAND PASSLIST CAPTURING RESULTS
+*
+   ECHO ON
+*
+   RETURN
+*
+*********************  S U B R O U T I N E  *********************
+*
+EXPORT.CSV:NULL
+*
+   OPEN '',TEMP.FILE.NAME TO TEMP.FILE ELSE
+      PRINT 'Unable to open file: ' : TEMP.FILE.NAME : ' - Press RETURN':
+      INPUT ANYTHING
+      STOP
+   END
+*
+   IF PRINT.TO.FILE AND HEADERS # '' THEN
+      WRITESEQ HEADERS ON FLAT.FILE ELSE NULL
+   END ELSE
+      PRINT HEADERS
+   END
+*
+   EXECUTE 'SSELECT ' : TEMP.FILE.NAME : ' BY @ID' CAPTURING RESULTS
+*
+   CTR = 0
+   DONE = FALSE
+*
+   LOOP
+      READNEXT ITEM.ID ELSE DONE = TRUE
+   UNTIL DONE DO
+      CTR = CTR + 1
+*
+      READ MATRIX FROM TEMP.FILE,ITEM.ID ELSE MATRIX = ''
+      MATRIX = ITEM.ID : @AM : MATRIX
+*
+      MATRIX = CHANGE(MATRIX,'"','""')
+      MATRIX = CHANGE(MATRIX,CHAR(10),'\n')
+      MATRIX = CHANGE(MATRIX,CHAR(13),'\r')
+*
+      FOR I = 1 TO DCOUNT(MATRIX,@AM)
+         IF PRINT.TO.FILE THEN
+            IF MATRIX<I>[1,1] = '0' THEN
+               MATRIX<I> = '="' : TRIM(MATRIX<I>) : '"'
+            END ELSE
+               MATRIX<I> = '"' : TRIM(MATRIX<I>) : '"'
+            END
+         END ELSE
+            MATRIX<I> = '"' : TRIM(MATRIX<I>) : '"'
+         END
+      NEXT I
+*
+      CONVERT @AM TO ',' IN MATRIX
+*
+      IF PRINT.TO.FILE THEN
+         WRITESEQ MATRIX ON FLAT.FILE ELSE NULL
+      END ELSE
+         PRINT MATRIX
+      END
+   REPEAT
+*
+   IF PRINT.TO.FILE THEN
+      FLUSH FLAT.FILE ELSE NULL
+      CLOSESEQ FLAT.FILE
+   END
+*
+   PRINT 'Processed Records: ' : CTR
+*
+   EXECUTE 'DELETE-FILE ' : TEMP.FILE.NAME CAPTURING RESULTS
+*
+   RETURN
+*
+* END OF PROGRAM
+*
+   END
+*
