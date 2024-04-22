@@ -103,6 +103,14 @@
       END
    $ENDIF
 *
+   GOSUB START.SERVER
+*
+   RETURN
+*
+*********************  S U B R O U T I N E  *********************
+*
+START.SERVER:NULL
+*
 * SOCKET INITIALIZATION
 *
    $IFDEF DATABASE.D3
@@ -174,8 +182,6 @@
 *
    LOOP UNTIL DONE DO
 *
-      CHILD.PID = 0
-*
       $IFDEF DATABASE.D3
          FD = %ACCEPT(SOCKET,&CLIENT.ADDRESS,&CLIENT.PORT)
          IF FD < 0 THEN
@@ -205,14 +211,6 @@
             END
          $ENDIF
 *
-         $IFDEF FORK.ENABLED
-            CHILD.PID = FORK()
-            IF CHILD.PID < 0 THEN
-               CRT 'ERROR ' : CHILD.PID : ' = Fork Failed.'
-               CHILD.PID = 0
-            END
-         $ENDIF
-*
       $ENDIF
 *
       $IFDEF DATABASE.UV
@@ -224,15 +222,7 @@
          END
       $ENDIF
 *
-      IF CHILD.PID = 0 THEN
-         GOSUB PROCESS.REQUEST
-*
-         $IFDEF DATABASE.QM
-            $IFDEF FORK.ENABLED
-               EXIT.CHILD
-            $ENDIF
-         $ENDIF
-      END
+      GOSUB PROCESS.REQUEST
    REPEAT
 *
    $IFDEF DATABASE.D3
@@ -286,7 +276,7 @@ PROCESS.REQUEST:NULL
 *
    BEGIN CASE
       CASE REQUEST.ERROR # ''
-         PRINT REQUEST.ERROR
+         PRINT 'Error: ' : REQUEST.ERROR
 *
          RESPONSE(RESPONSE.STATUS.ATTRIBUTE) = 400
          RESPONSE(RESPONSE.CONTENT.ATTRIBUTE) = 'Bad request.'
