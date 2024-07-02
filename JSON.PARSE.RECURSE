@@ -91,6 +91,9 @@
                END ELSE IF NEXT.CHAR = '"' THEN
                   TEXT = TEXT : '"'
 *
+               END ELSE IF NEXT.CHAR = '\' THEN
+                  TEXT = TEXT : '\'
+*
                END ELSE
                   TEXT = TEXT : RAW.CHAR : NEXT.CHAR
                END
