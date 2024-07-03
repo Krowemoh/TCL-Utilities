@@ -1,73 +1,77 @@
-    SUBROUTINE JSON.CREATE.ARRAY(BUFFER)
+   SUBROUTINE JSON.CREATE.ARRAY(BUFFER)
 *
-    GIT.FILENAME = 'JSON.CREATE.ARRAY'
-    GIT.REPO = 'https://github.com/Krowemoh/TCL-Utilities.git'
+   GIT.FILENAME = 'JSON.CREATE.ARRAY'
+   GIT.REPO = 'https://github.com/Krowemoh/TCL-Utilities.git'
 *
 * VERSION
 *
-    VERSION = '1'
+   VERSION = '1'
 *
-    @USER1 = 'JSON.CREATE.ARRAY'
-    @USER2 = 'JSON.CREATE.ARRAY'
+   @USER1 = 'JSON.CREATE.ARRAY'
+   @USER2 = 'JSON.CREATE.ARRAY'
 *
-    NUMBER.OF.KEYS = DCOUNT(BUFFER,@AM)
-    JSON = ''
+   NUMBER.OF.KEYS = DCOUNT(BUFFER,@AM)
+   JSON = ''
 *
-    FOR I = 1 TO NUMBER.OF.KEYS
-        VALUE = BUFFER<I>
+   FOR I = 1 TO NUMBER.OF.KEYS
+      VALUE = BUFFER<I>
 *
-        IF VALUE = '' THEN
-            GOSUB QUOTE.VALUE 
+      FIRST.CHAR = VALUE[1,1]
+      LAST.CHAR = VALUE[LEN(VALUE),1]
 *
-        END ELSE IF VALUE = 0 THEN
-            JSON<-1> = VALUE
+      IF VALUE = '' THEN
+         GOSUB QUOTE.VALUE
 *
-        END ELSE IF VALUE[1,1] = '0' THEN
-            GOSUB QUOTE.VALUE 
+      END ELSE IF VALUE = 0 THEN
+         JSON<-1> = VALUE
 *
-        END ELSE IF VALUE[1,1] = '.' THEN
-            GOSUB QUOTE.VALUE 
+      END ELSE IF VALUE[1,1] = '0' THEN
+         GOSUB QUOTE.VALUE
 *
-        END ELSE IF (VALUE[1,1] = '[' OR VALUE[1,1] = '{' OR NUM(VALUE)) THEN
-            JSON<-1> = VALUE
+      END ELSE IF VALUE[1,1] = '.' THEN
+         GOSUB QUOTE.VALUE
 *
-        END ELSE
-            GOSUB QUOTE.VALUE
-        END
-    NEXT I
+      END ELSE IF ((FIRST.CHAR = '[' AND LAST.CHAR = ']') OR (FIRST.CHAR = '{' AND LAST.CHAR = '}') OR NUM(VALUE)) THEN
+         JSON<-1> = VALUE
 *
-    CONVERT @AM TO ',' IN JSON
+      END ELSE
+         GOSUB QUOTE.VALUE
+      END
+   NEXT I
 *
-    JSON = '[' : JSON : ']'
+   CONVERT @AM TO ',' IN JSON
 *
-    BUFFER = JSON
+   JSON = '[' : JSON : ']'
 *
-    RETURN
+   BUFFER = JSON
+*
+   RETURN
 *
 *********************  S U B R O U T I N E  *********************
 *
 QUOTE.VALUE:NULL
 *
-    VALUE = CHANGE(VALUE,'\','\\')
-    VALUE = CHANGE(VALUE,'"','\"')
-    VALUE = CHANGE(VALUE,'/','\/')
+   VALUE = CHANGE(VALUE,'\','\\')
+   VALUE = CHANGE(VALUE,'"','\"')
+   VALUE = CHANGE(VALUE,'/','\/')
 *
-    VALUE = CHANGE(VALUE,CHAR(8),'\b')
-    VALUE = CHANGE(VALUE,CHAR(9),'\t')
-    VALUE = CHANGE(VALUE,CHAR(10),'\n')
-    VALUE = CHANGE(VALUE,CHAR(12),'\f')
-    VALUE = CHANGE(VALUE,CHAR(13),'\r')
+   VALUE = CHANGE(VALUE,CHAR(8),'\b')
+   VALUE = CHANGE(VALUE,CHAR(9),'\t')
+   VALUE = CHANGE(VALUE,CHAR(10),'\n')
+   VALUE = CHANGE(VALUE,CHAR(12),'\f')
+   VALUE = CHANGE(VALUE,CHAR(13),'\r')
 *
-   FOR ESCAPE.CTR = 0 TO 31
-      ESCAPED.CHAR = FMT(ESCAPE.CTR,'4"0"R')
-      VALUE = CHANGE(VALUE,CHAR(ESCAPE.CTR),ESCAPED.CHAR)
-   NEXT ESCAPE.CTR
+   VALUE = CHANGE(VALUE,CHAR(0),'\u0000')
+   VALUE = CHANGE(VALUE,CHAR(2),'\u0002')
 *
-    JSON<-1> = '"' : VALUE : '"'
+   JSON<-1> = '"' : VALUE : '"'
 *
-    RETURN
+   RETURN
 *
 * END OF PROGRAM
 *
-    END
+   END
 *
+   
+   
+   
