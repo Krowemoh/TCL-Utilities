@@ -3,6 +3,9 @@
    GIT.FILENAME = 'JSON.CREATE.OBJECT'
    GIT.REPO = 'https://github.com/Krowemoh/TCL-Utilities.git'
 *
+   EQU TRUE TO 1
+   EQU FALSE TO 0
+*
 * VERSION
 *
    VERSION = '1'
@@ -27,28 +30,36 @@
          KEY.POS = -1
       END
 *
-      IF VALUE = '' THEN
-         GOSUB QUOTE.VALUE
-         JSON<KEY.POS> = KEY.VALUE
+      BEGIN CASE
+         CASE VALUE = ''
+            GOSUB QUOTE.VALUE
+            JSON<KEY.POS> = KEY.VALUE
 *
-      END ELSE IF VALUE = 0 THEN
-         JSON<KEY.POS> = '"' : KEY : '": ' : VALUE
+         CASE VALUE = 0
+            JSON<KEY.POS> = '"' : KEY : '": ' : VALUE
 *
-      END ELSE IF VALUE[1,1] = '0' THEN
-         GOSUB QUOTE.VALUE
-         JSON<KEY.POS> = KEY.VALUE
+         CASE VALUE[1,1] = '0'
+            GOSUB QUOTE.VALUE
+            JSON<KEY.POS> = KEY.VALUE
 *
-      END ELSE IF VALUE[1,1] = '.' THEN
-         GOSUB QUOTE.VALUE
-         JSON<KEY.POS> = KEY.VALUE
+         CASE VALUE[1,1] = '.'
+            GOSUB QUOTE.VALUE
+            JSON<KEY.POS> = KEY.VALUE
 *
-      END ELSE IF ((FIRST.CHAR = '[' AND LAST.CHAR = ']') OR (FIRST.CHAR = '{' AND LAST.CHAR = '}') OR NUM(VALUE)) THEN
-         JSON<KEY.POS> = '"' : KEY : '": ' : VALUE
+         CASE FIRST.CHAR = '[' AND LAST.CHAR = ']'
+            JSON<KEY.POS> = '"' : KEY : '": ' : VALUE
 *
-      END ELSE
-         GOSUB QUOTE.VALUE
-         JSON<KEY.POS> = KEY.VALUE
-      END
+         CASE FIRST.CHAR = '{' AND LAST.CHAR = '}'
+            JSON<KEY.POS> = '"' : KEY : '": ' : VALUE
+*
+         CASE NUM(VALUE) AND INDEX(VALUE,'E',1) = 0
+            JSON<KEY.POS> = '"' : KEY : '": ' : VALUE
+*
+         CASE TRUE
+            GOSUB QUOTE.VALUE
+            JSON<KEY.POS> = KEY.VALUE
+*
+      END CASE
    NEXT I
 *
    CONVERT @AM TO ',' IN JSON
