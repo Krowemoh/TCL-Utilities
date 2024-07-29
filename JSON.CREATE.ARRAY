@@ -3,6 +3,9 @@
    GIT.FILENAME = 'JSON.CREATE.ARRAY'
    GIT.REPO = 'https://github.com/Krowemoh/TCL-Utilities.git'
 *
+   EQU TRUE TO 1
+   EQU FALSE TO 0
+*
 * VERSION
 *
    VERSION = '1'
@@ -19,24 +22,32 @@
       FIRST.CHAR = VALUE[1,1]
       LAST.CHAR = VALUE[LEN(VALUE),1]
 *
-      IF VALUE = '' THEN
-         GOSUB QUOTE.VALUE
+      BEGIN CASE
+         CASE VALUE = ''
+            GOSUB QUOTE.VALUE
 *
-      END ELSE IF VALUE = 0 THEN
-         JSON<-1> = VALUE
+         CASE VALUE = 0
+            JSON<-1> = VALUE
 *
-      END ELSE IF VALUE[1,1] = '0' THEN
-         GOSUB QUOTE.VALUE
+         CASE VALUE[1,1] = '0'
+            GOSUB QUOTE.VALUE
 *
-      END ELSE IF VALUE[1,1] = '.' THEN
-         GOSUB QUOTE.VALUE
+         CASE VALUE[1,1] = '.'
+            GOSUB QUOTE.VALUE
 *
-      END ELSE IF ((FIRST.CHAR = '[' AND LAST.CHAR = ']') OR (FIRST.CHAR = '{' AND LAST.CHAR = '}') OR NUM(VALUE)) THEN
-         JSON<-1> = VALUE
+         CASE FIRST.CHAR = '[' AND LAST.CHAR = ']'
+            JSON<-1> = VALUE
 *
-      END ELSE
-         GOSUB QUOTE.VALUE
-      END
+         CASE FIRST.CHAR = '{' AND LAST.CHAR = '}'
+            JSON<-1> = VALUE
+*
+         CASE NUM(VALUE) AND INDEX(VALUE,'E',1) = 0
+            JSON<-1> = VALUE
+*
+         CASE TRUE
+            GOSUB QUOTE.VALUE
+*
+      END CASE
    NEXT I
 *
    CONVERT @AM TO ',' IN JSON
