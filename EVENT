@@ -33,11 +33,6 @@
       STOP
    END
 *
-   OPEN '','CONTROL-FILE' TO CONTROL.FILE ELSE
-      PRINT 'Unable to open file: CONTROL-FILE'
-      STOP
-   END
-*
    CALL GET.ARGUMENTS(ARGS)
 *
    ARGS.LEN = DCOUNT(ARGS,@AM)
