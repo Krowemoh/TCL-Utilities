@@ -675,13 +675,13 @@ SETUP.PACKAGES:NULL
    PACKAGES<2,-1> = 'Get next available numeric key'
    PACKAGES<3,-1> = 'https://raw.githubusercontent.com/Krowemoh/TCL-Utilities/main/GET.NEXT.ID'
 *
+   PACKAGES<1,-1> = 'EVENT'
+   PACKAGES<2,-1> = 'Create an Event record for use in a calendar'
+   PACKAGES<3,-1> = 'https://raw.githubusercontent.com/Krowemoh/TCL-Utilities/main/EVENT'
+*
    RETURN
 *
 * END OF PROGRAM
 *
    END
 *
-
-
-
-
