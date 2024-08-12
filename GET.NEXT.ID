@@ -1,4 +1,4 @@
-   SUBROUTINE GET.NEXT.ID(NEXT.ID,SEQUENCE.ID,FILE)
+   SUBROUTINE GET.NEXT.ID(NEXT.ID,FILE)
 *
    GIT.FILENAME = 'GET.NEXT.ID'
    GIT.REPO = 'https://github.com/Krowemoh/TCL-Utilities.git'
