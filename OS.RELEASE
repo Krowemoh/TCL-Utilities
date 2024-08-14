@@ -1,0 +1,25 @@
+*
+   GIT.FILENAME = 'OS.RELEASE'
+   GIT.REPO = 'https://github.com/Krowemoh/TCL-Utilities.git'
+*
+* VERSION
+*
+   VERSION = '1'
+*
+   @USER1 = 'OS.RELEASE'
+   @USER2 = 'OS.RELEASE'
+*
+   EXECUTE 'SH -c "cat /etc/os-release"' CAPTURING OUTPUT
+*
+   NUMBER.OF.LINES = DCOUNT(OUTPUT,@AM)
+*
+   FOR I = 1 TO NUMBER.OF.LINES
+      PRINT OUTPUT<I>
+   NEXT I
+*
+   STOP
+*
+* END OF PROGRAM
+*
+   END
+*
