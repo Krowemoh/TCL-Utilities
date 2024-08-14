@@ -56,6 +56,14 @@ Copy records in PICK:
         CLONE [DICT] {SRC.FILE} {/tmp/backups/}
 ```
 
+### EVENT
+
+Create events and added to an EVENT-FILE:
+
+```
+    EVENT --SUBJECT "This is an event" --START-DATE "12AUG2024" --START-TIME 14:30
+```
+
 ### FTP
 
 Upload and download files using ftp:
@@ -117,6 +125,14 @@ Create files with a default:
 NEW-FILE {FILE-NAME}
 ```
 
+### OS.RELEASE
+
+Show OS information:
+
+```
+OS.RELEASE
+```
+
 ### RENAME
 
 Rename files and dictionaries:
@@ -135,6 +151,14 @@ Upload and download files using ssh:
 
     Get a file from a server:
         SCP {username:password@server[:port]:/path/to/file} {/path/to/file}
+```
+
+### UV.LICENSE
+
+Show UniVerse license information:
+
+```
+UV.LICENSE
 ```
 
 ## Library Subroutines
