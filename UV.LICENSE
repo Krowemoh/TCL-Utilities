@@ -1,0 +1,25 @@
+*
+   GIT.FILENAME = 'UV.LICENSE'
+   GIT.REPO = 'https://github.com/Krowemoh/TCL-Utilities.git'
+*
+* VERSION
+*
+   VERSION = '1'
+*
+   @USER1 = 'UV.LICENSE'
+   @USER2 = 'UV.LICENSE'
+*
+   EXECUTE 'SH -c "cd /usr/uv/ && bin/uvregen -z"' CAPTURING OUTPUT
+*
+   NUMBER.OF.LINES = DCOUNT(OUTPUT,@AM)
+*
+   FOR I = 1 TO NUMBER.OF.LINES
+      PRINT OUTPUT<I>
+   NEXT I
+*
+   STOP
+*
+* END OF PROGRAM
+*
+   END
+*
