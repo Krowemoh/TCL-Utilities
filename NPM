@@ -679,6 +679,14 @@ SETUP.PACKAGES:NULL
    PACKAGES<2,-1> = 'Create an Event record for use in a calendar'
    PACKAGES<3,-1> = 'https://raw.githubusercontent.com/Krowemoh/TCL-Utilities/main/EVENT'
 *
+   PACKAGES<1,-1> = 'OS.RELEASE'
+   PACKAGES<2,-1> = 'Show /etc/os-release information'
+   PACKAGES<3,-1> = 'https://raw.githubusercontent.com/Krowemoh/TCL-Utilities/main/OS.RELEASE'
+*
+   PACKAGES<1,-1> = 'UV.LICENSE'
+   PACKAGES<2,-1> = 'Show UniVerse license information'
+   PACKAGES<3,-1> = 'https://raw.githubusercontent.com/Krowemoh/TCL-Utilities/main/UV.LICENSE'
+*
    RETURN
 *
 * END OF PROGRAM
