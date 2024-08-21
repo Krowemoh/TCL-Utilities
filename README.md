@@ -15,7 +15,18 @@ A set of utilities to make PICK easier to manage. Square brackets mean the word 
 Add a A type and an S type PICK style dictionary to a file:
 
 ```
-    ADD-DICT {FILE-NAME} {ATTR.#} {DICT.NAME}
+FLAGS: 
+   -F,  --FILE.NAME 
+   -A,  --ATTRIBUTE.NUMBER
+   -N,  --ATTRIBUTE.NAME
+   -CV, --CONVERSION
+   -CR, --CORRELATIVE
+   -J,  --JUSTIFICATION
+   -L,  --LENGTH
+
+EXAMPLES: 
+   ADD-DICT -F {FILE-NAME} -A {ATTR.#} -N {DICT.NAME}
+   ADD-DICT -F {FILE-NAME} -A {ATTR.#} -N {DICT.NAME} -J R -CV MD2
 ```
 
 ### ADD-PATH
