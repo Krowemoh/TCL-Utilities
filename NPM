@@ -1,0 +1,691 @@
+*
+   GIT.FILENAME = 'NPM'
+   GIT.REPO = 'https://github.com/Krowemoh/npm.git'
+*
+* VERSION
+*
+   VERSION = '1'
+*
+   @USER1 = 'NPM'
+   @USER2 = 'NPM'
+*
+   EQU TRUE TO 1
+   EQU FALSE TO 0
+*
+   GOSUB SETUP.PACKAGES
+*
+   CHECK.OVERWRITE = FALSE
+*
+   GOSUB GET.ARGUMENTS
+*
+   CONFIRM.DOWNLOAD = TRUE
+   LOCATE('--FORCE',ARGUMENTS;FLAG.POS) THEN
+      CONFIRM.DOWNLOAD = FALSE
+      ARGUMENTS = DELETE(ARGUMENTS,FLAG.POS)
+   END
+*
+   ARG.LEN = DCOUNT(ARGUMENTS,@AM)
+*
+   IF ARG.LEN = 1 THEN
+      PRINT 'NPM - Nova Package Manager'
+      PRINT
+      PRINT '    INFO - Get system information'
+      PRINT
+      PRINT '    CHECK - Display package conflicts'
+      PRINT
+      PRINT '    GET - Get a file'
+      PRINT '        NPM GET <FILE> <RECORD> <URL>'
+      PRINT
+      PRINT '    COMPILE - Compile a file with conditional compilation'
+      PRINT '        NPM COMPILE <FILE> <RECORD>'
+      PRINT
+      PRINT '    INSTALL - GET and COMPILE and CATALOG'
+      PRINT '        NPM INSTALL <FILE> <RECORD> <URL>'
+      PRINT
+      PRINT '    LIST - List available packages'
+      PRINT '        NPM LIST'
+      PRINT
+      PRINT '    SYNC - Install all available packages to FILE'
+      PRINT '        NPM SYNC <FILE>'
+      PRINT
+      STOP
+   END
+*
+   OPEN '','VOC' TO VOC.FILE ELSE
+      OPEN '','MD' TO VOC.FILE ELSE
+         PRINT 'Unable to open file: VOC'
+         STOP
+      END
+   END
+*
+   GOSUB SYSTEM.INFO
+*
+   ALL.FLAG = FALSE
+*
+   VERB = ARGUMENTS<2>
+   FILENAME = ARGUMENTS<3>
+   RECORD.ID = ARGUMENTS<4>
+   URL = ARGUMENTS<5>
+*
+   IF VERB = 'INFO' THEN
+      PRINT 'OS: ' : OS
+      PRINT 'MV: ' : MV
+*
+   END ELSE IF VERB = 'CHECK' THEN
+      GOSUB CHECK.PACKAGE.CONFLICTS
+*
+   END ELSE IF VERB = 'SYNC' THEN
+*
+      IF ARG.LEN = 2 THEN
+         PRINT 'Invalid command.'
+         STOP
+      END
+*
+      ALL.FLAG = TRUE
+      PRINT 'Get all packages? (y/N) ' :
+*
+      INPUT ANS
+*
+      IF ANS # 'Y' THEN
+         PRINT 'Did nothing.'
+         STOP
+      END
+*
+      FOR I = 1 TO DCOUNT(PACKAGES<1>,@VM)
+         RECORD.ID = PACKAGES<1,I>
+         URL = PACKAGES<3,I>
+         GOSUB INSTALL.PACKAGE
+      NEXT I
+*
+   END ELSE IF VERB = 'GET' THEN
+      GOSUB GET.HANDLER
+      PRINT 'Saved ' : FILENAME : ' ' : RECORD.ID
+*
+   END ELSE IF VERB = 'COMPILE' THEN
+      GOSUB COMPILE.HANDLER
+*
+   END ELSE IF VERB = 'INSTALL' THEN
+      GOSUB INSTALL.PACKAGE
+*
+   END ELSE IF VERB = 'LIST' THEN
+      GOSUB LIST.PACKAGES
+*
+   END ELSE
+      PRINT 'Invalid NPM command.'
+   END
+*
+   STOP
+*
+*********************  S U B R O U T I N E  *********************
+*
+GET.ARGUMENTS:NULL
+*
+   COMMAND = SENTENCE()
+*
+   ARGUMENTS = ''
+   TOKEN = ''
+*
+   FOR LETTER.CTR = 1 TO LEN(COMMAND)
+      CHARACTER = COMMAND[LETTER.CTR,1]
+      IF CHARACTER = ' ' THEN
+         IF TOKEN # '' THEN ARGUMENTS<-1> = TOKEN
+         TOKEN = ''
+*
+      END ELSE IF CHARACTER = '"' THEN
+         IF TOKEN # '' THEN ARGUMENTS<-1> = TOKEN
+         TOKEN = ''
+*
+         LOOP
+            LETTER.CTR = LETTER.CTR + 1
+            CHARACTER = COMMAND[LETTER.CTR,1]
+         UNTIL CHARACTER = '"' OR LETTER.CTR > LEN(COMMAND) DO
+            TOKEN = TOKEN : CHARACTER
+         REPEAT
+*
+         IF TOKEN # '' THEN ARGUMENTS<-1> = TOKEN
+         TOKEN = ''
+*
+      END ELSE
+         TOKEN = TOKEN : CHARACTER
+      END
+   NEXT LETTER.CTR
+*
+   IF TOKEN # '' THEN ARGUMENTS<-1> = TOKEN
+*
+   RETURN
+*
+*********************  S U B R O U T I N E  *********************
+*
+SYSTEM.INFO:NULL
+*
+   MV = ''
+   OS = ''
+*
+   READ ANYTHING FROM VOC.FILE,'RELLEVEL' THEN
+      MV = 'UV'
+   END
+*
+   READ ANYTHING FROM VOC.FILE,'QM.ACCOUNTS' THEN
+      MV = 'QM'
+   END
+*
+   READ ANYTHING FROM VOC.FILE,'DM.MD' THEN
+      MV = 'D3'
+   END
+*
+   IF MV = 'UV' THEN
+      TEMP.DIR = SYSTEM(38)
+*
+      IF TEMP.DIR[1,1] = '/' THEN
+         OS = 'LINUX'
+      END ELSE
+         OS = 'WINDOWS'
+      END
+*
+   END ELSE IF MV = 'D3' THEN
+      SYS.INFO = SYSTEM(100)
+*
+      IF FIELD(SYS.INFO,';',2) = 'Windows' THEN
+         OS = 'WINDOWS'
+      END ELSE
+         OS = 'LINUX'
+      END
+*
+   END ELSE IF MV = 'QM' THEN
+      IF SYSTEM(91) THEN
+         OS = 'WINDOWS'
+      END ELSE
+         OS = 'LINUX'
+      END
+   END
+*
+   RETURN
+*
+*********************  S U B R O U T I N E  *********************
+*
+CHECK.PACKAGE.CONFLICTS:NULL
+*
+   FOR I = 1 TO DCOUNT(PACKAGES<1>,@VM)
+      PACKAGE.NAME = PACKAGES<1,I>
+      READ ANYTHING FROM VOC.FILE,PACKAGE.NAME THEN
+         PRINT 'CONFLICT: ', PACKAGE.NAME
+      END ELSE
+*TEMP             PRINT 'NEW     : ', PACKAGE.NAME
+      END
+   NEXT I
+*
+*
+   RETURN
+*
+*********************  S U B R O U T I N E  *********************
+*
+INSTALL.PACKAGE:NULL
+*
+   GOSUB GET.HANDLER
+*
+   GOSUB COMPILE.HANDLER
+*
+   RETURN
+*
+*********************  S U B R O U T I N E  *********************
+*
+GET.HANDLER:NULL
+*
+   IF ARG.LEN = 2 AND NOT(ALL.FLAG) THEN
+      PRINT
+      PRINT '    GET - Get a file'
+      PRINT '        NPM GET <FILE> <RECORD> <URL>'
+      PRINT
+      STOP
+   END
+*
+   OPEN '',FILENAME TO FILE ELSE
+      PRINT 'Unable to open file: ' : FILENAME
+      STOP
+   END
+*
+   IF URL = '' THEN
+      LOCATE(RECORD.ID,PACKAGES<1>,1;PACKAGE.POS) THEN
+         URL = PACKAGES<3,PACKAGE.POS>
+*
+         PRINT 'URL: ' : URL
+         PRINT 'Download package: (y/N) ' :
+*
+         IF CONFIRM.DOWNLOAD THEN
+            INPUT ANS
+            IF ANS # 'Y' THEN
+               PRINT 'Did not download package.'
+               STOP
+            END
+         END
+*
+      END ELSE
+         PRINT 'URL cannot be blank.'
+         STOP
+      END
+   END
+*
+   IF OS = 'LINUX' THEN
+      CURL.COMMAND = 'curl --silent --insecure ' : URL
+*
+      PRINT 'Retrieving ' : URL
+*
+      IF MV = 'UV' THEN
+         EXECUTE "SH -c '" : CURL.COMMAND : "'"  CAPTURING RESULTS
+*
+      END ELSE IF MV = 'D3' OR MV = 'QM' THEN
+         EXECUTE '!' : CURL.COMMAND CAPTURING RESULTS
+      END
+*
+      IF RESULTS<1,1> # '*' AND TRIM(RESULTS<1>)[1,4] # 'SUBR' THEN
+         PRINT 'File needs to start with * or SUBR'
+         STOP
+      END
+*
+      RESPONSE = RESULTS
+*
+   END ELSE IF OS = 'WINDOWS' THEN
+      CURL.COMMAND = 'curl --silent --insecure ' : URL : ' | unix2dos'
+*
+      PRINT 'Retrieving ' : URL
+*
+      EXECUTE '!' : CURL.COMMAND CAPTURING RESULTS
+*
+      IF RESULTS<1,1> # '*' THEN
+         PRINT RESULTS
+         STOP
+      END
+*
+      RESPONSE = RESULTS
+*
+   END ELSE
+      PRINT 'Invalid OS: ' : OS : ' - fetch is not implemented.'
+      STOP
+   END
+*
+   READ ANYTHING FROM FILE,RECORD.ID THEN
+      IF CHECK.OVERWRITE THEN
+         PRINT FILENAME : ' ' : RECORD.ID  : ' already exists, do you want to overwrite? (y/N) ' :
+         INPUT ANS
+*
+         IF ANS # 'Y' THEN
+            PRINT 'Did nothing.'
+            STOP
+         END
+      END
+   END
+*
+   WRITE RESPONSE ON FILE,RECORD.ID
+*
+   RETURN
+*
+*********************  S U B R O U T I N E  *********************
+*
+COMPILE.HANDLER:NULL
+*
+   IF ARG.LEN = 2 AND NOT(ALL.FLAG) THEN
+      PRINT
+      PRINT '    COMPILE - Compile a file with conditional compilation'
+      PRINT '        NPM COMPILE <FILE> <RECORD>'
+      PRINT
+      STOP
+   END
+*
+   OPEN '',FILENAME TO FILE ELSE
+      PRINT 'Unable to open file: ' : FILENAME
+      STOP
+   END
+*
+   READ ANYTHING FROM FILE,RECORD.ID ELSE
+      PRINT 'File does not exist: ' : FILENAME : ' ' : RECORD.ID
+      STOP
+   END
+*
+   RAW.CODE = ''
+   CLEAN.CODE = ''
+*
+   READ RAW.CODE FROM FILE,RECORD.ID ELSE
+      PRINT 'Failed to read: ' : RECORD.ID
+   END
+*
+   GOSUB UNDEF
+*
+   WRITE CLEAN.CODE ON FILE,RECORD.ID
+*
+   EXECUTE 'BASIC ' : FILENAME : ' ' : RECORD.ID
+*
+   WRITE RAW.CODE ON FILE, RECORD.ID
+*
+   RETURN
+*
+*********************  S U B R O U T I N E  *********************
+*
+LIST.PACKAGES:NULL
+*
+   PRINT 'The following packages are available to be installed:'
+   PRINT
+*
+   FOR I = 1 TO DCOUNT(PACKAGES<1>,@VM)
+      PRINT PACKAGES<1,I>  'L#25' : PACKAGES<2,I>
+   NEXT I
+*
+   PRINT
+*
+   RETURN
+*
+*********************  S U B R O U T I N E  *********************
+*
+UNDEF:NULL
+*
+   NUMBER.OF.LINES = DCOUNT(RAW.CODE,@AM)
+*
+   SYMBOLS = ''
+   CTR = 1
+*
+   LOOP UNTIL CTR > NUMBER.OF.LINES DO
+      LINE = RAW.CODE<CTR>
+      CTR = CTR + 1
+*
+      IF INDEX(LINE,'$DEFINE',1) # 0 AND INDEX(LINE,'"',1) = 0 AND INDEX(LINE,"'",1) = 0 THEN
+         IF MV = 'D3' THEN
+            LINE = CHANGE(LINE,'DATABASE.UV','DATABASE.D3')
+         END
+*
+         IF MV = 'QM' THEN
+            LINE = CHANGE(LINE,'DATABASE.UV','DATABASE.QM')
+         END
+*
+         IF OS = 'WINDOWS' THEN
+            LINE = CHANGE(LINE,'PLATFORM.LINUX','PLATFORM.WINDOWS')
+         END
+*
+         CLEAN.CODE<-1> = '*UNDEF ' : LINE
+*
+         LINE = TRIM(LINE)
+         SYMBOL = FIELD(LINE,' ',2)
+         SYMBOLS<-1> = SYMBOL
+*
+         CONTINUE
+      END
+*
+      IF INDEX(LINE,'$IFDEF',1) # 0 AND INDEX(LINE,'"',1) = 0 AND INDEX(LINE,"'",1) = 0 THEN
+         CLEAN.CODE<-1> = '*UNDEF ' : LINE
+*
+         LINE = TRIM(LINE)
+         SYMBOL = FIELD(LINE,' ',2)
+*
+         LOCATE(SYMBOL,SYMBOLS;ANYPOS) THEN
+            CONTINUE
+         END
+*
+         LINE = RAW.CODE<CTR>
+         CLEAN.CODE<-1> = '*UNDEF ' : LINE
+*
+         STACK = 1
+*
+         LOOP UNTIL STACK = 0 DO
+            IF INDEX(LINE,'$IFDEF',1) # 0 AND INDEX(LINE,'"',1) = 0 AND INDEX(LINE,"'",1) = 0 THEN
+               STACK = STACK + 1
+            END
+*
+            IF INDEX(LINE,'$ENDIF',1) # 0 AND INDEX(LINE,'"',1) = 0 AND INDEX(LINE,"'",1) = 0 THEN
+               STACK = STACK - 1
+            END
+*
+            CTR = CTR + 1
+            LINE = RAW.CODE<CTR>
+*
+            IF STACK # 0 THEN
+               CLEAN.CODE<-1> = '*UNDEF ' : LINE
+            END
+         REPEAT
+*
+         CONTINUE
+      END
+*
+      IF INDEX(LINE,'$ENDIF',1) # 0 AND INDEX(LINE,'"',1) = 0 AND INDEX(LINE,"'",1) = 0 THEN
+         CLEAN.CODE<-1> = '*UNDEF ' : LINE
+         CONTINUE
+      END
+*
+      CLEAN.CODE<-1> = LINE
+*
+   REPEAT
+*
+   RETURN
+*
+*********************  S U B R O U T I N E  *********************
+*
+SETUP.PACKAGES:NULL
+*
+   PACKAGES = ''
+   PACKAGES<1,-1> = 'EVA'
+   PACKAGES<2,-1> = 'Text Editor'
+   PACKAGES<3,-1> = 'https://raw.githubusercontent.com/Krowemoh/eva/main/EVA'
+*
+   PACKAGES<1,-1> = 'NPM'
+   PACKAGES<2,-1> = 'Package Manager'
+   PACKAGES<3,-1> = 'https://raw.githubusercontent.com/Krowemoh/npm/main/NPM'
+*
+   PACKAGES<1,-1> = 'NSH'
+   PACKAGES<2,-1> = 'Shell'
+   PACKAGES<3,-1> = 'https://raw.githubusercontent.com/Krowemoh/nsh/main/NSH'
+*
+   PACKAGES<1,-1> = 'MOVE.FILES'
+   PACKAGES<2,-1> = 'Base program for Clone, Move and Rename'
+   PACKAGES<3,-1> = 'https://raw.githubusercontent.com/Krowemoh/TCL-Utilities/main/MOVE.FILES'
+*
+   PACKAGES<1,-1> = 'GET.ARGUMENTS'
+   PACKAGES<2,-1> = 'Base program for argument parsing'
+   PACKAGES<3,-1> = 'https://raw.githubusercontent.com/Krowemoh/TCL-Utilities/main/GET.ARGUMENTS'
+*
+   PACKAGES<1,-1> = 'FILE.TRANSFER.PROTOCOL'
+   PACKAGES<2,-1> = 'Base program for upload or download files using ftp'
+   PACKAGES<3,-1> = 'https://raw.githubusercontent.com/Krowemoh/TCL-Utilities/main/FILE.TRANSFER.PROTOCOL'
+*
+   PACKAGES<1,-1> = 'FILE.TRANSFER.PROTOCOL.SECURE'
+   PACKAGES<2,-1> = 'Base program for upload or download files using lftp, ftps'
+   PACKAGES<3,-1> = 'https://raw.githubusercontent.com/Krowemoh/TCL-Utilities/main/FILE.TRANSFER.PROTOCOL.SECURE'
+*
+   PACKAGES<1,-1> = 'MD5'
+   PACKAGES<2,-1> = 'Hashing using MD5'
+   PACKAGES<3,-1> = 'https://raw.githubusercontent.com/Krowemoh/TCL-Utilities/main/MD5'
+*
+   PACKAGES<1,-1> = 'SECURE.COPY'
+   PACKAGES<2,-1> = 'Base program for upload or download files using ssh'
+   PACKAGES<3,-1> = 'https://raw.githubusercontent.com/Krowemoh/TCL-Utilities/main/SECURE.COPY'
+*
+   PACKAGES<1,-1> = 'SECURE.FILE.TRANSFER.PROTOCOL'
+   PACKAGES<2,-1> = 'Base program for upload or download files using sftp'
+   PACKAGES<3,-1> = 'https://raw.githubusercontent.com/Krowemoh/TCL-Utilities/main/SECURE.FILE.TRANSFER.PROTOCOL'
+*
+   PACKAGES<1,-1> = 'SHA1'
+   PACKAGES<2,-1> = 'Hashing using SHA1'
+   PACKAGES<3,-1> = 'https://raw.githubusercontent.com/Krowemoh/TCL-Utilities/main/SHA1'
+*
+   PACKAGES<1,-1> = 'SHA256'
+   PACKAGES<2,-1> = 'Hashing using SHA256'
+   PACKAGES<3,-1> = 'https://raw.githubusercontent.com/Krowemoh/TCL-Utilities/main/SHA256'
+*
+   PACKAGES<1,-1> = 'SHA512'
+   PACKAGES<2,-1> = 'Hashing using SHA512'
+   PACKAGES<3,-1> = 'https://raw.githubusercontent.com/Krowemoh/TCL-Utilities/main/SHA512'
+*
+   PACKAGES<1,-1> = 'URLENCODE'
+   PACKAGES<2,-1> = 'Escape special characters in a URL'
+   PACKAGES<3,-1> = 'https://raw.githubusercontent.com/Krowemoh/TCL-Utilities/main/URLENCODE'
+*
+   PACKAGES<1,-1> = 'URLDECODE'
+   PACKAGES<2,-1> = 'Decode an escaped URL'
+   PACKAGES<3,-1> = 'https://raw.githubusercontent.com/Krowemoh/TCL-Utilities/main/URLDECODE'
+*
+   PACKAGES<1,-1> = 'ADD-DICT'
+   PACKAGES<2,-1> = 'Add dictionaries to a file'
+   PACKAGES<3,-1> = 'https://raw.githubusercontent.com/Krowemoh/TCL-Utilities/main/ADD-DICT'
+*
+   PACKAGES<1,-1> = 'ADD-PATH'
+   PACKAGES<2,-1> = 'Create MD entries for folder paths'
+   PACKAGES<3,-1> = 'https://raw.githubusercontent.com/Krowemoh/TCL-Utilities/main/ADD-PATH'
+*
+   PACKAGES<1,-1> = 'CAT'
+   PACKAGES<2,-1> = 'Print a record to the screen'
+   PACKAGES<3,-1> = 'https://raw.githubusercontent.com/Krowemoh/TCL-Utilities/main/CAT'
+*
+   PACKAGES<1,-1> = 'CLONE'
+   PACKAGES<2,-1> = 'Clone records and dictionaries'
+   PACKAGES<3,-1> = 'https://raw.githubusercontent.com/Krowemoh/TCL-Utilities/main/CLONE'
+*
+   PACKAGES<1,-1> = 'FTP'
+   PACKAGES<2,-1> = 'Upload or download files using ftp'
+   PACKAGES<3,-1> = 'https://raw.githubusercontent.com/Krowemoh/TCL-Utilities/main/FTP'
+*
+   PACKAGES<1,-1> = 'FTPS'
+   PACKAGES<2,-1> = 'Upload or download files using lftp, ftps'
+   PACKAGES<3,-1> = 'https://raw.githubusercontent.com/Krowemoh/TCL-Utilities/main/FTPS'
+*
+   PACKAGES<1,-1> = 'GREP'
+   PACKAGES<2,-1> = 'Search using regular expressions'
+   PACKAGES<3,-1> = 'https://raw.githubusercontent.com/Krowemoh/TCL-Utilities/main/GREP'
+*
+   PACKAGES<1,-1> = 'MOVE'
+   PACKAGES<2,-1> = 'Move records and dictionaries'
+   PACKAGES<3,-1> = 'https://raw.githubusercontent.com/Krowemoh/TCL-Utilities/main/MOVE'
+*
+   PACKAGES<1,-1> = 'NEW-FILE'
+   PACKAGES<2,-1> = 'Create new files with defaults'
+   PACKAGES<3,-1> = 'https://raw.githubusercontent.com/Krowemoh/TCL-Utilities/main/NEW-FILE'
+*
+   PACKAGES<1,-1> = 'RENAME'
+   PACKAGES<2,-1> = 'Rename records and dictionaries'
+   PACKAGES<3,-1> = 'https://raw.githubusercontent.com/Krowemoh/TCL-Utilities/main/RENAME'
+*
+   PACKAGES<1,-1> = 'SCP'
+   PACKAGES<2,-1> = 'Upload or download files using ssh'
+   PACKAGES<3,-1> = 'https://raw.githubusercontent.com/Krowemoh/TCL-Utilities/main/SCP'
+*
+   PACKAGES<1,-1> = 'SFTP'
+   PACKAGES<2,-1> = 'Upload or download files using sftp'
+   PACKAGES<3,-1> = 'https://raw.githubusercontent.com/Krowemoh/TCL-Utilities/main/SFTP'
+*
+   PACKAGES<1,-1> = 'JSON.ADD'
+   PACKAGES<2,-1> = 'Add key values pairs to a buffer for json creation'
+   PACKAGES<3,-1> = 'https://raw.githubusercontent.com/Krowemoh/TCL-Utilities/main/JSON.ADD'
+*
+   PACKAGES<1,-1> = 'JSON.CREATE.ARRAY'
+   PACKAGES<2,-1> = 'Create a JSON array from a multivalue list'
+   PACKAGES<3,-1> = 'https://raw.githubusercontent.com/Krowemoh/TCL-Utilities/main/JSON.CREATE.ARRAY'
+*
+   PACKAGES<1,-1> = 'JSON.CREATE.OBJECT'
+   PACKAGES<2,-1> = 'Create a JSON object froma multivalue list of key value pairs'
+   PACKAGES<3,-1> = 'https://raw.githubusercontent.com/Krowemoh/TCL-Utilities/main/JSON.CREATE.OBJECT'
+*
+   PACKAGES<1,-1> = 'JSON.PARSE'
+   PACKAGES<2,-1> = 'JSON parser'
+   PACKAGES<3,-1> = 'https://raw.githubusercontent.com/Krowemoh/TCL-Utilities/main/JSON.PARSE'
+*
+   PACKAGES<1,-1> = 'JSON.PARSE.RECURSE'
+   PACKAGES<2,-1> = 'Recursive function to parse JSON'
+   PACKAGES<3,-1> = 'https://raw.githubusercontent.com/Krowemoh/TCL-Utilities/main/JSON.PARSE.RECURSE'
+*
+   PACKAGES<1,-1> = 'JSON.QUERY'
+   PACKAGES<2,-1> = 'Query JSON'
+   PACKAGES<3,-1> = 'https://raw.githubusercontent.com/Krowemoh/TCL-Utilities/main/JSON.QUERY'
+*
+   PACKAGES<1,-1> = 'MAP.SET'
+   PACKAGES<2,-1> = 'Add/Update a key in a hashmap'
+   PACKAGES<3,-1> = 'https://raw.githubusercontent.com/Krowemoh/TCL-Utilities/main/MAP.SET'
+*
+   PACKAGES<1,-1> = 'MAP.GET'
+   PACKAGES<2,-1> = 'Get a value from a hashmap'
+   PACKAGES<3,-1> = 'https://raw.githubusercontent.com/Krowemoh/TCL-Utilities/main/MAP.GET'
+*
+   PACKAGES<1,-1> = 'MAP.HAS'
+   PACKAGES<2,-1> = 'Check if a value is in a hashmap'
+   PACKAGES<3,-1> = 'https://raw.githubusercontent.com/Krowemoh/TCL-Utilities/main/MAP.HAS'
+*
+   PACKAGES<1,-1> = 'MAP.DELETE'
+   PACKAGES<2,-1> = 'Delete a key from a hashmap'
+   PACKAGES<3,-1> = 'https://raw.githubusercontent.com/Krowemoh/TCL-Utilities/main/MAP.DELETE'
+*
+   PACKAGES<1,-1> = 'RENDER'
+   PACKAGES<2,-1> = 'BASIC Template Language'
+   PACKAGES<3,-1> = 'https://raw.githubusercontent.com/Krowemoh/basic-template-language/main/RENDER'
+*
+   PACKAGES<1,-1> = 'RAW.RENDER'
+   PACKAGES<2,-1> = 'BASIC Template Language'
+   PACKAGES<3,-1> = 'https://raw.githubusercontent.com/Krowemoh/basic-template-language/main/RAW.RENDER'
+*
+   PACKAGES<1,-1> = 'EVALUATE.BTL'
+   PACKAGES<2,-1> = 'BASIC Template Language'
+   PACKAGES<3,-1> = 'https://raw.githubusercontent.com/Krowemoh/basic-template-language/main/EVALUATE.BTL'
+*
+   PACKAGES<1,-1> = 'SERAPHIM'
+   PACKAGES<2,-1> = 'Simple HTTP Server'
+   PACKAGES<3,-1> = 'https://raw.githubusercontent.com/Krowemoh/TCL-Utilities/main/SERAPHIM'
+*
+   PACKAGES<1,-1> = 'METATRON'
+   PACKAGES<2,-1> = 'Manage SERAPHIM Servers'
+   PACKAGES<3,-1> = 'https://raw.githubusercontent.com/Krowemoh/TCL-Utilities/main/METATRON'
+*
+   PACKAGES<1,-1> = 'IMPORT-TEMP'
+   PACKAGES<2,-1> = 'Import Files from Directory'
+   PACKAGES<3,-1> = 'https://raw.githubusercontent.com/Krowemoh/TCL-Utilities/main/IMPORT-TEMP'
+*
+   PACKAGES<1,-1> = 'RENDER.MARKDOWN'
+   PACKAGES<2,-1> = 'Render Markdown to HTML'
+   PACKAGES<3,-1> = 'https://raw.githubusercontent.com/Krowemoh/TCL-Utilities/main/RENDER.MARKDOWN'
+*
+   PACKAGES<1,-1> = 'BITE-THE-APPLE'
+   PACKAGES<2,-1> = 'Seraphim Project Starter'
+   PACKAGES<3,-1> = 'https://raw.githubusercontent.com/Krowemoh/TCL-Utilities/main/BITE-THE-APPLE'
+*
+   PACKAGES<1,-1> = 'SEARCH-ALL'
+   PACKAGES<2,-1> = 'Search All Files'
+   PACKAGES<3,-1> = 'https://raw.githubusercontent.com/Krowemoh/TCL-Utilities/main/SEARCH-ALL'
+*
+   PACKAGES<1,-1> = 'GENERATE.JSON'
+   PACKAGES<2,-1> = 'Generate JSON From Data'
+   PACKAGES<3,-1> = 'https://raw.githubusercontent.com/Krowemoh/TCL-Utilities/main/GENERATE.JSON'
+*
+   PACKAGES<1,-1> = 'STACK.PUSH'
+   PACKAGES<2,-1> = 'Push something onto a stack.'
+   PACKAGES<3,-1> = 'https://raw.githubusercontent.com/Krowemoh/TCL-Utilities/main/STACK.PUSH'
+*
+   PACKAGES<1,-1> = 'STACK.POP'
+   PACKAGES<2,-1> = 'Pop a value from the stack.'
+   PACKAGES<3,-1> = 'https://raw.githubusercontent.com/Krowemoh/TCL-Utilities/main/STACK.POP'
+*
+   PACKAGES<1,-1> = 'STACK.PEEK'
+   PACKAGES<2,-1> = 'Get a value froma stack without popping it.'
+   PACKAGES<3,-1> = 'https://raw.githubusercontent.com/Krowemoh/TCL-Utilities/main/STACK.PEEK'
+*
+   PACKAGES<1,-1> = 'STACK.PRINT'
+   PACKAGES<2,-1> = 'Print a given stack'
+   PACKAGES<3,-1> = 'https://raw.githubusercontent.com/Krowemoh/TCL-Utilities/main/STACK.PRINT'
+*
+   PACKAGES<1,-1> = 'LIST.DIRECTORY'
+   PACKAGES<2,-1> = 'List a directory'
+   PACKAGES<3,-1> = 'https://raw.githubusercontent.com/Krowemoh/TCL-Utilities/main/LIST.DIRECTORY'
+*
+   PACKAGES<1,-1> = 'PS2'
+   PACKAGES<2,-1> = 'List universe processes and license information'
+   PACKAGES<3,-1> = 'https://raw.githubusercontent.com/Krowemoh/TCL-Utilities/main/PS2'
+*
+   PACKAGES<1,-1> = 'GET.NEXT.ID'
+   PACKAGES<2,-1> = 'Get next available numeric key'
+   PACKAGES<3,-1> = 'https://raw.githubusercontent.com/Krowemoh/TCL-Utilities/main/GET.NEXT.ID'
+*
+   PACKAGES<1,-1> = 'CLIZER'
+   PACKAGES<2,-1> = 'Subroutine to create CLI tools from a file'
+   PACKAGES<3,-1> = 'https://raw.githubusercontent.com/Krowemoh/TCL-Utilities/main/CLIZER'
+*
+   PACKAGES<1,-1> = 'CLIZER.DRIVER'
+   PACKAGES<2,-1> = 'Update records directly from TCL'
+   PACKAGES<3,-1> = 'https://raw.githubusercontent.com/Krowemoh/TCL-Utilities/main/CLIZER.DRIVER'
+*
+   RETURN
+*
+* END OF PROGRAM
+*
+   END
+*
