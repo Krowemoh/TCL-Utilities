@@ -2,6 +2,14 @@
 
 Helpful Commands for PICK TCL
 
+## Tools
+
+| Tools | Description |
+|---------|-------------|
+|EVA||
+|NPM||
+|NSH||
+
 ## Commands
 
 A set of utilities to make PICK easier to manage. Square brackets mean the word is optional. Curly braces are where you can substitute what you want in the command.
@@ -9,7 +17,77 @@ A set of utilities to make PICK easier to manage. Square brackets mean the word 
 | Command | Description |
 |---------|-------------|
 | ADD-DICT | Add dictionary entries to a file |
+| ADD-PATH|Add a F Pointer to a Linux Path|
+| CAT|Print a record to the screen|
+| CLIZER.DRIVER|Update a record from TCL|
+| CLONE|Copy records in PICK|
+| EVENT|Create events and added to an EVENT-FILE|
+| FTP|Upload and download files using ftp|
+| GREP|Regex search in BASIC, ^.*$|
+| IMPORT-TEMP|Import records from IMPORT-TEMP-FILE|
+| MOVE|Move records around in PICK|
+| NEW-FILE|Create files with a default|
+| OS.RELEASE|Show OS information|
+| PS2|List UniVerse port information|
+| RENAME|Rename files and dictionaries|
+| SCP|Upload and download files using ssh|
+| UV.LICENSE|Show UniVerse license information|
 
+## Subroutines
+
+|Subroutine|Description|
+|----------|-----------|
+|CLIZER||
+|GET.ARGUMENTS||
+|GET.NEXT.ID||
+|MOVE.FILES||
+|FILE.TRANSFER.PROTOCOL||
+|FILE.TRANSFER.PROTOCOL.SECURE||
+|MD5||
+|RENDER.MARKDOWN||
+|SECURE.COPY||
+|SECURE.FILE.TRANSFER.PROTOCOL||
+|SHA1||
+|SHA256||
+|SHA512||
+|URLDECODE||
+|URLENCODE||
+
+## JSON
+
+|Subroutine|Description|
+|----------|-----------|
+|JSON.ADD||
+|JSON.CREATE.ARRAY||
+|JSON.CREATE.OBJECT||
+|JSON.PARSE||
+|JSON.QUERY||
+
+## Data Structures
+
+|Subroutine|Description|
+|----------|-----------|
+|MAP.SET|
+|MAP.HAS||
+|MAP.GET||
+|MAP.DELETE||
+|STACK.PUSH||
+|STACK.POP||
+|STACK.PEEK||
+
+## File Operations
+
+|Subroutine|Description|
+|----------|-----------|
+|LIST.DIRECTORY||
+
+## Web
+
+|Program|Description|
+|----------|-----------|
+|BITE-THE-APPLE||
+|SERAPHIM||
+|METATRON||
 
 ### ADD-DICT
 
@@ -455,48 +533,4 @@ Manage SERAPHIM Servers:
 ```
     METATRON START {APPLICATION}
     METATRON STOP {APPLICATION}
-=======
-# NPM 
-
-Nova Package Manager
-
-## Installation Instructions
-
-Download NPM
-
-```
-curl https://raw.githubusercontent.com/Krowemoh/npm/main/NPM -o NPM
-```
-
-Compile and catalog NPM
-
-```
-BASIC BP NPM
-CATALOG BP NPM
-```
-
-## Manual
-
-```
-NPM - Nova Package Manager
-
-    INFO - Get system information
-
-    CHECK - Display package conflicts
-
-    GET - Get a file
-        NPM GET <FILE> <RECORD> <URL>
-
-    COMPILE - Compile a file with conditional compilation
-        NPM COMPILE <FILE> <RECORD>
-
-    INSTALL - GET and COMPILE and CATALOG
-        NPM INSTALL <FILE> <RECORD> <URL>
-
-    LIST - List available packages
-        NPM LIST
-
-    SYNC - Install all available packages to FILE
-        NPM SYNC <FILE>
->>>>>>> NPM/main
 ```
