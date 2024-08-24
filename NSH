@@ -1,6 +1,6 @@
 *
    GIT.FILENAME = 'NSH'
-   GIT.REPO = 'https://github.com/Krowemoh/nsh.git'
+   GIT.REPO = 'https://github.com/Krowemoh/TCL-Utilities.git'
 *
 * COMPILER DIRECTIVES
 *
