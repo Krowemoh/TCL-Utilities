@@ -1,11 +1,15 @@
 *
    GIT.FILENAME = 'EVA'
-   GIT.REPO = 'https://github.com/krowemoh/eva.git'
+   GIT.REPO = 'https://github.com/krowemoh/TCL-Utilities.git'
 *
 * COMPILER DIRECTIVES
 *
    $DEFINE DATABASE.UV
    $DEFINE PLATFORM.LINUX
+*
+   $IFDEF DATABASE.QM
+      $CATALOGUE
+   $ENDIF
 *
    $IFDEF PLATFORM.LINUX
       $IFDEF DATABASE.UV
@@ -7582,4 +7586,4 @@ ADD.DEFAULT.SNIPPETS:NULL
 *
    END
 *
-
+   
