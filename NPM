@@ -1,6 +1,6 @@
 *
    GIT.FILENAME = 'NPM'
-   GIT.REPO = 'https://github.com/Krowemoh/npm.git'
+   GIT.REPO = 'https://github.com/Krowemoh/TCL-Utilities.git'
 *
 * VERSION
 *
@@ -461,15 +461,15 @@ SETUP.PACKAGES:NULL
    PACKAGES = ''
    PACKAGES<1,-1> = 'EVA'
    PACKAGES<2,-1> = 'Text Editor'
-   PACKAGES<3,-1> = 'https://raw.githubusercontent.com/Krowemoh/eva/main/EVA'
+   PACKAGES<3,-1> = 'https://raw.githubusercontent.com/Krowemoh/eva/TCL-Utilities/EVA'
 *
    PACKAGES<1,-1> = 'NPM'
    PACKAGES<2,-1> = 'Package Manager'
-   PACKAGES<3,-1> = 'https://raw.githubusercontent.com/Krowemoh/npm/main/NPM'
+   PACKAGES<3,-1> = 'https://raw.githubusercontent.com/Krowemoh/TCL-Utilities/main/NPM'
 *
    PACKAGES<1,-1> = 'NSH'
    PACKAGES<2,-1> = 'Shell'
-   PACKAGES<3,-1> = 'https://raw.githubusercontent.com/Krowemoh/nsh/main/NSH'
+   PACKAGES<3,-1> = 'https://raw.githubusercontent.com/Krowemoh/TCL-Utilities/main/NSH'
 *
    PACKAGES<1,-1> = 'MOVE.FILES'
    PACKAGES<2,-1> = 'Base program for Clone, Move and Rename'
@@ -682,6 +682,7 @@ SETUP.PACKAGES:NULL
    PACKAGES<1,-1> = 'CLIZER.DRIVER'
    PACKAGES<2,-1> = 'Update records directly from TCL'
    PACKAGES<3,-1> = 'https://raw.githubusercontent.com/Krowemoh/TCL-Utilities/main/CLIZER.DRIVER'
+*
 *
    RETURN
 *
