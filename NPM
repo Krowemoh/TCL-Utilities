@@ -676,8 +676,12 @@ SETUP.PACKAGES:NULL
    PACKAGES<3,-1> = 'https://raw.githubusercontent.com/Krowemoh/TCL-Utilities/main/GET.NEXT.ID'
 *
    PACKAGES<1,-1> = 'CLIZER'
-   PACKAGES<2,-1> = 'Create CLI tools easily for files'
+   PACKAGES<2,-1> = 'Subroutine to create CLI tools from a file'
    PACKAGES<3,-1> = 'https://raw.githubusercontent.com/Krowemoh/TCL-Utilities/main/CLIZER'
+*
+   PACKAGES<1,-1> = 'CLIZER.DRIVER'
+   PACKAGES<2,-1> = 'Update records directly from TCL'
+   PACKAGES<3,-1> = 'https://raw.githubusercontent.com/Krowemoh/TCL-Utilities/main/CLIZER.DRIVER'
 *
    RETURN
 *
