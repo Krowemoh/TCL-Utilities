@@ -44,6 +44,8 @@
    GOSUB GET.ATTRIBUTES
 *
    IF ARGS.LEN = 1 THEN
+      PRINT 'FLAGS: '
+*
       FOR I = 1 TO NUMBER.OF.ATTRIBUTES
          FLAG = ATTRIBUTE.LIST<1,I>
          SHORTHAND = ATTRIBUTE.LIST<4,I>
@@ -56,7 +58,7 @@
          END
       NEXT I
 *
-      STOP
+      RETURN
    END
 *
    ITEM.ID = ''
@@ -151,13 +153,13 @@
       PRINT 'Created ' : ITEM.ID : ' in ' : FILENAME
    END
 *
-   STOP
+   RETURN
 *
 *********************  S U B R O U T I N E  *********************
 *
 GET.ATTRIBUTES:NULL
 *
-   EXECUTE 'SSELECT DICT ' : FILENAME : ' BY F2 FMT 5R' CAPTURING RESULTS
+   EXECUTE 'SSELECT DICT ' : FILENAME : ' BY F2' CAPTURING RESULTS
 *
    ATTRIBUTE.LIST = ''
    DONE = FALSE
