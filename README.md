@@ -46,6 +46,14 @@ Print a record to the screen:
     CAT [DICT] {FILE}
 ```
 
+### CLIZER.DRIVER
+
+Update a record from TCL:
+
+```
+    CLIZER.DRIVER SOMETHING-FILE --ATTRIBUTE.NAME VALUE
+```
+
 ### CLONE
 
 Copy records in PICK:
@@ -173,6 +181,14 @@ UV.LICENSE
 ```
 
 ## Library Subroutines
+
+### CLIZER
+
+Create a CLI interface based on a file dictionary:
+
+```
+   SUBROUTINE CLIZER(FILENAME,ARGS)
+```
 
 ### GET.ARGUMENTS
 
