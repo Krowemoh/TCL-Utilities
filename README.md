@@ -1,6 +1,6 @@
 # TCL-Utilities
 
-Helpful Commands for PICK TCL
+Helpful tools for Pick
 
 ## Tools
 
