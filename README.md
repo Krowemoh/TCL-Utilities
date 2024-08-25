@@ -6,9 +6,9 @@ Helpful Commands for PICK TCL
 
 | Tools | Description |
 |---------|-------------|
-|EVA||
-|NPM||
-|NSH||
+|EVA|Vim like editor for Pick|
+|NPM|Package manager to install the packages listed here|
+|NSH|Fish like shell for Pick|
 
 ## Commands
 
