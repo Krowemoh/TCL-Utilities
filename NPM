@@ -683,6 +683,9 @@ SETUP.PACKAGES:NULL
    PACKAGES<2,-1> = 'Update records directly from TCL'
    PACKAGES<3,-1> = 'https://raw.githubusercontent.com/Krowemoh/TCL-Utilities/main/CLIZER.DRIVER'
 *
+   PACKAGES<1,-1> = 'CSV'
+   PACKAGES<2,-1> = 'Create CSVs from TCL'
+   PACKAGES<3,-1> = 'https://raw.githubusercontent.com/Krowemoh/TCL-Utilities/main/CSV'
 *
    RETURN
 *
