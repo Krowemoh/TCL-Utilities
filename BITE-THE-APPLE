@@ -247,8 +247,8 @@
       TEMPLATE<-1> = "   SERVER.PORT = '7121'"
       TEMPLATE<-1> = "*"
       TEMPLATE<-1> = "   SSL = ''"
-      TEMPLATE<-1> = "   SSL<1> = '/etc/letsencrypt/live/permutation.town/fullchain.pem'"
-      TEMPLATE<-1> = "   SSL<2> = '/etc/letsencrypt/live/permutation.town/privkey.pem'"
+      TEMPLATE<-1> = "   SSL<1> = '/etc/letsencrypt/live/example.org/fullchain.pem'"
+      TEMPLATE<-1> = "   SSL<2> = '/etc/letsencrypt/live/example.org/privkey.pem'"
       TEMPLATE<-1> = "*"
       TEMPLATE<-1> = "   GOSUB SETUP.ROUTES"
       TEMPLATE<-1> = "*"
@@ -576,3 +576,4 @@
 *
    END
 *
+
