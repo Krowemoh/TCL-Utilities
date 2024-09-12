@@ -2516,7 +2516,7 @@ UPDATE.LINE:NULL
       FAIL.CTR = FAIL.CTR + 1
       IF FAIL.CTR > 10000 THEN
          PRINT 'Large loop error in UPDATE.LINE:NULL.'
-         $IFDEF DATABASE.QM
+         $IFDEF DATABASE.UV
             DEBUG
          $ENDIF
       END
