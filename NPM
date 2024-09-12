@@ -2,6 +2,15 @@
    GIT.FILENAME = 'NPM'
    GIT.REPO = 'https://github.com/Krowemoh/TCL-Utilities.git'
 *
+* COMPILER DIRECTIVES
+*
+   $DEFINE DATABASE.UV
+   $DEFINE PLATFORM.LINUX
+*
+   $IFDEF DATABASE.QM
+      $CATALOGUE LOCAL
+   $ENDIF
+*
 * VERSION
 *
    VERSION = '1'
@@ -461,7 +470,7 @@ SETUP.PACKAGES:NULL
    PACKAGES = ''
    PACKAGES<1,-1> = 'EVA'
    PACKAGES<2,-1> = 'Text Editor'
-   PACKAGES<3,-1> = 'https://raw.githubusercontent.com/Krowemoh/eva/TCL-Utilities/EVA'
+   PACKAGES<3,-1> = 'https://raw.githubusercontent.com/Krowemoh/TCL-Utilities/main/EVA'
 *
    PACKAGES<1,-1> = 'NPM'
    PACKAGES<2,-1> = 'Package Manager'
@@ -693,3 +702,4 @@ SETUP.PACKAGES:NULL
 *
    END
 *
+
