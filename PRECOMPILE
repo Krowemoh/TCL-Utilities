@@ -1,0 +1,183 @@
+*
+   GIT.FILENAME = 'PRECOMPILE'
+   GIT.REPO = 'https://github.com/krowemoh/TCL-Utilities.git'
+*
+   EQU TRUE TO 1
+   EQU FALSE TO 0
+*
+* COMPILER DIRECTIVES
+*
+   $DEFINE DATABASE.QM
+   $DEFINE PLATFORM.LINUX
+*
+   $IFDEF DATABASE.QM
+      $CATALOGUE LOCAL
+   $ENDIF
+*
+   @USER1 = 'PRECOMPILE'
+   @USER2 = 'PRECOMPILE'
+*
+   CALL GET.ARGUMENTS(ARGUMENTS)
+*
+   ARGS.LEN = DCOUNT(ARGUMENTS,@AM)
+*
+   IF ARGS.LEN = 1 THEN
+      PRINT 'PRECOMPILE - Preprocess a BASIC program'
+      PRINT
+      PRINT '    PRECOMPILE BP TEST.PREC'
+      PRINT
+      STOP
+   END
+*
+   IF ARGS.LEN > 3 THEN
+      PRINT 'Invalid number of arguments.'
+      STOP
+   END
+*
+   FILENAME = ARGUMENTS<2>
+   ITEM.ID = ARGUMENTS<3>
+*
+   OPEN '',FILENAME TO FILE ELSE
+      PRINT 'Unable to open file: ' : FILENAME
+      STOP
+   END
+*
+   READ ORIGINAL.RECORD FROM FILE,ITEM.ID ELSE
+      PRINT 'Failed to read: ' : FILENAME : ' ' : ITEM.ID
+      STOP
+   END
+*
+   GOSUB SETUP.HEADER
+   GOSUB SETUP.FOOTER
+*
+   RECORD = ''
+*
+   NUMBER.OF.LINES = DCOUNT(ORIGINAL.RECORD,@AM)
+*
+   END.FOUND = FALSE
+*
+   FOR I = 1 TO NUMBER.OF.LINES
+      RAW.LINE = ORIGINAL.RECORD<I>
+      LINE = TRIM(RAW.LINE)
+*
+      BEGIN CASE
+         CASE LINE = '$END' AND NOT(END.FOUND)
+            END.FOUND = TRUE
+            FOOTER<-1> = '* $END'
+*
+         CASE LINE[1,1] = '$' AND NOT(END.FOUND)
+            INCLUDE.NAME = LINE[2,LEN(LINE)]
+*
+            OPEN '',INCLUDE.NAME TO INCLUDE.FILE ELSE
+               HEADER<-1> = '* ' : LINE
+               HEADER<-1> = '* FAILED TO OPEN FILE: ' : LINE
+               HEADER<-1> = '*'
+               CONTINUE
+            END
+*
+            HEADER<-1> = '* ' : LINE
+            HEADER<-1> = '*'
+*
+            HEADER<-1> = \   OPEN '','\ : INCLUDE.NAME : \' TO \:CHANGE(INCLUDE.NAME,'-','.'):\ ELSE\
+            HEADER<-1> = \      PRINT 'Failed to open file: \ : INCLUDE.NAME : \'\
+            HEADER<-1> = \      STOP\
+            HEADER<-1> = \   END\
+*
+            OPEN 'DICT',INCLUDE.NAME TO DICT.FILE ELSE
+               CONTINUE
+            END
+*
+            ATTR.LIST = ''
+*
+            NAMESPACE = INCLUDE.NAME
+            IF NAMESPACE[5] = '-FILE' THEN
+               NAMESPACE = NAMESPACE[1,LEN(NAMESPACE)-5]
+            END
+*
+            CLEARSELECT
+            SELECT DICT.FILE
+*
+            EOF = FALSE
+*
+            LOOP
+               READNEXT DICT.ID ELSE EOF = TRUE
+*
+            UNTIL EOF DO
+               READ DICT.ITEM FROM DICT.FILE,DICT.ID ELSE
+                  CONTINUE
+               END
+*
+               IF DICT.ITEM<1> # 'A' THEN
+                  CONTINUE
+               END
+*
+               ATTR = DICT.ITEM<2>
+               LOCATE(ATTR,ATTR.LIST<1>,1;ANYPOS;'AR') ELSE
+                  ATTR.LIST = INSERT(ATTR.LIST,1,ANYPOS;ATTR)
+                  ATTR.LIST = INSERT(ATTR.LIST,2,ANYPOS;DICT.ID)
+               END
+            REPEAT
+*
+            HEADER<-1> = \*\
+*
+            FOR ATTR.CTR = 1 TO DCOUNT(ATTR.LIST<1>,@VM)
+               ATTR = ATTR.LIST<1,ATTR.CTR>
+               DICT.ID = ATTR.LIST<2,ATTR.CTR>
+               HEADER<-1> = \   EQU \ : NAMESPACE : \.\ : DICT.ID : \.ATTRIBUTE TO \ : ATTR : \\
+            NEXT ATTR.CTR
+*
+            HEADER<-1> = \*\
+*
+         CASE TRUE
+            RECORD<-1> = RAW.LINE
+            
+      END CASE
+   NEXT I
+*
+   IF END.FOUND THEN
+      NEW.RECORD = HEADER
+      NEW.RECORD<-1> = FOOTER
+      NEW.RECORD<-1> = RECORD
+*
+      WRITE NEW.RECORD ON FILE,ITEM.ID
+   END
+*
+   STOP
+*
+*********************  S U B R O U T I N E  *********************
+*
+SETUP.HEADER:NULL
+*
+   HEADER = \*\
+   HEADER<-1> = \   GIT.FILENAME = '\ : ITEM.ID : \'\
+   HEADER<-1> = \   GIT.REPO = 'https://github.com/krowemoh/TCL-Utilities.git'\
+   HEADER<-1> = \*\
+   HEADER<-1> = \   EQU TRUE TO 1\
+   HEADER<-1> = \   EQU FALSE TO 0\
+   HEADER<-1> = \*\
+   HEADER<-1> = \* COMPILER DIRECTIVES\
+   HEADER<-1> = \*\
+   HEADER<-1> = \   $DEFINE DATABASE.QM\
+   HEADER<-1> = \   $DEFINE PLATFORM.LINUX\
+   HEADER<-1> = \*\
+   HEADER<-1> = \   $IFDEF DATABASE.QM\
+   HEADER<-1> = \      $CATALOGUE LOCAL\
+   HEADER<-1> = \   $ENDIF\
+   HEADER<-1> = \*\
+*
+   RETURN
+*
+*********************  S U B R O U T I N E  *********************
+*
+SETUP.FOOTER:NULL
+*
+   FOOTER = \   @USER1 = '\ : ITEM.ID : \'\
+   FOOTER<-1> = \   @USER2 = '\ : ITEM.ID : \'\
+   FOOTER<-1> = \*\
+*
+   RETURN
+*
+* END OF PROGRAM
+*
+   END
+*
