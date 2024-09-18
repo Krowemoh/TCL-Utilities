@@ -1,0 +1,78 @@
+*
+   GIT.FILENAME = 'ARCHIVE'
+   GIT.REPO = 'https://github.com/krowemoh/TCL-Utilities.git'
+*
+   EQU TRUE TO 1
+   EQU FALSE TO 0
+*
+* COMPILER DIRECTIVES
+*
+   $DEFINE DATABASE.QM
+   $DEFINE PLATFORM.LINUX
+*
+   $IFDEF DATABASE.QM
+      $CATALOGUE LOCAL
+   $ENDIF
+*
+   @USER1 = 'ARCHIVE'
+   @USER2 = @USER2 : @VM : 'ARCHIVE'
+*
+* $END
+*
+   CALL GET.ARGUMENTS(ARGUMENTS)
+*
+   ARGS.LEN = DCOUNT(ARGUMENTS,@AM)
+*
+   IF ARGS.LEN = 1 THEN
+      PRINT 'ARCHIVE - Archive a file'
+      PRINT
+      PRINT '    ARCHIVE BP TEST.PREC'
+      PRINT
+      STOP
+   END
+*
+   IF ARGS.LEN > 3 THEN
+      PRINT 'Invalid number of arguments.'
+      STOP
+   END
+*
+   FILENAME = ARGUMENTS<2>
+   ITEM.ID = ARGUMENTS<3>
+*
+   OPEN '',FILENAME TO FILE ELSE
+      PRINT 'Unable to open file: ' : FILENAME
+      STOP
+   END
+*
+   OPEN '','ARCHIVE-':FILENAME TO ARCHIVE.FILE ELSE
+      PRINT 'Unable to open file: ARCHIVE-' : FILENAME
+      STOP
+   END
+*
+   READ RECORD FROM FILE,ITEM.ID ELSE
+      PRINT 'Failed to read: ' : FILENAME : ' ' : ITEM.ID
+      STOP
+   END
+*
+   DATE = CHANGE(OCONV(DATE(),'D'),' ','')
+   POSSIBLE.ID = ITEM.ID : '_' : DATE
+   ARCHIVE.ID = POSSIBLE.ID
+   SEQUENCE = 0
+   DONE = FALSE
+*
+   LOOP
+      READ ANYTHING FROM ARCHIVE.FILE,ARCHIVE.ID ELSE
+         WRITE RECORD ON ARCHIVE.FILE,ARCHIVE.ID
+         DONE = TRUE
+      END
+   UNTIL DONE DO
+      SEQUENCE = SEQUENCE + 1
+      ARCHIVE.ID = POSSIBLE.ID : '_' : SEQUENCE
+   REPEAT
+*
+   PRINT 'Archived ' : FILENAME : ' ' : ITEM.ID  : ' to ' : ARCHIVE.ID
+*
+* END OF PROGRAM
+*
+   END
+*
