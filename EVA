@@ -6151,7 +6151,7 @@ PRECOMPILE:NULL
 *
    GOSUB SAVE.FILE
 *
-   EXECUTE 'PRECOMPILE ' : FILENAME : ' ' : RECORD.ID : ' (A'
+   EXECUTE 'PRECOMPILE ' : FILENAME : ' ' : RECORD.ID : ''
 *
    READU RAW.LINES FROM FILE,RECORD.ID ELSE
       PRINT BOTTOM : MESSAGE.COLOR : CLEAR.REST.OF.LINE :
@@ -6194,16 +6194,16 @@ DECOMPILE:NULL
       RETURN
    END
 *
-   READ ANYTHING FROM VOC.FILE,'DECOMPILE' ELSE
+   READ ANYTHING FROM VOC.FILE,'DEPRECOMPILE' ELSE
       PRINT BOTTOM : MESSAGE.COLOR : CLEAR.REST.OF.LINE :
-      PRINT 'DECOMPILE is not available.' :
+      PRINT 'DEPRECOMPILE is not available.' :
       PRINT @(X.POS,Y.POS) :
       RETURN
    END
 *
    GOSUB SAVE.FILE
 *
-   EXECUTE 'DECOMPILE ' : FILENAME : ' ' : RECORD.ID
+   EXECUTE 'DEPRECOMPILE ' : FILENAME : ' ' : RECORD.ID
 *
    READU RAW.LINES FROM FILE,RECORD.ID ELSE
       PRINT BOTTOM : MESSAGE.COLOR : CLEAR.REST.OF.LINE :
@@ -6228,7 +6228,7 @@ DECOMPILE:NULL
    $ENDIF
 *
    PRINT BOTTOM : MESSAGE.COLOR : CLEAR.REST.OF.LINE :
-   PRINT 'Decompiled file.' :
+   PRINT 'Deprecompiled file.' :
 *
    GOTO.LINE = 1
    GOSUB GOTO.LINE.POSITION
@@ -6545,9 +6545,9 @@ BUILD.HELP.LINES:NULL
    HELP.LINES<-1> = '    :numbers - Toggle the line numbers   '
    HELP.LINES<-1> = '    :f - Format the file  '
    HELP.LINES<-1> = '*'
-   HELP.LINES<-1> = '    :dec - Decompile a file - ASI  '
+   HELP.LINES<-1> = '    :dec - Deprecompile a file - ASI  '
    HELP.LINES<-1> = '    :prec - Precompile a file - ASI  '
-   HELP.LINES<-1> = '    :comp - Decompile and Precompile a file - ASI  '
+   HELP.LINES<-1> = '    :comp - Deprecompile and Precompile a file - ASI  '
    HELP.LINES<-1> = '    :lint - Lint a BASIC program  '
    HELP.LINES<-1> = '    :archive - Archive a record in a file, creates a copy to ARCHIVE-{FILE} with a datestamp  '
    HELP.LINES<-1> = '*'
