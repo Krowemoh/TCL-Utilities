@@ -21,6 +21,7 @@ A set of utilities to make PICK easier to manage. Square brackets mean the word 
 | CAT|Print a record to the screen|
 | CLIZER.DRIVER|Update a record from TCL|
 | CLONE|Copy records in PICK|
+| DEPRECOMPILE|Deprecompile BASIC programs|
 | EVENT|Create events and added to an EVENT-FILE|
 | FTP|Upload and download files using ftp|
 | GREP|Regex search in BASIC, ^.*$|
@@ -28,6 +29,7 @@ A set of utilities to make PICK easier to manage. Square brackets mean the word 
 | MOVE|Move records around in PICK|
 | NEW-FILE|Create files with a default|
 | OS.RELEASE|Show OS information|
+| PRECOMPILE|Precompile BASIC programs|
 | PS2|List UniVerse port information|
 | RENAME|Rename files and dictionaries|
 | SCP|Upload and download files using ssh|
@@ -154,6 +156,14 @@ Copy records in PICK:
         CLONE [DICT] {SRC.FILE} {/tmp/backups/}
 ```
 
+### DEPRECOMPILE
+
+Deprecompile a BASIC program that has $FILE-NAME:
+
+```
+DEPRECOMPILE BP TEST
+```
+
 ### EVENT
 
 Create events and added to an EVENT-FILE:
@@ -229,6 +239,14 @@ Show OS information:
 
 ```
 OS.RELEASE
+```
+
+### PRECOMPILE
+
+Precompile a BASIC program that has $FILE-NAME
+
+```
+PRECOMPILE BP TEST
 ```
 
 ### RENAME
