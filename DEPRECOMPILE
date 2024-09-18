@@ -1,0 +1,85 @@
+*
+   GIT.FILENAME = 'DEPRECOMPILE'
+   GIT.REPO = 'https://github.com/krowemoh/TCL-Utilities.git'
+*
+   EQU TRUE TO 1
+   EQU FALSE TO 0
+*
+* COMPILER DIRECTIVES
+*
+   $DEFINE DATABASE.QM
+   $DEFINE PLATFORM.LINUX
+*
+   $IFDEF DATABASE.QM
+      $CATALOGUE LOCAL
+   $ENDIF
+*
+   @USER1 = 'DEPRECOMPILE'
+   @USER2 = 'DEPRECOMPILE'
+*
+   CALL GET.ARGUMENTS(ARGUMENTS)
+*
+   ARGS.LEN = DCOUNT(ARGUMENTS,@AM)
+*
+   IF ARGS.LEN = 1 THEN
+      PRINT 'DEPRECOMPILE - Preprocess a BASIC program'
+      PRINT
+      PRINT '    DEPRECOMPILE BP TEST.PREC'
+      PRINT
+      STOP
+   END
+*
+   IF ARGS.LEN > 3 THEN
+      PRINT 'Invalid number of arguments.'
+      STOP
+   END
+*
+   FILENAME = ARGUMENTS<2>
+   ITEM.ID = ARGUMENTS<3>
+*
+   OPEN '',FILENAME TO FILE ELSE
+      PRINT 'Unable to open file: ' : FILENAME
+      STOP
+   END
+*
+   READ ORIGINAL.RECORD FROM FILE,ITEM.ID ELSE
+      PRINT 'Failed to read: ' : FILENAME : ' ' : ITEM.ID
+      STOP
+   END
+*
+   NEW.RECORD = ''
+*
+   NUMBER.OF.LINES = DCOUNT(ORIGINAL.RECORD,@AM)
+   END.FOUND = FALSE
+*
+   FOR I = 1 TO NUMBER.OF.LINES
+      RAW.LINE = ORIGINAL.RECORD<I>
+      LINE = TRIM(RAW.LINE)
+*
+      BEGIN CASE
+         CASE LINE = '* $END' AND NOT(END.FOUND)
+            END.FOUND = TRUE
+            NEW.RECORD<-1> = '   $END'
+*
+         CASE LINE[1,3] = '* $' AND NOT(END.FOUND)
+            NEW.RECORD<-1> = SPACE(3) : LINE[3,LEN(LINE)]
+*
+         CASE TRUE
+            IF END.FOUND THEN
+               NEW.RECORD<-1> = RAW.LINE
+            END
+      END CASE
+   NEXT I
+*
+   IF END.FOUND THEN
+      WRITE NEW.RECORD ON FILE,ITEM.ID
+   END
+*
+   STOP
+*
+   RETURN
+*
+* END OF PROGRAM
+*
+   END
+*
