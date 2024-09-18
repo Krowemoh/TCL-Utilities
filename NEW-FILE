@@ -1,43 +1,54 @@
 *
-    GIT.FILENAME = 'NEW-FILE'
-    GIT.REPO = 'https://github.com/Krowemoh/TCL-Utilities.git'
+   GIT.FILENAME = 'NEW-FILE'
+   GIT.REPO = 'https://github.com/Krowemoh/TCL-Utilities.git'
 *
-* VERSION
+* COMPILER DIRECTIVES
 *
-    VERSION = '1'
+   $DEFINE DATABASE.QM
+   $DEFINE PLATFORM.LINUX
 *
-    @USER1 = 'NEW-FILE'
-    @USER2 = 'NEW-FILE'
+   @USER1 = 'NEW-FILE'
+   @USER2 = 'NEW-FILE'
 *
-    EQU TRUE TO 1
-    EQU FALSE TO 0
+   EQU TRUE TO 1
+   EQU FALSE TO 0
 *
-    CALL GET.ARGUMENTS(ARGS)
+   CALL GET.ARGUMENTS(ARGS)
 *
-    ARGS.LEN = DCOUNT(ARGS,@AM)
+   ARGS.LEN = DCOUNT(ARGS,@AM)
 *
-    IF ARGS.LEN = 1 THEN
-        PRINT 'NEW-FILE - Create a new PICK file'
-        PRINT
-        PRINT '    NEW-FILE {FILE-NAME}'
-        PRINT
-        STOP
+   IF ARGS.LEN = 1 THEN
+      PRINT 'NEW-FILE - Create a new PICK file'
+      PRINT
+      PRINT '    NEW-FILE {FILE-NAME}'
+      PRINT
+      STOP
 *
-    END ELSE IF ARGS.LEN # 2 THEN
-        PRINT 'Invalid option'
-        STOP
-    END
+   END ELSE IF ARGS.LEN # 2 THEN
+      PRINT 'Invalid option'
+      STOP
+   END
 *
-    FILE.NAME = ARGS<2>
+   FILE.NAME = ARGS<2>
 *
-    OPEN '',FILE.NAME TO FILE THEN
-        PRINT 'File already exists: ' : FILE.NAME
-        STOP
-    END
+   OPEN '',FILE.NAME TO FILE THEN
+      PRINT 'File already exists: ' : FILE.NAME
+      STOP
+   END
 *
-    EXECUTE 'CREATE-FILE ' : FILE.NAME : ' 53,2,6 101,4,18'
+   $IFDEF DATABASE.UV
+      EXECUTE 'CREATE-FILE ' : FILE.NAME : ' 53,2,6 101,4,18'
+   $ENDIF
+*
+   $IFDEF DATABASE.QM
+      EXECUTE 'CREATE-FILE ' : FILE.NAME
+   $ENDIF
+*
+   $IFDEF DATABASE.D3
+      EXECUTE 'CREATE-FILE ' : FILE.NAME : ' 7 101'
+   $ENDIF
 *
 * END OF PROGRAM
 *
-    END
+   END
 *
