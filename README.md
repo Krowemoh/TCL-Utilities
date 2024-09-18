@@ -18,6 +18,7 @@ A set of utilities to make PICK easier to manage. Square brackets mean the word 
 |---------|-------------|
 | ADD-DICT | Add dictionary entries to a file |
 | ADD-PATH|Add a F Pointer to a Linux Path|
+| ARCHIVE | Archive records |
 | CAT|Print a record to the screen|
 | CLIZER.DRIVER|Update a record from TCL|
 | CLONE|Copy records in PICK|
@@ -116,6 +117,14 @@ Add a F Pointer to a Linux Path
 
 ```
     ADD-PATH {MD.NAME} {/path/to/folder}
+```
+
+### ARCHIVE
+
+Archive records to a ARCHIVE-FILENAME file:
+
+```
+ARCHIVE BP TEST
 ```
 
 ### CAT
