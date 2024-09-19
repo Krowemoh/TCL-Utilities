@@ -618,15 +618,15 @@ SETUP.PACKAGES:NULL
 *
    PACKAGES<1,-1> = 'RENDER'
    PACKAGES<2,-1> = 'BASIC Template Language'
-   PACKAGES<3,-1> = 'https://raw.githubusercontent.com/Krowemoh/basic-template-language/main/RENDER'
+   PACKAGES<3,-1> = 'https://raw.githubusercontent.com/Krowemoh/TCL-Utilities/main/RENDER'
 *
    PACKAGES<1,-1> = 'RAW.RENDER'
    PACKAGES<2,-1> = 'BASIC Template Language'
-   PACKAGES<3,-1> = 'https://raw.githubusercontent.com/Krowemoh/basic-template-language/main/RAW.RENDER'
+   PACKAGES<3,-1> = 'https://raw.githubusercontent.com/Krowemoh/TCL-Utilities/main/RAW.RENDER'
 *
    PACKAGES<1,-1> = 'EVALUATE.BTL'
    PACKAGES<2,-1> = 'BASIC Template Language'
-   PACKAGES<3,-1> = 'https://raw.githubusercontent.com/Krowemoh/basic-template-language/main/EVALUATE.BTL'
+   PACKAGES<3,-1> = 'https://raw.githubusercontent.com/Krowemoh/TCL-Utilities/main/EVALUATE.BTL'
 *
    PACKAGES<1,-1> = 'SERAPHIM'
    PACKAGES<2,-1> = 'Simple HTTP Server'
