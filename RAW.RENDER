@@ -1,0 +1,672 @@
+   SUBROUTINE RAW.RENDER(MAT ENV,ENV.SIZE,MAT FILES,FILE.CTR,TEMPLATE,RESULT,MAP.CACHE,PARSE.CACHE,TRIGGER.STOP)
+*
+   GIT.FILENAME = 'RAW.RENDER'
+   GIT.REPO = 'https://github.com/Krowemoh/TCL-Utilities.git'
+*
+* COMPILER DIRECTIVES
+*
+   $DEFINE DATABASE.QM
+   $DEFINE PLATFORM.LINUX
+*
+   $IFDEF DATABASE.QM
+      $CATALOGUE
+   $ENDIF
+*
+   DIM ENV(ENV.SIZE)
+   DIM FILES(1000)
+*
+   EQU TRUE TO 1
+   EQU FALSE TO 0
+*
+   EQU FOR.TOKEN TO 1
+*
+   GOSUB RAISE3.SETUP
+   GOSUB MAP.LOWER.SETUP
+*
+   NUMBER.OF.LINES = DCOUNT(TEMPLATE,@AM)
+*
+   FOR I = 1 TO NUMBER.OF.LINES
+      LINE = TRIM(TEMPLATE<I>)
+      LINE.LEN = LEN(LINE)
+*
+      IF LINE[1,2] = '{{' AND LINE[2] = '}}' THEN
+         BASIC.LINE = TRIM(LINE[3,LINE.LEN-4])
+*
+         FIRST.TOKEN = FIELD(BASIC.LINE,' ',1)
+         LINE = FIELD(BASIC.LINE,' ',2,999)
+*
+         BEGIN CASE
+            CASE FIRST.TOKEN = 'NULL'
+               NULL
+*
+            CASE FIRST.TOKEN = 'STOP'
+               TRIGGER.STOP = TRUE
+*
+            CASE FIRST.TOKEN = 'FOR' AND INDEX(LINE,' OF ',1) # 0
+               LINE = CHANGE(LINE,' OF ',@AM)
+*
+               LOOP.VAR = LINE<1>
+               LOOP.LIST.EXPR = LINE<2>
+*
+               END.STATEMENT = 'NEXT ' : LOOP.VAR : ' '
+               BLOCK = ''
+*
+               LOOP
+                  I = I + 1
+                  LINE = TRIM(TEMPLATE<I>)
+               UNTIL INDEX(LINE,END.STATEMENT,1) # 0 OR I > NUMBER.OF.LINES DO
+                  BLOCK = BLOCK : @AM : LINE
+               REPEAT
+*
+               CALL EVALUATE.BTL(MAT ENV,ENV.SIZE,LOOP.LIST.EXPR,LOOP.LIST,MAP.CACHE,PARSE.CACHE)
+               LOOP.END = DCOUNT(LOOP.LIST,@AM)
+*
+               FOR LOOP.INDEX = 1 TO LOOP.END
+                  MAP.KEY = LOOP.VAR
+                  MAP.VALUE = LOOP.LIST<LOOP.INDEX>
+                  GOSUB ENV.SET
+*
+                  MAP.KEY = 'LOOP.INDEX'
+                  MAP.VALUE = LOOP.INDEX
+                  GOSUB ENV.SET
+*
+                  RESULT.TEMP = ''
+                  CALL RAW.RENDER(MAT ENV,ENV.SIZE,MAT FILES,FILE.CTR,BLOCK,RESULT.TEMP,MAP.CACHE,PARSE.CACHE,TRIGGER.STOP)
+                  RESULT = RESULT : RESULT.TEMP
+                  IF TRIGGER.STOP THEN
+                     RETURN
+                  END
+               NEXT LOOP.INDEX
+*
+               MAP.KEY = 'LOOP.INDEX'
+               MAP.VALUE = ''
+               GOSUB ENV.SET
+*
+            CASE FIRST.TOKEN = 'FOR'
+               LINE = CHANGE(LINE,' TO ',@AM)
+               LINE = CHANGE(LINE,'=',@VM,1)
+*
+               RH = TRIM(FIELD(LINE,@AM,1))
+               LOOP.VAR = TRIM(FIELD(RH,@VM,1))
+               START.EXPR = TRIM(FIELD(RH,@VM,2,999))
+*
+               END.EXPR = TRIM(FIELD(LINE,@AM,2))
+*
+               END.STATEMENT = 'NEXT ' : LOOP.VAR : ' '
+               BLOCK = ''
+*
+               LOOP
+                  I = I + 1
+                  LINE = TRIM(TEMPLATE<I>)
+               UNTIL INDEX(LINE,END.STATEMENT,1) # 0 OR I > NUMBER.OF.LINES DO
+                  BLOCK<-1> = LINE
+               REPEAT
+*
+               CALL EVALUATE.BTL(MAT ENV,ENV.SIZE,START.EXPR,LOOP.START,MAP.CACHE,PARSE.CACHE)
+               CALL EVALUATE.BTL(MAT ENV,ENV.SIZE,END.EXPR,LOOP.END,MAP.CACHE,PARSE.CACHE)
+*
+               FOR LOOP.INDEX = LOOP.START TO LOOP.END
+                  PARSE.CACHE = ''
+                  MAP.KEY = LOOP.VAR
+                  MAP.VALUE = LOOP.INDEX
+                  GOSUB ENV.SET
+*
+                  RESULT.TEMP = ''
+                  CALL RAW.RENDER(MAT ENV,ENV.SIZE,MAT FILES,FILE.CTR,BLOCK,RESULT.TEMP,MAP.CACHE,PARSE.CACHE,TRIGGER.STOP)
+                  RESULT = RESULT : RESULT.TEMP
+                  IF TRIGGER.STOP THEN
+                     RETURN
+                  END
+               NEXT LOOP.INDEX
+*
+            CASE FIRST.TOKEN = 'IF'
+               CONDITIONS = ''
+               BLOCKS = ''
+*
+               GOSUB BUILD.BLOCKS
+*
+               I = J - 1
+*
+               NUMBER.OF.CONDITIONS = DCOUNT(CONDITIONS,@AM)
+*
+               CONDITION.MET = FALSE
+*
+               FOR COND.CTR = 1 TO NUMBER.OF.CONDITIONS UNTIL CONDITION.MET
+                  C.EXPR = CONDITIONS<COND.CTR>
+                  BLOCK = RAISE(BLOCKS<COND.CTR>)
+                  IF C.EXPR = '' THEN
+                     RESULT.TEMP = ''
+                     CALL RAW.RENDER(MAT ENV,ENV.SIZE,MAT FILES,FILE.CTR,BLOCK,RESULT.TEMP,MAP.CACHE,PARSE.CACHE,TRIGGER.STOP)
+                     RESULT<-1> = RESULT.TEMP
+                     CONDITION.MET = TRUE
+                     IF TRIGGER.STOP THEN
+                        RETURN
+                     END
+*
+                  END ELSE IF BLOCK # '' THEN
+                     CALL EVALUATE.BTL(MAT ENV,ENV.SIZE,C.EXPR,COND.RESULT,MAP.CACHE,PARSE.CACHE)
+                     IF COND.RESULT = 1 THEN
+                        RESULT.TEMP = ''
+                        CALL RAW.RENDER(MAT ENV,ENV.SIZE,MAT FILES,FILE.CTR,BLOCK,RESULT.TEMP,MAP.CACHE,PARSE.CACHE,TRIGGER.STOP)
+                        RESULT<-1> = RESULT.TEMP
+                        CONDITION.MET = TRUE
+                        IF TRIGGER.STOP THEN
+                           RETURN
+                        END
+                     END
+                  END
+               NEXT COND.CTR
+*
+            CASE FIRST.TOKEN = 'OPEN'
+               CONDITIONS = ''
+               BLOCKS = ''
+*
+               GOSUB BUILD.BLOCKS
+*
+               I = J - 1
+*
+               OPEN.STATEMENT = CONDITIONS<1>
+               OPEN.STATEMENT = CHANGE(OPEN.STATEMENT,'OPEN ','',1)
+               OPEN.STATEMENT = CHANGE(OPEN.STATEMENT,' TO ',@AM)
+*
+               FILENAME.EXPR = OPEN.STATEMENT<1>
+*
+               IF INDEX(FILENAME.EXPR,',',1) = 0 THEN
+                  DICT = ''
+               END ELSE
+                  DICT = FIELD(FILENAME.EXPR,',',1)
+                  FILENAME.EXPR = FIELD(FILENAME.EXPR,',',2)
+               END
+*
+               FILENAME.IDENT = TRIM(OPEN.STATEMENT<2>)
+*
+               TRUE.BLOCK = RAISE(BLOCKS<1>)
+               FALSE.BLOCK = RAISE(BLOCKS<2>)
+*
+               CALL EVALUATE.BTL(MAT ENV,ENV.SIZE,FILENAME.EXPR,FILE.NAME,MAP.CACHE,PARSE.CACHE)
+*
+               OPEN DICT,FILE.NAME TO FILE.POINTER THEN
+                  FILE.CTR = FILE.CTR + 1
+                  MAP.KEY = FILENAME.IDENT
+                  MAP.VALUE = FILE.CTR
+                  GOSUB ENV.SET
+                  FILES(FILE.CTR) = FILE.POINTER
+*
+                  IF TRUE.BLOCK # '' THEN
+                     RESULT.TEMP = ''
+                     CALL RAW.RENDER(MAT ENV,ENV.SIZE,MAT FILES,FILE.CTR,TRUE.BLOCK,RESULT.TEMP,MAP.CACHE,PARSE.CACHE,TRIGGER.STOP)
+                     RESULT<-1> = RESULT.TEMP
+                     IF TRIGGER.STOP THEN
+                        RETURN
+                     END
+                  END
+*
+               END ELSE
+                  IF FALSE.BLOCK = '' THEN
+                     PRINT 'Render Error: Failed to open file: ' : FILE.NAME
+                     STOP
+                  END ELSE
+                     RESULT.TEMP = ''
+                     CALL RAW.RENDER(MAT ENV,ENV.SIZE,MAT FILES,FILE.CTR,FALSE.BLOCK,RESULT.TEMP,MAP.CACHE,PARSE.CACHE,TRIGGER.STOP)
+                     RESULT<-1> = RESULT.TEMP
+                     IF TRIGGER.STOP THEN
+                        RETURN
+                     END
+                  END
+               END
+*
+            CASE FIRST.TOKEN = 'READ'
+               CONDITIONS = ''
+               BLOCKS = ''
+*
+               GOSUB BUILD.BLOCKS
+*
+               I = J - 1
+*
+               READ.STATEMENT = CONDITIONS<1>
+               READ.STATEMENT = CHANGE(READ.STATEMENT,'READ ','',1)
+               READ.STATEMENT = CHANGE(READ.STATEMENT,' FROM ',@AM)
+*
+               VAR.NAME = TRIM(READ.STATEMENT<1>)
+*
+               RH = TRIM(READ.STATEMENT<2>)
+               RH = CHANGE(RH,',',@AM,1)
+*
+               FILE.NAME = TRIM(RH<1>)
+               RECORD.ID.EXPR = TRIM(RH<2>)
+*
+               TRUE.BLOCK = RAISE(BLOCKS<1>)
+               FALSE.BLOCK = RAISE(BLOCKS<2>)
+*
+               CALL EVALUATE.BTL(MAT ENV,ENV.SIZE,RECORD.ID.EXPR,RECORD.ID,MAP.CACHE,PARSE.CACHE)
+*
+               CALL MAP.GET(MAT ENV,ENV.SIZE,FILE.NAME,FILE.NUMBER)
+*
+               IF FILE.NUMBER = '' THEN
+                  PRINT 'Render Error: File not open - ' : FILE.NAME
+                  STOP
+               END
+*
+               FILE.POINTER = FILES(FILE.NUMBER)
+*
+               READ RECORD FROM FILE.POINTER,RECORD.ID THEN
+                  MAP.KEY = VAR.NAME
+                  MAP.VALUE = RECORD
+                  GOSUB ENV.SET
+*
+                  IF TRUE.BLOCK # '' THEN
+                     RESULT.TEMP = ''
+                     CALL RAW.RENDER(MAT ENV,ENV.SIZE,MAT FILES,FILE.CTR,TRUE.BLOCK,RESULT.TEMP,MAP.CACHE,PARSE.CACHE,TRIGGER.STOP)
+                     RESULT<-1> = RESULT.TEMP
+                     IF TRIGGER.STOP THEN
+                        RETURN
+                     END
+                  END
+               END ELSE
+                  IF FALSE.BLOCK # '' THEN
+                     RESULT.TEMP = ''
+                     CALL RAW.RENDER(MAT ENV,ENV.SIZE,MAT FILES,FILE.CTR,FALSE.BLOCK,RESULT.TEMP,MAP.CACHE,PARSE.CACHE,TRIGGER.STOP)
+                     RESULT<-1> = RESULT.TEMP
+                     IF TRIGGER.STOP THEN
+                        RETURN
+                     END
+                  END ELSE
+                     PRINT 'Render Error: Failed to read record: ' : RECORD.ID
+                  END
+               END
+*
+            CASE FIRST.TOKEN = 'INCLUDE'
+               FILE.NAME.EXPR = FIELD(BASIC.LINE,' ',2)
+               RECORD.NAME.EXPR = FIELD(BASIC.LINE,' ',3)
+*
+               CALL EVALUATE.BTL(MAT ENV,ENV.SIZE,FILE.NAME.EXPR,FILE.NAME,MAP.CACHE,PARSE.CACHE)
+               CALL EVALUATE.BTL(MAT ENV,ENV.SIZE,RECORD.NAME.EXPR,RECORD.ID,MAP.CACHE,PARSE.CACHE)
+*
+               OPEN '',FILE.NAME TO INCLUDE.FILE ELSE
+                  PRINT 'Render Error: Failed to open: ' : FILE.NAME
+                  STOP
+               END
+*
+               READ RECORD FROM INCLUDE.FILE,RECORD.ID ELSE
+                  PRINT 'Render Error: Failed to read: ' : RECORD.ID
+                  STOP
+               END
+*
+               RESULT.TEMP = ''
+               CALL RAW.RENDER(MAT ENV,ENV.SIZE,MAT FILES,FILE.CTR,RECORD,RESULT.TEMP,MAP.CACHE,PARSE.CACHE,TRIGGER.STOP)
+               RESULT<-1> = RESULT.TEMP
+               IF TRIGGER.STOP THEN
+                  RETURN
+               END
+*
+            CASE FIRST.TOKEN = 'PRINT'
+               CALL EVALUATE.BTL(MAT ENV,ENV.SIZE,LINE,EVAL.RESULT,MAP.CACHE,PARSE.CACHE)
+               PRINT EVAL.RESULT
+*
+            CASE FIRST.TOKEN = 'CALL'
+               CALL EVALUATE.BTL(MAT ENV,ENV.SIZE,LINE,EVAL.RESULT,MAP.CACHE,PARSE.CACHE)
+*
+            CASE TRUE
+               IF INDEX(BASIC.LINE,'=',1) = 0 THEN
+                  CALL EVALUATE.BTL(MAT ENV,ENV.SIZE,BASIC.LINE,VALUE,MAP.CACHE,PARSE.CACHE)
+                  RESULT<-1> = VALUE
+*
+               END ELSE
+                  BASIC.LINE = CHANGE(BASIC.LINE,'=',@AM,1)
+*
+                  RH = TRIM(FIELD(BASIC.LINE,@AM,1))
+                  LH = TRIM(FIELD(BASIC.LINE,@AM,2))
+*
+                  PARSE.CACHE = ''
+                  CALL EVALUATE.BTL(MAT ENV,ENV.SIZE,LH,VALUE,MAP.CACHE,PARSE.CACHE)
+*
+                  MAP.KEY = RH
+                  MAP.VALUE = VALUE
+                  GOSUB ENV.SET
+               END
+*
+         END CASE
+*
+      END ELSE
+         LINE = CHANGE(LINE,'{{',@AM:'{{')
+         LINE = CHANGE(LINE,'}}','}}':@AM)
+*
+         NUMBER.OF.BREAKS = DCOUNT(LINE,@AM)
+         L = ''
+*
+         FOR B.CTR = 1 TO NUMBER.OF.BREAKS
+            PIECE = LINE<B.CTR>
+            PIECE.LEN = LEN(PIECE)
+*
+            IF PIECE[1,2] = '{{' THEN
+               BASIC.LINE = TRIM(PIECE[3,PIECE.LEN-4])
+               CACHED = FALSE
+               LOCATE(BASIC.LINE,PARSE.CACHE<1>,1;PARSE.POS) THEN
+                  R.VAR.NAME = PARSE.CACHE<4,PARSE.POS>
+*
+                  RAISE3.VALUE = PARSE.CACHE<2,PARSE.POS>
+                  GOSUB RAISE3
+                  POSTFIX = RAISE3.VALUE
+*
+                  RAISE3.VALUE = PARSE.CACHE<3,PARSE.POS>
+                  GOSUB RAISE3
+                  R.TOKENS = RAISE3.VALUE
+*
+                  IF DCOUNT(POSTFIX,@AM) = 1 AND INDEX(BASIC.LINE,'<',1) # 0 AND INDEX(BASIC.LINE,'>',1) # 0 THEN
+                     CACHED = TRUE
+                  END
+               END
+*
+               IF CACHED THEN
+                  R.TOKENS.LEN  = DCOUNT(R.TOKENS,@AM)
+*
+                  P1 = R.TOKENS<1>
+                  P2 = R.TOKENS<2>
+                  P3 = R.TOKENS<3>
+*
+                  MAP.KEY = R.VAR.NAME
+                  GOSUB ENV.GET
+                  RESOLVED.VALUE = MAP.VALUE
+*
+                  IF NOT(ENV.HAS.FLAG) THEN
+                     PRINT 'Evaluate Error: "' : R.VAR.NAME : '" does not exist.'
+                     STOP
+                  END
+*
+                  BEGIN CASE
+                     CASE R.TOKENS.LEN = 1
+                        RESOLVED.VALUE = RESOLVED.VALUE<P1>
+                        
+                     CASE R.TOKENS.LEN = 2
+                        RESOLVED.VALUE = RESOLVED.VALUE<P1,P2>
+*
+                     CASE R.TOKENS.LEN = 3
+                        RESOLVED.VALUE = RESOLVED.VALUE<P1,P2,P3>
+                  END CASE
+*
+                  VALUE = RESOLVED.VALUE
+                  L = L : VALUE
+*
+               END ELSE
+                  IF INDEX(PIECE,'=',1) = 0 THEN
+                     CALL EVALUATE.BTL(MAT ENV,ENV.SIZE,BASIC.LINE,VALUE,MAP.CACHE,PARSE.CACHE)
+                     L = L : VALUE
+*
+                  END ELSE
+                     BASIC.LINE = CHANGE(BASIC.LINE,'=',@AM,1)
+*
+                     RH = TRIM(FIELD(BASIC.LINE,@AM,1))
+                     LH = TRIM(FIELD(BASIC.LINE,@AM,2))
+*
+                     PARSE.CACHE = ''
+                     CALL EVALUATE.BTL(MAT ENV,ENV.SIZE,LH,VALUE,MAP.CACHE,PARSE.CACHE)
+                     MAP.KEY = RH
+                     MAP.VALUE = VALUE
+                     GOSUB ENV.SET
+                  END
+               END
+*
+            END ELSE
+               L = L : PIECE
+            END
+         NEXT B.CTR
+*
+         RESULT<-1> = L
+      END
+   NEXT I
+*
+   CONVERT @AM TO CHAR(10) IN RESULT
+*
+   RETURN
+*
+*********************  S U B R O U T I N E  *********************
+*
+BUILD.BLOCKS:NULL
+*
+   LAST.TOKEN = FIELD(BASIC.LINE,' ',DCOUNT(BASIC.LINE,' '))
+*
+   CONDITIONS = ''
+   BLOCKS = ''
+   BLOCK = ''
+*
+   STACK.CTR = 0
+*
+   FIRST.BLOCK.ADDED = FALSE
+   BLOCK.DONE = FALSE
+*
+   THEN.CHECK = INDEX(BASIC.LINE,' THEN ',1)
+   ELSE.CHECK = INDEX(BASIC.LINE,' ELSE ',1)
+*
+   IF LAST.TOKEN = 'ELSE' THEN
+      ELSE.CHECK = TRUE
+   END
+*
+   IF LAST.TOKEN = 'THEN' THEN
+      THEN.CHECK = TRUE
+   END
+*
+   IF THEN.CHECK = 0 AND  ELSE.CHECK = 0 THEN
+      BASIC.LINE = BASIC.LINE : ' THEN':@AM:'NULL':@AM:'END ELSE NULL'
+      BASIC.LINE<-1> = 'END'
+*
+   END ELSE IF THEN.CHECK = 0 THEN
+      IF LAST.TOKEN = 'ELSE' THEN
+         BASIC.LINE = CHANGE(BASIC.LINE,' ELSE',' THEN':@AM:'NULL':@AM:'END ELSE',1)
+      END ELSE
+         BASIC.LINE = CHANGE(BASIC.LINE,' ELSE ',' THEN':@AM:'NULL':@AM:'END ELSE',1)
+         BASIC.LINE<-1> = 'END'
+      END
+   END
+*
+   IF LAST.TOKEN # 'THEN' AND LAST.TOKEN # 'ELSE' THEN
+      BASIC.LINE = CHANGE(BASIC.LINE,' THEN ',' THEN':@AM,1)
+*
+      IF INDEX(BASIC.LINE,' END ELSE ',1) # 0 THEN
+         BASIC.LINE = CHANGE(BASIC.LINE,' END ELSE ',@AM:' END ELSE':@AM,1)
+      END ELSE
+         BASIC.LINE = CHANGE(BASIC.LINE,' ELSE ',@AM:' END ELSE ':@AM,1)
+      END
+*
+      BASIC.LINE<-1> = 'END'
+   END
+*
+   NUMBER.OF.ELEMENTS = DCOUNT(BASIC.LINE,@AM)
+*
+   TEMPLATE = DELETE(TEMPLATE,I)
+*
+   FOR E.CTR = NUMBER.OF.ELEMENTS TO 1 STEP -1
+      ELEMENT = '{{ ' : TRIM(BASIC.LINE<E.CTR>) : ' }}'
+      TEMPLATE = INSERT(TEMPLATE,I;ELEMENT)
+   NEXT E.CTR
+*
+   NUMBER.OF.LINES = DCOUNT(TEMPLATE,@AM)
+*
+   FOR J = I TO NUMBER.OF.LINES UNTIL BLOCK.DONE
+      LINE = TRIM(TEMPLATE<J>)
+      LINE.LEN = LEN(LINE)
+*
+      IF LINE[1,2] = '{{' AND LINE[2] = '}}' THEN
+         BASIC.LINE = TRIM(LINE[3,LINE.LEN-4])
+*
+         FIRST.TOKEN = FIELD(BASIC.LINE,' ',1)
+         LAST.TOKEN = FIELD(BASIC.LINE,' ',DCOUNT(BASIC.LINE,' '))
+*
+         IF FIRST.TOKEN = 'END' THEN
+            STACK.CTR = STACK.CTR - 1
+         END
+*
+         IF STACK.CTR = 0 THEN
+            BLOCKS<-1> = BLOCK
+            BLOCK = ''
+         END
+*
+         IF LAST.TOKEN = 'THEN' OR LAST.TOKEN = 'ELSE' OR LAST.TOKEN = 'LOCKED' THEN
+            STACK.CTR = STACK.CTR + 1
+*
+            IF STACK.CTR = 1 THEN
+               BASIC.LINE = CHANGE(BASIC.LINE,'END ELSE IF ','',1)
+               BASIC.LINE = CHANGE(BASIC.LINE,'END ELSE','',1)
+               BASIC.LINE = CHANGE(BASIC.LINE,'IF ','',1)
+               BASIC.LINE = BASIC.LINE[1,LEN(BASIC.LINE)-4]
+*
+               CONDITIONS<-1> = BASIC.LINE
+            END ELSE
+               BLOCK<1,-1> = LINE
+            END
+         END ELSE
+            BLOCK<1,-1> = LINE
+         END
+*
+         IF STACK.CTR = 0 THEN
+            BLOCK.DONE = TRUE
+         END
+*
+      END ELSE
+         BLOCK<1,-1> = LINE
+      END
+   NEXT J
+*
+   RETURN
+*
+*********************  S U B R O U T I N E  *********************
+*
+ENV.SET:NULL
+*
+   LOCATE(MAP.KEY,MAP.CACHE<1>,1;CACHE.POS) THEN
+      MAP.POS = MAP.CACHE<2,CACHE.POS>
+*
+   END ELSE
+      MAP.KEY.LEN = LEN(MAP.KEY)
+*
+      MAP.HASH = 5381
+*
+      FOR MAP.KEY.CTR = 1 TO MAP.KEY.LEN
+         MAP.HASH = SADD(SMUL(MAP.HASH,33),SEQ(MAP.KEY[MAP.KEY.CTR,1]))
+      NEXT MAP.KEY.CTR
+*
+      MAP.D = SDIV(MAP.HASH,ENV.SIZE)
+      MAP.E = INDEX(MAP.D,'.',1)
+*
+      IF MAP.E = 0 THEN MAP.E = LEN(MAP.D)
+*
+      MAP.DIVISION = MAP.D[1,MAP.E]
+      MAP.MULTIPLE = SMUL(MAP.DIVISION,ENV.SIZE)
+      MAP.POS = SSUB(MAP.HASH,MAP.MULTIPLE) + 1
+*
+      IF DCOUNT(MAP.CACHE<1>,@VM) > 5 THEN
+         MAP.CACHE<1,1> = MAP.KEY
+         MAP.CACHE<2,1> = MAP.POS
+      END ELSE
+         MAP.CACHE<1> = MAP.CACHE<1> : @VM: MAP.KEY
+         MAP.CACHE<2> = MAP.CACHE<2> : @VM: MAP.POS
+      END
+   END
+*
+   IF ENV(MAP.POS) = '' THEN
+      ENV(MAP.POS)<1,1> = MAP.KEY
+      GOSUB MAP.LOWER3
+      ENV(MAP.POS)<1,2> = MAP.VALUE
+*
+   END ELSE
+      LOCATE(MAP.KEY,ENV(MAP.POS)<1>,1;ANYPOS) THEN
+         GOSUB MAP.LOWER3
+         ENV(MAP.POS)<1,2,ANYPOS> = MAP.VALUE
+*
+      END ELSE
+         ENV(MAP.POS)<1,1,-1> = MAP.KEY
+         GOSUB MAP.LOWER3
+         ENV(MAP.POS)<1,2,-1> = MAP.VALUE
+      END
+   END
+*
+   RETURN
+*
+*********************  S U B R O U T I N E  *********************
+*
+ENV.GET:NULL
+*
+   LOCATE(MAP.KEY,MAP.CACHE<1>,1;CACHE.POS) THEN
+      MAP.POS = MAP.CACHE<2,CACHE.POS>
+*
+   END ELSE
+      MAP.KEY.LEN = LEN(MAP.KEY)
+*
+      MAP.HASH = 5381
+*
+      FOR MAP.KEY.CTR = 1 TO MAP.KEY.LEN
+         MAP.HASH = SADD(SMUL(MAP.HASH,33),SEQ(MAP.KEY[MAP.KEY.CTR,1]))
+      NEXT MAP.KEY.CTR
+*
+      MAP.D = SDIV(MAP.HASH,ENV.SIZE)
+      MAP.E = INDEX(MAP.D,'.',1)
+*
+      IF MAP.E = 0 THEN MAP.E = LEN(MAP.D)
+*
+      MAP.DIVISION = MAP.D[1,MAP.E]
+      MAP.MULTIPLE = SMUL(MAP.DIVISION,ENV.SIZE)
+      MAP.POS = SSUB(MAP.HASH,MAP.MULTIPLE) + 1
+*
+      IF DCOUNT(MAP.CACHE<1>,@VM) > 5 THEN
+         MAP.CACHE<1,1> = MAP.KEY
+         MAP.CACHE<2,1> = MAP.POS
+      END ELSE
+         MAP.CACHE<1> = MAP.CACHE<1> : @VM: MAP.KEY
+         MAP.CACHE<2> = MAP.CACHE<2> : @VM: MAP.POS
+      END
+*
+   END
+*
+   LOCATE(MAP.KEY,ENV(MAP.POS)<1>,1,1;ANYPOS) THEN
+      RAISE3.VALUE = ENV(MAP.POS)<1,2,ANYPOS>
+      GOSUB RAISE3
+      MAP.VALUE = RAISE3.VALUE
+*
+      ENV.HAS.FLAG = TRUE
+   END ELSE
+      MAP.VALUE = ''
+      ENV.HAS.FLAG = FALSE
+   END
+*
+   RETURN
+*
+*********************  S U B R O U T I N E  *********************
+*
+RAISE3.SETUP:NULL
+*
+   RAISE3.HIGH = CHAR(256):CHAR(255):CHAR(254):CHAR(253):CHAR(252):CHAR(251):CHAR(250):CHAR(249):CHAR(248):CHAR(247):CHAR(246):CHAR(245):CHAR(244):CHAR(243):CHAR(242):CHAR(241):CHAR(240):CHAR(239):CHAR(238):CHAR(237):CHAR(236):CHAR(235):CHAR(234):CHAR(233):CHAR(232):CHAR(231):CHAR(230):CHAR(229):CHAR(228):CHAR(227):CHAR(226):CHAR(225):CHAR(224):CHAR(223):CHAR(222):CHAR(221):CHAR(220):CHAR(219):CHAR(218):CHAR(217):CHAR(216):CHAR(215):CHAR(214):CHAR(213):CHAR(212):CHAR(211):CHAR(210):CHAR(209):CHAR(208):CHAR(207):CHAR(206):CHAR(205):CHAR(204):CHAR(203)
+*
+   RAISE3.LOW = CHAR(253):CHAR(252):CHAR(251):CHAR(250):CHAR(249):CHAR(248):CHAR(247):CHAR(246):CHAR(245):CHAR(244):CHAR(243):CHAR(242):CHAR(241):CHAR(240):CHAR(239):CHAR(238):CHAR(237):CHAR(236):CHAR(235):CHAR(234):CHAR(233):CHAR(232):CHAR(231):CHAR(230):CHAR(229):CHAR(228):CHAR(227):CHAR(226):CHAR(225):CHAR(224):CHAR(223):CHAR(222):CHAR(221):CHAR(220):CHAR(219):CHAR(218):CHAR(217):CHAR(216):CHAR(215):CHAR(214):CHAR(213):CHAR(212):CHAR(211):CHAR(210):CHAR(209):CHAR(208):CHAR(207):CHAR(206):CHAR(205):CHAR(204):CHAR(203):CHAR(202):CHAR(201):CHAR(200)
+*
+   RETURN
+*
+*********************  S U B R O U T I N E  *********************
+*
+RAISE3:NULL
+*
+   CONVERT RAISE3.LOW TO RAISE3.HIGH IN RAISE3.VALUE
+*
+   RETURN
+*
+*
+*********************  S U B R O U T I N E  *********************
+*
+MAP.LOWER.SETUP:NULL
+*
+   MAP.LOWER.HIGH = CHAR(254):CHAR(253):CHAR(252):CHAR(251):CHAR(250):CHAR(249):CHAR(248):CHAR(247):CHAR(246):CHAR(245):CHAR(244):CHAR(243):CHAR(242):CHAR(241):CHAR(240):CHAR(239):CHAR(238):CHAR(237):CHAR(236):CHAR(235):CHAR(234):CHAR(233):CHAR(232):CHAR(231):CHAR(230):CHAR(229):CHAR(228):CHAR(227):CHAR(226):CHAR(225):CHAR(224):CHAR(223):CHAR(222):CHAR(221):CHAR(220):CHAR(219):CHAR(218):CHAR(217):CHAR(216):CHAR(215):CHAR(214):CHAR(213):CHAR(212):CHAR(211):CHAR(210):CHAR(209):CHAR(208):CHAR(207):CHAR(206):CHAR(205):CHAR(204):CHAR(203):CHAR(202):CHAR(201)
+*
+   MAP.LOWER.LOW = CHAR(251):CHAR(250):CHAR(249):CHAR(248):CHAR(247):CHAR(246):CHAR(245):CHAR(244):CHAR(243):CHAR(242):CHAR(241):CHAR(240):CHAR(239):CHAR(238):CHAR(237):CHAR(236):CHAR(235):CHAR(234):CHAR(233):CHAR(232):CHAR(231):CHAR(230):CHAR(229):CHAR(228):CHAR(227):CHAR(226):CHAR(225):CHAR(224):CHAR(223):CHAR(222):CHAR(221):CHAR(220):CHAR(219):CHAR(218):CHAR(217):CHAR(216):CHAR(215):CHAR(214):CHAR(213):CHAR(212):CHAR(211):CHAR(210):CHAR(209):CHAR(208):CHAR(207):CHAR(206):CHAR(205):CHAR(204):CHAR(203):CHAR(202):CHAR(201):CHAR(198)
+*
+   RETURN
+*
+*********************  S U B R O U T I N E  *********************
+*
+MAP.LOWER3:NULL
+*
+   CONVERT MAP.LOWER.HIGH TO MAP.LOWER.LOW IN MAP.VALUE
+*
+   RETURN
+*
+* END OF PROGRAM
+*
+   END
+*
