@@ -42,6 +42,32 @@
             CASE FIRST.TOKEN = 'STOP'
                TRIGGER.STOP = TRUE
 *
+            CASE FIRST.TOKEN = 'SELECT'
+               LINE = CHANGE(LINE,' TO ',@AM)
+*
+               SELECT.FILE.EXPR = LINE<1>
+               LIST.NAME = LINE<2>
+*
+               IF LIST.NAME = '' THEN
+                  LIST.NAME = 'ACTIVE.LIST'
+               END
+*
+               CALL EVALUATE.BTL(MAT ENV,ENV.SIZE,SELECT.FILE.EXPR,SELECT.FILE,MAP.CACHE,PARSE.CACHE)
+*
+               IF NUM(SELECT.FILE) THEN
+                  SELECT.FILE = FILES(SELECT.FILE)
+                  SELECT SELECT.FILE
+                  READLIST ACTIVE.LIST ELSE ACTIVE.LIST = ''
+*
+               END ELSE
+                  EXECUTE 'SELECT ' : SELECT.FILE CAPTURING DUMMY.RESULTS
+                  READLIST ACTIVE.LIST ELSE ACTIVE.LIST = ''
+               END
+*
+               MAP.KEY = LIST.NAME
+               MAP.VALUE = ACTIVE.LIST
+               GOSUB ENV.SET
+*
             CASE FIRST.TOKEN = 'FOR' AND INDEX(LINE,' OF ',1) # 0
                LINE = CHANGE(LINE,' OF ',@AM)
 *
