@@ -1,0 +1,912 @@
+   SUBROUTINE EVALUATE.BTL(MAT ENV,ENV.SIZE,TOKEN.LINE,VALUE,MAP.CACHE,PARSE.CACHE)
+*
+   GIT.FILENAME = 'EVALUATE.BTL'
+   GIT.REPO = 'https://github.com/Krowemoh/TCL-Utilities.git'
+*
+* COMPILER DIRECTIVES
+*
+   $DEFINE DATABASE.QM
+   $DEFINE PLATFORM.LINUX
+*
+   $IFDEF DATABASE.QM
+      $CATALOGUE
+   $ENDIF
+*
+   EQU TRUE TO 1
+   EQU FALSE TO 0
+*
+   @USER1 = 'EVALUATE'
+   @USER2 = 'EVALUATE'
+*
+   IF NUM(TOKEN.LINE) THEN
+      VALUE = TOKEN.LINE
+      RETURN
+   END
+*
+   GOSUB RAISE3.SETUP
+   GOSUB LOWER3.SETUP
+*
+   DIM ENV(ENV.SIZE)
+*
+   OPERATORS = ''
+   OPERATORS<1> = '+'
+   OPERATORS<2> = '-'
+   OPERATORS<3> = '*'
+   OPERATORS<4> = '/'
+   OPERATORS<5> = '%'
+   OPERATORS<6> = '^'
+*
+   OPERATORS<7> = '='
+   OPERATORS<8> = ':'
+   OPERATORS<9> = '<>'
+   OPERATORS<10> = '#'
+   OPERATORS<11> = '<'
+   OPERATORS<12> = '>'
+*
+   OPERATORS<13> = '>='
+   OPERATORS<14> = '<='
+   OPERATORS<15> = ':='
+   OPERATORS<16> = '+='
+   OPERATORS<17> = 'AND'
+   OPERATORS<18> = 'OR'
+*
+   PRECEDENCE = ''
+   PRECEDENCE<1> = 11
+   PRECEDENCE<2> = 11
+   PRECEDENCE<3> = 12
+   PRECEDENCE<4> = 12
+   PRECEDENCE<5> = 12
+   PRECEDENCE<6> = 13
+*
+   PRECEDENCE<7> = 8
+   PRECEDENCE<8> = 11
+   PRECEDENCE<9> = 8
+   PRECEDENCE<10> = 8
+   PRECEDENCE<11> = 9
+   PRECEDENCE<12> = 9
+*
+   PRECEDENCE<13> = 9
+   PRECEDENCE<14> = 9
+   PRECEDENCE<15> = 2
+   PRECEDENCE<16> = 2
+   PRECEDENCE<17> = 4
+   PRECEDENCE<18> = 4
+*
+   BREAK.CHARACTERS = ': + - / # ^ ( )'
+   CONVERT ' ' TO @AM IN BREAK.CHARACTERS
+*
+   LOCATE(TOKEN.LINE,PARSE.CACHE<1>,1;PARSE.POS) THEN
+      RAISE3.VALUE = PARSE.CACHE<2,PARSE.POS>
+      GOSUB RAISE3
+      TOKENS = RAISE3.VALUE
+*
+   END ELSE
+      TOKENS = ''
+      GOSUB TOKENIZE.STRING
+*
+      POSTFIX = ''
+      GOSUB INFIX.TO.POSTFIX
+*
+      TOKENS = POSTFIX
+   END
+*
+   VALUE = ''
+   GOSUB EVALUATE.EXPRESSION
+*
+   RETURN
+*
+*********************  S U B R O U T I N E  *********************
+*
+TOKENIZE.STRING:NULL
+*
+   DQ.STACK.CTR = 0
+   SQ.STACK.CTR = 0
+   ANGLE.STACK.CTR = 0
+   SQUARE.STACK.CTR = 0
+   PAREN.STACK.CTR = 0
+*
+   TOKEN = ''
+   TOKENS = ''
+*
+   CREATED.FIRST.TOKEN = FALSE
+   HIT.SEMICOLON = FALSE
+*
+   TOKEN.LINE.LEN = LEN(TOKEN.LINE)
+*
+   FOR TOKENIZE.LETTER.CTR = 1 TO TOKEN.LINE.LEN
+      CHARACTER = TOKEN.LINE[TOKENIZE.LETTER.CTR,1]
+      PREV.CHARACTER = TOKEN.LINE[TOKENIZE.LETTER.CTR-1,1]
+*
+      IF ANGLE.STACK.CTR # 0 OR (CHARACTER = '<' AND PREV.CHARACTER # ' ')  THEN
+         IF ANGLE.STACK.CTR = 0 THEN
+            STRING = TOKEN
+            ANGLE.STACK.CTR = 1
+         END
+*
+         STRING = STRING : CHARACTER
+         TOKENIZE.LETTER.CTR = TOKENIZE.LETTER.CTR + 1
+*
+         LOOP UNTIL ANGLE.STACK.CTR = 0 OR TOKENIZE.LETTER.CTR > TOKEN.LINE.LEN DO
+            CHARACTER = TOKEN.LINE[TOKENIZE.LETTER.CTR,1]
+            TOKENIZE.LETTER.CTR = TOKENIZE.LETTER.CTR + 1
+            IF CHARACTER = '>' THEN
+               ANGLE.STACK.CTR = ANGLE.STACK.CTR - 1
+            END ELSE IF CHARACTER = '<' THEN
+               ANGLE.STACK.CTR = ANGLE.STACK.CTR + 1
+            END
+            STRING = STRING : CHARACTER
+         REPEAT
+*
+         CREATED.FIRST.TOKEN = TRUE
+         TOKENS<-1> =  STRING
+         TOKEN = ''
+         TOKENIZE.LETTER.CTR = TOKENIZE.LETTER.CTR - 1
+*
+      END ELSE IF SQUARE.STACK.CTR # 0 OR CHARACTER = '[' THEN
+         IF SQUARE.STACK.CTR = 0 THEN
+            STRING = TOKEN
+            SQUARE.STACK.CTR = 1
+         END
+*
+         STRING = STRING : CHARACTER
+         TOKENIZE.LETTER.CTR = TOKENIZE.LETTER.CTR + 1
+*
+         LOOP UNTIL SQUARE.STACK.CTR = 0 OR TOKENIZE.LETTER.CTR > TOKEN.LINE.LEN DO
+            CHARACTER = TOKEN.LINE[TOKENIZE.LETTER.CTR,1]
+            TOKENIZE.LETTER.CTR = TOKENIZE.LETTER.CTR + 1
+            IF CHARACTER = ']' THEN
+               SQUARE.STACK.CTR = SQUARE.STACK.CTR - 1
+            END ELSE IF CHARACTER = '[' THEN
+               SQUARE.STACK.CTR = SQUARE.STACK.CTR + 1
+            END
+            STRING = STRING : CHARACTER
+         REPEAT
+*
+         CREATED.FIRST.TOKEN = TRUE
+         TOKENS<-1> =  STRING
+         TOKEN = ''
+         TOKENIZE.LETTER.CTR = TOKENIZE.LETTER.CTR - 1
+*
+      END ELSE IF PAREN.STACK.CTR # 0 OR (CHARACTER = '(' AND TRIM(PREV.CHARACTER) # '' AND TOKENIZE.LETTER.CTR # 1) THEN
+         IF PAREN.STACK.CTR = 0 THEN
+            STRING = TOKEN
+            PAREN.STACK.CTR = 1
+         END
+*
+         STRING = STRING : CHARACTER
+         TOKENIZE.LETTER.CTR = TOKENIZE.LETTER.CTR + 1
+*
+         LOOP UNTIL PAREN.STACK.CTR = 0 OR TOKENIZE.LETTER.CTR > TOKEN.LINE.LEN DO
+            CHARACTER = TOKEN.LINE[TOKENIZE.LETTER.CTR,1]
+            TOKENIZE.LETTER.CTR = TOKENIZE.LETTER.CTR + 1
+            IF CHARACTER = ')' THEN
+               PAREN.STACK.CTR = PAREN.STACK.CTR - 1
+            END ELSE IF CHARACTER = '(' THEN
+               PAREN.STACK.CTR = PAREN.STACK.CTR + 1
+            END
+            STRING = STRING : CHARACTER
+         REPEAT
+*
+         CREATED.FIRST.TOKEN = TRUE
+         TOKENS<-1> =  STRING
+         TOKEN = ''
+         TOKENIZE.LETTER.CTR = TOKENIZE.LETTER.CTR - 1
+*
+      END ELSE IF DQ.STACK.CTR # 0 OR CHARACTER = '"' THEN
+         IF DQ.STACK.CTR = 0 THEN
+            TOKENS<-1> =  TOKEN
+            DQ.STACK.CTR = 1
+         END
+*
+         STRING = CHARACTER
+         TOKENIZE.LETTER.CTR = TOKENIZE.LETTER.CTR + 1
+*
+         LOOP UNTIL DQ.STACK.CTR = 0 OR TOKENIZE.LETTER.CTR > TOKEN.LINE.LEN DO
+            CHARACTER = TOKEN.LINE[TOKENIZE.LETTER.CTR,1]
+            TOKENIZE.LETTER.CTR = TOKENIZE.LETTER.CTR + 1
+            IF CHARACTER = '"' THEN
+               DQ.STACK.CTR = DQ.STACK.CTR - 1
+            END
+            STRING = STRING : CHARACTER
+         REPEAT
+*
+         CREATED.FIRST.TOKEN = TRUE
+         TOKENS<-1> =  STRING
+         TOKEN = ''
+         TOKENIZE.LETTER.CTR = TOKENIZE.LETTER.CTR - 1
+*
+      END ELSE IF SQ.STACK.CTR # 0 OR CHARACTER = "'" THEN
+         IF SQ.STACK.CTR = 0 THEN
+            TOKENS<-1> =  TOKEN
+            SQ.STACK.CTR = 1
+         END
+*
+         STRING = CHARACTER
+         TOKENIZE.LETTER.CTR = TOKENIZE.LETTER.CTR + 1
+*
+         LOOP UNTIL SQ.STACK.CTR = 0 OR TOKENIZE.LETTER.CTR > TOKEN.LINE.LEN DO
+            CHARACTER = TOKEN.LINE[TOKENIZE.LETTER.CTR,1]
+            TOKENIZE.LETTER.CTR = TOKENIZE.LETTER.CTR + 1
+            IF CHARACTER = "'" THEN
+               SQ.STACK.CTR = SQ.STACK.CTR - 1
+            END
+            STRING = STRING : CHARACTER
+         REPEAT
+*
+         CREATED.FIRST.TOKEN = TRUE
+         TOKENS<-1> =  STRING
+         TOKEN = ''
+         TOKENIZE.LETTER.CTR = TOKENIZE.LETTER.CTR - 1
+*
+      END ELSE IF CHARACTER = ';' THEN
+         TOKENS<-1> =  TOKEN
+         HIT.SEMICOLON = TRUE
+         TOKENS<-1> =  ';'
+         TOKEN = ''
+*
+      END ELSE IF CHARACTER = '*' OR CHARACTER = '!' THEN
+         IF TOKEN # '' THEN CREATED.FIRST.TOKEN = TRUE
+         TOKENS<-1> =  TOKEN
+*
+         IF CREATED.FIRST.TOKEN AND HIT.SEMICOLON = FALSE THEN
+            TOKEN = CHARACTER
+            TOKENS<-1> =  TOKEN
+            TOKEN = ''
+*
+         END ELSE
+            TOKENS<-1> =  TOKEN.LINE[TOKENIZE.LETTER.CTR,999]
+            TOKEN = ''
+            TOKENIZE.LETTER.CTR = TOKEN.LINE.LEN
+         END
+*
+      END ELSE IF CHARACTER = ' ' THEN
+         IF TOKEN # '' THEN CREATED.FIRST.TOKEN = TRUE
+         TOKENS<-1> =  TOKEN
+         TOKEN = ''
+*
+      END ELSE
+         LOCATE(CHARACTER,BREAK.CHARACTERS;BREAK.POS) THEN
+            IF TOKEN # '' THEN CREATED.FIRST.TOKEN = TRUE
+*
+            TOKENS<-1> =  TOKEN
+*
+            TOKEN = BREAK.CHARACTERS<BREAK.POS>
+*
+            TOKENS<-1> =  TOKEN
+            TOKEN = ''
+         END ELSE
+            TOKEN = TOKEN : CHARACTER
+         END
+      END
+   NEXT TOKENIZE.LETTER.CTR
+*
+   IF TOKEN # '' THEN
+      TOKENS<-1> =  TOKEN
+   END
+*
+   RETURN
+*
+*********************  S U B R O U T I N E  *********************
+*
+INFIX.TO.POSTFIX:NULL
+*
+   TOKENS.LEN = DCOUNT(TOKENS,@AM)
+*
+   POSTFIX = ''
+   STACK = ''
+   STACK.POSITION = 0
+*
+   FOR TOKEN.CTR = 1 TO TOKENS.LEN
+      TOKEN = TOKENS<TOKEN.CTR>
+*
+      IF TOKEN = '(' THEN
+         STACK.POSITION = STACK.POSITION + 1
+         STACK<1,STACK.POSITION> =  TOKEN
+         CONTINUE
+      END
+*
+      IF TOKEN = ')' THEN
+         START.POS = STACK.POSITION
+*
+         FOR STACK.CTR = START.POS TO 1 STEP  -1
+            STACK.OPERATOR = STACK<1,STACK.CTR>
+            STACK.POSITION = STACK.POSITION - 1
+*
+            IF STACK.OPERATOR = '(' THEN
+               EXIT
+            END
+*
+            POSTFIX<-1> = STACK.OPERATOR
+         NEXT STACK.CTR
+*
+         CONTINUE
+      END
+*
+      LOCATE(TOKEN,OPERATORS;TOK.POS) THEN
+*
+         IF STACK.POSITION = 0 THEN
+            STACK<1,1> = TOKEN
+            STACK.POSITION = 1
+*
+         END ELSE
+*
+            CURRENT.PREC = PRECEDENCE<TOK.POS>
+*
+            DONE = FALSE
+*
+            LOOP UNTIL DONE DO
+               IF STACK.POSITION <= 0 THEN
+                  EXIT
+               END
+*
+               IF STACK<1,STACK.POSITION> = '(' THEN
+                  STACK.POSITION = STACK.POSITION + 1
+                  STACK<1,STACK.POSITION> = TOKEN
+                  EXIT
+               END
+*
+               LOCATE(STACK<1,STACK.POSITION>,OPERATORS;PREC.POS) ELSE PREC.POS = 1
+               PREV.PREC = PRECEDENCE<PREC.POS>
+*
+               IF CURRENT.PREC > PREV.PREC THEN
+                  STACK.POSITION = STACK.POSITION + 1
+                  STACK<1,STACK.POSITION> = TOKEN
+                  EXIT
+*
+               END ELSE
+                  POSTFIX<-1> = STACK<1,STACK.POSITION>
+                  STACK.POSITION = STACK.POSITION - 1
+               END
+*
+               IF STACK.POSITION = 0 THEN
+                  STACK.POSITION = STACK.POSITION + 1
+                  STACK<1,STACK.POSITION> = TOKEN
+                  EXIT
+               END
+            REPEAT
+         END
+*
+      END ELSE
+         POSTFIX<-1> = TOKEN
+      END
+*
+   NEXT TOKEN.CTR
+*
+   FOR STACK.CTR = STACK.POSITION TO 1 STEP  -1
+      STACK.OPERATOR = STACK<1,STACK.CTR>
+      POSTFIX<-1> = STACK.OPERATOR
+   NEXT STACK.CTR
+*
+   RETURN
+*********************  S U B R O U T I N E  *********************
+*
+EVALUATE.EXPRESSION:NULL
+*
+   TOKENS.LEN = DCOUNT(TOKENS,@AM)
+*
+   REGISTERS = ''
+   REGISTER.PTR = 0
+*
+   FOR TOKEN.CTR = 1 TO TOKENS.LEN
+      TOKEN = TOKENS<TOKEN.CTR>
+*
+      IF TOKEN = '' THEN
+         CONTINUE
+      END
+*
+      LOCATE(TOKEN,OPERATORS;TOK.POS) THEN
+         R2 = RAISE(REGISTERS<REGISTER.PTR>)
+*
+         REGISTER.PTR = REGISTER.PTR - 1
+*
+         IF REGISTER.PTR <= 0 THEN
+            R1 = 0
+            REGISTER.PTR = 1
+         END ELSE
+            R1 = RAISE(REGISTERS<REGISTER.PTR>)
+         END
+*
+         IF TOKEN = '+' THEN
+            TEMP = R1 + R2
+*
+         END ELSE IF TOKEN = '-' THEN
+            TEMP = R1 - R2
+*
+         END ELSE IF TOKEN = '*' THEN
+            TEMP = R1 * R2
+*
+         END ELSE IF TOKEN = '/' THEN
+            TEMP = R1 / R2
+*
+         END ELSE IF TOKEN = '%' THEN
+            TEMP = MOD(R1,R2)
+*
+         END ELSE IF TOKEN = '^' THEN
+            TEMP = PWR(R1,R2)
+*
+         END ELSE IF TOKEN = '=' THEN
+            TEMP = R1 = R2
+*
+         END ELSE IF TOKEN = '>' THEN
+            TEMP = R1 > R2
+*
+         END ELSE IF TOKEN = '>=' THEN
+            TEMP = R1 >= R2
+*
+         END ELSE IF TOKEN = '<' THEN
+            TEMP = R1 < R2
+*
+         END ELSE IF TOKEN = '<=' THEN
+            TEMP = R1 <= R2
+*
+         END ELSE IF TOKEN = '#' THEN
+            TEMP = R1 # R2
+            
+         END ELSE IF TOKEN = 'AND' THEN
+            TEMP = R1 AND R2
+*
+         END ELSE IF TOKEN = 'OR' THEN
+            TEMP = R1 OR R2
+*
+         END ELSE IF TOKEN = ':' THEN
+            TEMP = R1 : R2
+         END
+*
+         REGISTERS<REGISTER.PTR> = LOWER(TEMP)
+*
+      END ELSE
+         REGISTER.PTR = REGISTER.PTR + 1
+*
+         IF TOKEN[1,1] = "'" AND TOKEN[LEN(TOKEN),1]  = "'" THEN
+            TOKEN = TOKEN[2,999]
+            TOKEN = TOKEN[1,LEN(TOKEN)-1]
+            REGISTERS<REGISTER.PTR> = LOWER(TOKEN)
+*
+         END ELSE IF TOKEN[1,1] = '"' AND TOKEN[LEN(TOKEN),1]  = '"' THEN
+            TOKEN = TOKEN[2,999]
+            TOKEN = TOKEN[1,LEN(TOKEN)-1]
+            REGISTERS<REGISTER.PTR> = LOWER(TOKEN)
+*
+         END ELSE IF TOKEN = '@AM' THEN
+            TOKEN = @AM
+            REGISTERS<REGISTER.PTR> = LOWER(TOKEN)
+*
+         END ELSE IF TOKEN = '@VM' THEN
+            TOKEN = @VM
+            REGISTERS<REGISTER.PTR> = LOWER(TOKEN)
+*
+         END ELSE IF TOKEN = '@SVM' THEN
+            TOKEN = @SVM
+            REGISTERS<REGISTER.PTR> = LOWER(TOKEN)
+*
+         END ELSE
+*
+            IF NUM(TOKEN) THEN
+               REGISTERS<REGISTER.PTR> = LOWER(TOKEN)
+*
+            END ELSE
+*
+               RESOLVED.VALUE = ''
+*
+               R.VAR.NAME = ''
+               TOKEN.LEN = LEN(TOKEN)
+*
+               VARIABLE.RESOLVED = FALSE
+*
+               FOR R.CTR = 1 TO TOKEN.LEN
+                  R.CHAR = TOKEN[R.CTR,1]
+*
+                  BEGIN CASE
+                     CASE R.CHAR = '['
+                        R.CTR = R.CTR + 1
+                        STACK.CTR = 1
+                        OTHER.STACK.CTR = 0
+*
+                        R.TOKENS = ''
+                        R.STRING = ''
+*
+                        LOOP UNTIL STACK.CTR = 0 OR R.CTR > TOKEN.LEN DO
+                           R.CHAR = TOKEN[R.CTR,1]
+*
+                           IF R.CHAR = ',' AND STACK.CTR = 1 AND OTHER.STACK.CTR = 0 THEN
+                              R.TOKENS<-1> =  R.STRING
+                              R.STRING = ''
+*
+                           END ELSE IF R.CHAR = '[' THEN
+                              STACK.CTR = STACK.CTR + 1
+                              R.STRING = R.STRING : R.CHAR
+*
+                           END ELSE IF R.CHAR = ']' THEN
+                              STACK.CTR = STACK.CTR - 1
+                              IF STACK.CTR # 0 THEN
+                                 R.STRING = R.STRING : R.CHAR
+                              END
+*
+                           END ELSE
+                              IF R.CHAR = '(' OR R.CHAR = '<' THEN
+                                 OTHER.STACK.CTR = OTHER.STACK.CTR + 1
+                              END ELSE IF R.CHAR = ')' OR R.CHAR = '>' THEN
+                                 OTHER.STACK.CTR = OTHER.STACK.CTR - 1
+                              END
+*
+                              R.STRING = R.STRING : R.CHAR
+                           END
+*
+                           R.CTR = R.CTR + 1
+                        REPEAT
+*
+                        R.TOKENS<-1> =  R.STRING
+*
+                        EVALUATED.TOKENS = ''
+                        R.TOKENS.LEN = DCOUNT(R.TOKENS,@AM)
+*
+                        FOR R.TOKENS.CTR = 1 TO R.TOKENS.LEN
+                           R.STRING = R.TOKENS<R.TOKENS.CTR>
+                           CALL EVALUATE.BTL(MAT ENV,ENV.SIZE,R.STRING,R.VALUE,MAP.CACHE,PARSE.CACHE)
+                           EVALUATED.TOKENS<-1> =  LOWER(R.VALUE)
+                        NEXT R.TOKENS.CTR
+*
+                        NUMBER.OF.EVALUATED.TOKENS = DCOUNT(EVALUATED.TOKENS,@AM)
+*
+                        P1 = RAISE(EVALUATED.TOKENS<1>)
+                        P2 = RAISE(EVALUATED.TOKENS<2>)
+*
+                        IF R.VAR.NAME = '' THEN
+                           RESOLVED.VALUE = REGISTERS<REGISTER.PTR-1>
+                           REGISTER.PTR = REGISTER.PTR - 1
+*
+                        END ELSE
+*
+                           MAP.KEY = R.VAR.NAME
+                           GOSUB ENV.GET
+                           RESOLVED.VALUE = MAP.VALUE
+*
+                           IF NOT(ENV.HAS.FLAG) THEN
+                              PRINT 'Evaluate Error: "' : R.VAR.NAME : '" does not exist.'
+                              STOP
+                           END
+*
+                        END
+*
+                        IF NUMBER.OF.EVALUATED.TOKENS = 1 THEN
+                           RESOLVED.VALUE = RESOLVED.VALUE[P1]
+                           
+                        END ELSE IF NUMBER.OF.EVALUATED.TOKENS = 2 THEN
+                           RESOLVED.VALUE = RESOLVED.VALUE[P1,P2]
+*
+                        END ELSE
+*
+                        END
+*
+                        VARIABLE.RESOLVED = TRUE
+*
+                        EXIT
+*
+                     CASE R.CHAR = '('
+                        R.CTR = R.CTR + 1
+                        STACK.CTR = 1
+*
+                        R.TOKENS = ''
+                        R.STRING = ''
+                        OTHER.STACK.CTR = 0
+*
+                        LOOP UNTIL STACK.CTR = 0 OR R.CTR > TOKEN.LEN DO
+                           R.CHAR = TOKEN[R.CTR,1]
+*
+                           IF R.CHAR = ',' AND STACK.CTR = 1 AND OTHER.STACK.CTR = 0 THEN
+                              R.TOKENS<-1> =  R.STRING
+                              R.STRING = ''
+*
+                           END ELSE IF R.CHAR = '(' THEN
+                              STACK.CTR = STACK.CTR + 1
+                              R.STRING = R.STRING : R.CHAR
+*
+                           END ELSE IF R.CHAR = ')' THEN
+                              STACK.CTR = STACK.CTR - 1
+                              IF STACK.CTR # 0 THEN
+                                 R.STRING = R.STRING : R.CHAR
+                              END
+*
+                           END ELSE
+                              IF R.CHAR = '[' OR R.CHAR = '<' THEN
+                                 OTHER.STACK.CTR = OTHER.STACK.CTR + 1
+                              END ELSE IF R.CHAR = ']' OR R.CHAR = '>' THEN
+                                 OTHER.STACK.CTR = OTHER.STACK.CTR - 1
+                              END
+*
+                              R.STRING = R.STRING : R.CHAR
+                           END
+*
+                           R.CTR = R.CTR + 1
+                        REPEAT
+*
+                        R.TOKENS<-1> =  R.STRING
+*
+                        EVALUATED.TOKENS = ''
+                        R.TOKENS.LEN = DCOUNT(R.TOKENS,@AM)
+*
+                        FOR R.TOKENS.CTR = 1 TO R.TOKENS.LEN
+                           R.STRING = R.TOKENS<R.TOKENS.CTR>
+                           CALL EVALUATE.BTL(MAT ENV,ENV.SIZE,R.STRING,R.VALUE,MAP.CACHE,PARSE.CACHE)
+                           EVALUATED.TOKENS<R.TOKENS.CTR> =  LOWER(R.VALUE)
+                        NEXT R.TOKENS.CTR
+*
+                        NUMBER.OF.EVALUATED.TOKENS = DCOUNT(EVALUATED.TOKENS,@AM)
+*
+                        BEGIN CASE
+                           CASE R.VAR.NAME = 'ENV'
+                              MAP.KEY = RAISE(EVALUATED.TOKENS<1>)
+                              GOSUB ENV.GET
+                              RESOLVED.VALUE = MAP.VALUE
+*
+                           CASE R.VAR.NAME = 'DCOUNT'
+                              P1 = RAISE(EVALUATED.TOKENS<1>)
+                              P2 = RAISE(EVALUATED.TOKENS<2>)
+*
+                              RESOLVED.VALUE = DCOUNT(P1,P2)
+*
+                           CASE R.VAR.NAME = 'LEN'
+                              P1 = RAISE(EVALUATED.TOKENS<1>)
+                              RESOLVED.VALUE = LEN(P1)
+*
+                           CASE R.VAR.NAME = 'OCONV'
+                              P1 = RAISE(EVALUATED.TOKENS<1>)
+                              P2 = RAISE(EVALUATED.TOKENS<2>)
+*
+                              RESOLVED.VALUE = OCONV(P1,P2)
+*
+                           CASE R.VAR.NAME = 'MOD'
+                              P1 = RAISE(EVALUATED.TOKENS<1>)
+                              P2 = RAISE(EVALUATED.TOKENS<2>)
+*
+                              RESOLVED.VALUE = MOD(P1,P2)
+*
+                           CASE R.VAR.NAME = 'DATE'
+                              RESOLVED.VALUE = DATE()
+*
+                           CASE R.VAR.NAME = 'NOT'
+                              RESOLVED.VALUE = NOT(EVALUATED.TOKENS<1>)
+*
+                           CASE TRUE
+                              IF R.TOKENS.LEN = 1 THEN
+                                 R.STRING = R.TOKENS<1>
+                                 P1 = RAISE(EVALUATED.TOKENS<1>)
+                                 CALL @R.VAR.NAME(P1)
+                                 IF INDEX(R.STRING,'"',1) = 0 AND INDEX(R.STRING,"'",1) = 0 AND INDEX(R.STRING,"<",1) = 0 AND INDEX(R.STRING,"[",1) = 0 THEN
+                                    CALL MAP.SET(MAT ENV,ENV.SIZE,R.STRING,P1)
+                                 END
+*
+                              END ELSE
+                                 PRINT 'Calling a subroutine not valid for this number of arguments.'
+                                 STOP
+                              END
+*
+                        END CASE
+*
+                        VARIABLE.RESOLVED = TRUE
+*
+                        EXIT
+*
+                     CASE R.CHAR = '<'
+*
+                        LOCATE(TOKEN.LINE,PARSE.CACHE<1>,1;PARSE.POS) THEN
+                           RAISE3.VALUE = PARSE.CACHE<3,PARSE.POS>
+                           GOSUB RAISE3
+                           R.TOKENS = RAISE3.VALUE
+*
+                        END ELSE
+                           R.CTR = R.CTR + 1
+                           STACK.CTR = 1
+                           OTHER.STACK.CTR = 0
+*
+                           R.TOKENS = ''
+                           R.STRING = ''
+*
+                           LOOP UNTIL STACK.CTR = 0 OR R.CTR > TOKEN.LEN DO
+                              R.CHAR = TOKEN[R.CTR,1]
+*
+                              IF R.CHAR = ',' AND STACK.CTR = 1 AND OTHER.STACK.CTR = 0 THEN
+                                 IF NUM(R.STRING) THEN
+                                    R.VALUE = R.STRING
+                                 END ELSE
+                                    CALL EVALUATE.BTL(MAT ENV,ENV.SIZE,R.STRING,R.VALUE,MAP.CACHE,PARSE.CACHE)
+                                 END
+                                 R.TOKENS<-1> =  R.VALUE
+*
+                                 R.STRING = ''
+*
+                              END ELSE IF R.CHAR = '<' THEN
+                                 STACK.CTR = STACK.CTR + 1
+                                 R.STRING = R.STRING : R.CHAR
+*
+                              END ELSE IF R.CHAR = '>' THEN
+                                 STACK.CTR = STACK.CTR - 1
+                                 IF STACK.CTR # 0 THEN
+                                    R.STRING = R.STRING : R.CHAR
+                                 END
+*
+                              END ELSE
+                                 IF R.CHAR = '(' OR R.CHAR = '[' THEN
+                                    OTHER.STACK.CTR = OTHER.STACK.CTR + 1
+                                 END ELSE IF R.CHAR = ')' OR R.CHAR = ']' THEN
+                                    OTHER.STACK.CTR = OTHER.STACK.CTR - 1
+                                 END
+*
+                                 R.STRING = R.STRING : R.CHAR
+                              END
+*
+                              R.CTR = R.CTR + 1
+                           REPEAT
+*
+                           IF NUM(R.STRING) THEN
+                              R.VALUE = R.STRING
+                           END ELSE
+                              CALL EVALUATE.BTL(MAT ENV,ENV.SIZE,R.STRING,R.VALUE,MAP.CACHE,PARSE.CACHE)
+                           END
+*
+                           R.TOKENS<-1> =  R.VALUE
+*
+                           LOWER3.VALUE = POSTFIX
+                           GOSUB LOWER3
+                           POSTFIX = LOWER3.VALUE
+*
+                           LOWER3.VALUE = R.TOKENS
+                           GOSUB LOWER3
+*
+                           IF DCOUNT(PARSE.CACHE<1>,@VM) > 10 THEN
+                              PARSE.CACHE<1,1> = TOKEN.LINE
+                              PARSE.CACHE<2,1> = POSTFIX
+                              PARSE.CACHE<3,1> = LOWER3.VALUE
+                              PARSE.CACHE<4,1> = R.VAR.NAME
+                           END ELSE
+                              PARSE.CACHE<1,-1> = TOKEN.LINE
+                              PARSE.CACHE<2,-1> = POSTFIX
+                              PARSE.CACHE<3,-1> = LOWER3.VALUE
+                              PARSE.CACHE<4,-1> = R.VAR.NAME
+                           END
+                        END
+*
+                        R.TOKENS.LEN  = DCOUNT(R.TOKENS,@AM)
+*
+                        P1 = R.TOKENS<1>
+                        P2 = R.TOKENS<2>
+                        P3 = R.TOKENS<3>
+*
+                        MAP.KEY = R.VAR.NAME
+                        GOSUB ENV.GET
+                        RESOLVED.VALUE = MAP.VALUE
+*
+                        IF NOT(ENV.HAS.FLAG) THEN
+                           PRINT 'Evaluate Error: "' : R.VAR.NAME : '" does not exist.'
+                           STOP
+                        END
+*
+                        BEGIN CASE
+                           CASE R.TOKENS.LEN = 1
+                              RESOLVED.VALUE = RESOLVED.VALUE<P1>
+                              
+                           CASE R.TOKENS.LEN = 2
+                              RESOLVED.VALUE = RESOLVED.VALUE<P1,P2>
+*
+                           CASE R.TOKENS.LEN = 3
+                              RESOLVED.VALUE = RESOLVED.VALUE<P1,P2,P3>
+                        END CASE
+*
+                        VARIABLE.RESOLVED = TRUE
+*
+                        EXIT
+*
+                     CASE TRUE
+                        R.VAR.NAME = R.VAR.NAME : R.CHAR
+                  END CASE
+*
+               NEXT R.CTR
+*
+               IF NOT(VARIABLE.RESOLVED) THEN
+                  MAP.KEY = R.VAR.NAME
+                  GOSUB ENV.GET
+                  RESOLVED.VALUE = MAP.VALUE
+               END
+*
+               REGISTERS<REGISTER.PTR> = LOWER(RESOLVED.VALUE)
+            END
+         END
+      END
+   NEXT TOKEN.CTR
+*
+   VALUE = RAISE(REGISTERS<1>)
+*
+   RETURN
+*
+*********************  S U B R O U T I N E  *********************
+*
+ENV.GET:NULL
+*
+   LOCATE(MAP.KEY,MAP.CACHE<1>,1;CACHE.POS) THEN
+      MAP.POS = MAP.CACHE<2,CACHE.POS>
+*
+   END ELSE
+      MAP.KEY.LEN = LEN(MAP.KEY)
+*
+      MAP.HASH = 5381
+*
+      FOR MAP.KEY.CTR = 1 TO MAP.KEY.LEN
+         MAP.HASH = SADD(SMUL(MAP.HASH,33),SEQ(MAP.KEY[MAP.KEY.CTR,1]))
+      NEXT MAP.KEY.CTR
+*
+      MAP.D = SDIV(MAP.HASH,ENV.SIZE)
+      MAP.E = INDEX(MAP.D,'.',1)
+*
+      IF MAP.E = 0 THEN MAP.E = LEN(MAP.D)
+*
+      MAP.DIVISION = MAP.D[1,MAP.E]
+      MAP.MULTIPLE = SMUL(MAP.DIVISION,ENV.SIZE)
+      MAP.POS = SSUB(MAP.HASH,MAP.MULTIPLE) + 1
+*
+      IF DCOUNT(MAP.CACHE<1>,@VM) > 5 THEN
+         MAP.CACHE<1,1> = MAP.KEY
+         MAP.CACHE<2,1> = MAP.POS
+      END ELSE
+         MAP.CACHE<1> = MAP.CACHE<1> : @VM: MAP.KEY
+         MAP.CACHE<2> = MAP.CACHE<2> : @VM: MAP.POS
+      END
+*
+   END
+*
+   LOCATE(MAP.KEY,ENV(MAP.POS)<1>,1,1;ANYPOS) THEN
+      RAISE3.VALUE = ENV(MAP.POS)<1,2,ANYPOS>
+      GOSUB RAISE3
+      MAP.VALUE = RAISE3.VALUE
+*
+      ENV.HAS.FLAG = TRUE
+   END ELSE
+      MAP.VALUE = ''
+      ENV.HAS.FLAG = FALSE
+   END
+*
+   RETURN
+*
+*********************  S U B R O U T I N E  *********************
+*
+RAISE3.SETUP:NULL
+*
+   RAISE3.HIGH = CHAR(256):CHAR(255):CHAR(254):CHAR(253):CHAR(252):CHAR(251):CHAR(250):CHAR(249):CHAR(248):CHAR(247):CHAR(246):CHAR(245):CHAR(244):CHAR(243):CHAR(242):CHAR(241):CHAR(240):CHAR(239):CHAR(238):CHAR(237):CHAR(236):CHAR(235):CHAR(234):CHAR(233):CHAR(232):CHAR(231):CHAR(230):CHAR(229):CHAR(228):CHAR(227):CHAR(226):CHAR(225):CHAR(224):CHAR(223):CHAR(222):CHAR(221):CHAR(220):CHAR(219):CHAR(218):CHAR(217):CHAR(216):CHAR(215):CHAR(214):CHAR(213):CHAR(212):CHAR(211):CHAR(210):CHAR(209):CHAR(208):CHAR(207):CHAR(206):CHAR(205):CHAR(204):CHAR(203)
+*
+   RAISE3.LOW = CHAR(253):CHAR(252):CHAR(251):CHAR(250):CHAR(249):CHAR(248):CHAR(247):CHAR(246):CHAR(245):CHAR(244):CHAR(243):CHAR(242):CHAR(241):CHAR(240):CHAR(239):CHAR(238):CHAR(237):CHAR(236):CHAR(235):CHAR(234):CHAR(233):CHAR(232):CHAR(231):CHAR(230):CHAR(229):CHAR(228):CHAR(227):CHAR(226):CHAR(225):CHAR(224):CHAR(223):CHAR(222):CHAR(221):CHAR(220):CHAR(219):CHAR(218):CHAR(217):CHAR(216):CHAR(215):CHAR(214):CHAR(213):CHAR(212):CHAR(211):CHAR(210):CHAR(209):CHAR(208):CHAR(207):CHAR(206):CHAR(205):CHAR(204):CHAR(203):CHAR(202):CHAR(201):CHAR(200)
+*
+   RETURN
+*
+*********************  S U B R O U T I N E  *********************
+*
+RAISE3:NULL
+*
+   CONVERT RAISE3.LOW TO RAISE3.HIGH IN RAISE3.VALUE
+*
+   RETURN
+*
+*********************  S U B R O U T I N E  *********************
+*
+LOWER3.SETUP:NULL
+*
+   LOWER3.HIGH = CHAR(254):CHAR(253):CHAR(252):CHAR(251):CHAR(250):CHAR(249):CHAR(248):CHAR(247):CHAR(246):CHAR(245):CHAR(244):CHAR(243):CHAR(242):CHAR(241):CHAR(240):CHAR(239):CHAR(238):CHAR(237):CHAR(236):CHAR(235):CHAR(234):CHAR(233):CHAR(232):CHAR(231):CHAR(230):CHAR(229):CHAR(228):CHAR(227):CHAR(226):CHAR(225):CHAR(224):CHAR(223):CHAR(222):CHAR(221):CHAR(220):CHAR(219):CHAR(218):CHAR(217):CHAR(216):CHAR(215):CHAR(214):CHAR(213):CHAR(212):CHAR(211):CHAR(210):CHAR(209):CHAR(208):CHAR(207):CHAR(206):CHAR(205):CHAR(204):CHAR(203):CHAR(202):CHAR(201)
+*
+   LOWER3.LOW = CHAR(251):CHAR(250):CHAR(249):CHAR(248):CHAR(247):CHAR(246):CHAR(245):CHAR(244):CHAR(243):CHAR(242):CHAR(241):CHAR(240):CHAR(239):CHAR(238):CHAR(237):CHAR(236):CHAR(235):CHAR(234):CHAR(233):CHAR(232):CHAR(231):CHAR(230):CHAR(229):CHAR(228):CHAR(227):CHAR(226):CHAR(225):CHAR(224):CHAR(223):CHAR(222):CHAR(221):CHAR(220):CHAR(219):CHAR(218):CHAR(217):CHAR(216):CHAR(215):CHAR(214):CHAR(213):CHAR(212):CHAR(211):CHAR(210):CHAR(209):CHAR(208):CHAR(207):CHAR(206):CHAR(205):CHAR(204):CHAR(203):CHAR(202):CHAR(201):CHAR(198)
+*
+   RETURN
+*
+*********************  S U B R O U T I N E  *********************
+*
+LOWER3:NULL
+*
+   CONVERT LOWER3.HIGH TO LOWER3.LOW IN LOWER3.VALUE
+*
+   RETURN
+*
+*
+* END OF PROGRAM
+*
+   END
+*
+   
+   
+
