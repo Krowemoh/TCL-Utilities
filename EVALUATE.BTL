@@ -649,6 +649,10 @@ EVALUATE.EXPRESSION:NULL
                               P1 = RAISE(EVALUATED.TOKENS<1>)
                               RESOLVED.VALUE = LEN(P1)
 *
+                           CASE R.VAR.NAME = 'LOWER'
+                              P1 = RAISE(EVALUATED.TOKENS<1>)
+                              RESOLVED.VALUE = LOWER(P1)
+*
                            CASE R.VAR.NAME = 'OCONV'
                               P1 = RAISE(EVALUATED.TOKENS<1>)
                               P2 = RAISE(EVALUATED.TOKENS<2>)
