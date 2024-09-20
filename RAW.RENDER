@@ -346,9 +346,48 @@
                   PARSE.CACHE = ''
                   CALL EVALUATE.BTL(MAT ENV,ENV.SIZE,LH,VALUE,MAP.CACHE,PARSE.CACHE)
 *
-                  MAP.KEY = RH
-                  MAP.VALUE = VALUE
-                  GOSUB ENV.SET
+                  IF INDEX(RH,'<',1) = 0 THEN
+                     MAP.KEY = RH
+                     MAP.VALUE = VALUE
+                     GOSUB ENV.SET
+*
+                  END ELSE
+                     RH.TOKENS = TRIM(RH[INDEX(RH,'<',1)+1,LEN(RH)])
+                     RH.TOKENS = TRIM(RH.TOKENS[1,INDEX(RH.TOKENS,'>',COUNT(RH.TOKENS,'>'))-1])
+                     R.VAR.NAME = RH[1,INDEX(RH,'<',1)-1]
+*
+                     GOSUB TOKENIZE.STRING
+*
+                     R.TOKENS.LEN  = DCOUNT(R.TOKENS,@AM)
+*
+                     P1 = R.TOKENS<1>
+                     P2 = R.TOKENS<2>
+                     P3 = R.TOKENS<3>
+*
+                     MAP.KEY = R.VAR.NAME
+                     GOSUB ENV.GET
+                     RESOLVED.VALUE = MAP.VALUE
+*
+                     IF NOT(ENV.HAS.FLAG) THEN
+                        PRINT 'Evaluate Error: "' : R.VAR.NAME : '" does not exist.'
+                        STOP
+                     END
+*
+                     BEGIN CASE
+                        CASE R.TOKENS.LEN = 1
+                           RESOLVED.VALUE<P1> = VALUE
+                           
+                        CASE R.TOKENS.LEN = 2
+                           RESOLVED.VALUE<P1,P2> = VALUE
+*
+                        CASE R.TOKENS.LEN = 3
+                           RESOLVED.VALUE<P1,P2,P3> = VALUE
+                     END CASE
+*
+                     MAP.KEY = R.VAR.NAME
+                     MAP.VALUE = RESOLVED.VALUE
+                     GOSUB ENV.SET
+                  END
                END
 *
          END CASE
@@ -551,6 +590,66 @@ BUILD.BLOCKS:NULL
          BLOCK<1,-1> = LINE
       END
    NEXT J
+*
+   RETURN
+*
+*********************  S U B R O U T I N E  *********************
+*
+TOKENIZE.STRING:NULL
+*
+   TOKEN = RH.TOKENS
+   TOKEN.LEN = LEN(TOKEN)
+*
+   R.CTR = 1
+   STACK.CTR = 1
+   OTHER.STACK.CTR = 0
+*
+   R.TOKENS = ''
+   R.STRING = ''
+*
+   LOOP UNTIL STACK.CTR = 0 OR R.CTR > TOKEN.LEN DO
+      R.CHAR = TOKEN[R.CTR,1]
+*
+      IF R.CHAR = ',' AND STACK.CTR = 1 AND OTHER.STACK.CTR = 0 THEN
+         IF NUM(R.STRING) THEN
+            R.VALUE = R.STRING
+         END ELSE
+            CALL EVALUATE.BTL(MAT ENV,ENV.SIZE,R.STRING,R.VALUE,MAP.CACHE,PARSE.CACHE)
+         END
+         R.TOKENS<-1> =  R.VALUE
+*
+         R.STRING = ''
+*
+      END ELSE IF R.CHAR = '<' THEN
+         STACK.CTR = STACK.CTR + 1
+         R.STRING = R.STRING : R.CHAR
+*
+      END ELSE IF R.CHAR = '>' THEN
+         STACK.CTR = STACK.CTR - 1
+         IF STACK.CTR # 0 THEN
+            R.STRING = R.STRING : R.CHAR
+         END
+*
+      END ELSE
+         IF R.CHAR = '(' OR R.CHAR = '[' THEN
+            OTHER.STACK.CTR = OTHER.STACK.CTR + 1
+         END ELSE IF R.CHAR = ')' OR R.CHAR = ']' THEN
+            OTHER.STACK.CTR = OTHER.STACK.CTR - 1
+         END
+*
+         R.STRING = R.STRING : R.CHAR
+      END
+*
+      R.CTR = R.CTR + 1
+   REPEAT
+*
+   IF NUM(R.STRING) THEN
+      R.VALUE = R.STRING
+   END ELSE
+      CALL EVALUATE.BTL(MAT ENV,ENV.SIZE,R.STRING,R.VALUE,MAP.CACHE,PARSE.CACHE)
+   END
+*
+   R.TOKENS<-1> =  R.VALUE
 *
    RETURN
 *
