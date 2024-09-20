@@ -9,7 +9,7 @@
    $DEFINE PLATFORM.LINUX
 *
    $IFDEF DATABASE.QM
-      $CATALOGUE
+      $CATALOGUE LOCAL
    $ENDIF
 *
    EQU TRUE TO 1
@@ -646,6 +646,13 @@ EVALUATE.EXPRESSION:NULL
 *
                               RESOLVED.VALUE = CHANGE(P1,P2,P3)
 *
+                           CASE R.VAR.NAME = 'INDEX'
+                              P1 = RAISE(EVALUATED.TOKENS<1>)
+                              P2 = RAISE(EVALUATED.TOKENS<2>)
+                              P3 = RAISE(EVALUATED.TOKENS<3>)
+*
+                              RESOLVED.VALUE = INDEX(P1,P2,P3)
+*
                            CASE R.VAR.NAME = 'DCOUNT'
                               P1 = RAISE(EVALUATED.TOKENS<1>)
                               P2 = RAISE(EVALUATED.TOKENS<2>)
@@ -684,7 +691,18 @@ EVALUATE.EXPRESSION:NULL
                                  P1 = RAISE(EVALUATED.TOKENS<1>)
                                  CALL @R.VAR.NAME(P1)
                                  IF INDEX(R.STRING,'"',1) = 0 AND INDEX(R.STRING,"'",1) = 0 AND INDEX(R.STRING,"<",1) = 0 AND INDEX(R.STRING,"[",1) = 0 THEN
-                                    CALL MAP.SET(MAT ENV,ENV.SIZE,R.STRING,P1)
+                                    CALL MAP.SET(MAT ENV,ENV.SIZE,R.TOKENS<1>,P1)
+                                 END
+*
+                              END ELSE IF R.TOKENS.LEN = 2 THEN
+                                 R.STRING = R.TOKENS<1>
+                                 P1 = RAISE(EVALUATED.TOKENS<1>)
+                                 P2 = RAISE(EVALUATED.TOKENS<1>)
+*
+                                 CALL @R.VAR.NAME(P1,P2)
+                                 IF INDEX(R.STRING,'"',1) = 0 AND INDEX(R.STRING,"'",1) = 0 AND INDEX(R.STRING,"<",1) = 0 AND INDEX(R.STRING,"[",1) = 0 THEN
+                                    CALL MAP.SET(MAT ENV,ENV.SIZE,R.TOKENS<1>,P1)
+                                    CALL MAP.SET(MAT ENV,ENV.SIZE,R.TOKENS<2>,P2)
                                  END
 *
                               END ELSE
@@ -920,4 +938,4 @@ LOWER3:NULL
 *
    
    
-
+   
