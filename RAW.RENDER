@@ -23,6 +23,8 @@
    GOSUB RAISE3.SETUP
    GOSUB MAP.LOWER.SETUP
 *
+   GOSUB PRECOMPILE
+*
    NUMBER.OF.LINES = DCOUNT(TEMPLATE,@AM)
 *
    FOR I = 1 TO NUMBER.OF.LINES
@@ -485,6 +487,42 @@
    NEXT I
 *
    CONVERT @AM TO CHAR(10) IN RESULT
+*
+   RETURN
+*
+*********************  S U B R O U T I N E  *********************
+*
+PRECOMPILE:NULL
+*
+   ORIGINAL.TEMPLATE = TEMPLATE
+   TEMPLATE = ''
+*
+   NUMBER.OF.LINES = DCOUNT(ORIGINAL.TEMPLATE,@AM)
+   LINE.CTR = 1
+*
+   BASIC.STARTED = FALSE
+*
+   FOR I = 1 TO NUMBER.OF.LINES
+      LINE = TRIM(ORIGINAL.TEMPLATE<I>)
+*
+      IF LINE = '{{' THEN
+         BASIC.STARTED = TRUE
+         CONTINUE
+*
+      END ELSE IF LINE = '}}' THEN
+         BASIC.STARTED = FALSE
+         CONTINUE
+      END
+*
+      IF BASIC.STARTED THEN
+         TEMPLATE<LINE.CTR> = '{{ ' : LINE : ' }}'
+         LINE.CTR = LINE.CTR + 1
+*
+      END ELSE
+         TEMPLATE<LINE.CTR> = LINE
+         LINE.CTR = LINE.CTR + 1
+      END
+   NEXT I
 *
    RETURN
 *
