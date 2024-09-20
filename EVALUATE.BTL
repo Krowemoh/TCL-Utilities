@@ -639,6 +639,13 @@ EVALUATE.EXPRESSION:NULL
                               GOSUB ENV.GET
                               RESOLVED.VALUE = MAP.VALUE
 *
+                           CASE R.VAR.NAME = 'CHANGE'
+                              P1 = RAISE(EVALUATED.TOKENS<1>)
+                              P2 = RAISE(EVALUATED.TOKENS<2>)
+                              P3 = RAISE(EVALUATED.TOKENS<3>)
+*
+                              RESOLVED.VALUE = CHANGE(P1,P2,P3)
+*
                            CASE R.VAR.NAME = 'DCOUNT'
                               P1 = RAISE(EVALUATED.TOKENS<1>)
                               P2 = RAISE(EVALUATED.TOKENS<2>)
