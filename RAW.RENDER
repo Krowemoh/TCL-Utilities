@@ -26,6 +26,7 @@
    GOSUB PRECOMPILE
 *
    NUMBER.OF.LINES = DCOUNT(TEMPLATE,@AM)
+   RAW.FLAG = FALSE
 *
    FOR I = 1 TO NUMBER.OF.LINES
       LINE = TRIM(TEMPLATE<I>)
@@ -40,6 +41,14 @@
          BEGIN CASE
             CASE FIRST.TOKEN = 'NULL'
                NULL
+*
+            CASE FIRST.TOKEN = 'REDIRECT'
+               RESULT = ''
+               RESULT<1> = 301
+               RESULT<2> = LINE
+               RAW.FLAG = TRUE
+*
+               TRIGGER.STOP = TRUE
 *
             CASE FIRST.TOKEN = 'STOP'
                TRIGGER.STOP = TRUE
@@ -486,7 +495,9 @@
       END
    NEXT I
 *
-   CONVERT @AM TO CHAR(10) IN RESULT
+   IF NOT(RAW.FLAG) THEN
+      CONVERT @AM TO CHAR(10) IN RESULT
+   END
 *
    RETURN
 *
