@@ -53,6 +53,18 @@
             CASE FIRST.TOKEN = 'STOP'
                TRIGGER.STOP = TRUE
 *
+            CASE FIRST.TOKEN = 'EQU'
+               LINE = CHANGE(LINE,' TO ',@AM)
+*
+               EQU.NAME = LINE<1>
+               EQU.VALUE.EXPR = LINE<2>
+*
+               CALL EVALUATE.BTL(MAT ENV,ENV.SIZE,EQU.VALUE.EXPR,EQU.VALUE,MAP.CACHE,PARSE.CACHE)
+*
+               MAP.KEY = EQU.NAME
+               MAP.VALUE = EQU.VALUE.EXPR
+               GOSUB ENV.SET
+*
             CASE FIRST.TOKEN = 'SELECT'
                LINE = CHANGE(LINE,' TO ',@AM)
 *
