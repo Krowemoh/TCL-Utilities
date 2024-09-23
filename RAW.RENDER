@@ -264,6 +264,31 @@
                   END
                END
 *
+            CASE FIRST.TOKEN = 'WRITE'
+               WRITE.STATEMENT = LINE
+               WRITE.STATEMENT = CHANGE(WRITE.STATEMENT,' ON ',@AM)
+*
+               VAR.WRITE.EXPR = WRITE.STATEMENT<1>
+               CALL EVALUATE.BTL(MAT ENV,ENV.SIZE,VAR.WRITE.EXPR,VAR.WRITE,MAP.CACHE,PARSE.CACHE)
+*
+               RH = TRIM(WRITE.STATEMENT<2>)
+               RH = CHANGE(RH,',',@AM)
+*
+               FILE.NAME = TRIM(RH<1>)
+               RECORD.ID.EXPR = TRIM(RH<2>)
+               CALL EVALUATE.BTL(MAT ENV,ENV.SIZE,RECORD.ID.EXPR,RECORD.ID,MAP.CACHE,PARSE.CACHE)
+*
+               CALL MAP.GET(MAT ENV,ENV.SIZE,FILE.NAME,FILE.NUMBER)
+*
+               IF FILE.NUMBER = '' THEN
+                  PRINT 'Render Error: File not open - ' : FILE.NAME
+                  STOP
+               END
+*
+               FILE.POINTER = FILES(FILE.NUMBER)
+*
+               WRITE VAR.WRITE ON FILE.POINTER,RECORD.ID
+*
             CASE FIRST.TOKEN = 'READ'
                CONDITIONS = ''
                BLOCKS = ''
