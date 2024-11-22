@@ -17,8 +17,7 @@
    END
 *
    IF RAW.TEXT[1,1] # '{' THEN
-      PRINT 'Error - Text is not JSON.'
-      JSON = ''
+      JSON = RAW.TEXT
       RETURN
    END
 *
