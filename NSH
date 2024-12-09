@@ -2373,7 +2373,7 @@ TIMER = FALSE
                   T1 = TIME()
                   EXECUTE SERIES
                   T2 = TIME()
-                  PRINT 'Took: ' : T2 - T1
+                  PRINT 'NSH::Took: ' : T2 - T1
                END ELSE
                   EXECUTE SERIES
                END
