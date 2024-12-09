@@ -4,10 +4,11 @@
 *
 * COMPILER DIRECTIVES
 *
-   $DEFINE DATABASE.UV
+   $DEFINE DATABASE.QM
    $DEFINE PLATFORM.LINUX
 *
    $IFDEF DATABASE.QM
+      $MODE TIME.MS
       $CATALOGUE LOCAL
    $ENDIF
 *
@@ -85,6 +86,8 @@
    IF INDEX(@SENTENCE,"--SHOW-IP",1) # 0 THEN
       SHOW.IP.FLAG = TRUE
    END
+*
+TIMER = FALSE
 *
 * SYSTEM FILE FOR UV ACCOUNTS
 *
@@ -2254,6 +2257,10 @@
             PRINT @ACCOUNT
          $ENDIF
 *
+      END ELSE IF VERB = 'TIMER' THEN
+         TIMER = NOT(TIMER)
+         PRINT 'Timer active: ' : TIMER
+*
       END ELSE IF VERB = '@WHO' THEN
          PRINT @WHO
 *
@@ -2362,7 +2369,15 @@
                END
 *
             END ELSE
-               EXECUTE SERIES
+               IF TIMER THEN
+                  T1 = TIME()
+                  EXECUTE SERIES
+                  T2 = TIME()
+                  PRINT 'Took: ' : T2 - T1
+               END ELSE
+                  EXECUTE SERIES
+               END
+*
             END
          END
       END
@@ -2581,4 +2596,4 @@ SETUP.PUTTY:NULL
 *
    END
 *
-
+   
