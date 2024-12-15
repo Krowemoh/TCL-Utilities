@@ -3681,7 +3681,17 @@ PROCESS.EDITOR.COMMAND:NULL
       $IFDEF PLATFORM.LINUX
          PASTE.FILENAME = '/tmp/eva.paste.' : USER.NAME : '.txt'
 *
-         EXECUTE 'SH -c "vim ' : PASTE.FILENAME : '"'
+         $IFDEF DATABASE.QM
+            EXECUTE '!vim ' : PASTE.FILENAME
+         $ENDIF
+*
+         $IFDEF DATABASE.UV
+            EXECUTE 'SH -c "vim ' : PASTE.FILENAME : '"'
+         $ENDIF
+*
+         $IFDEF DATABASE.D3
+            EXECUTE 'SH -c "vim ' : PASTE.FILENAME : '"'
+         $ENDIF
 *
          OPENSEQ PASTE.FILENAME TO PASTE.FLAT.FILE THEN
             READBLK YANKED.LINES FROM PASTE.FLAT.FILE, 100000000 THEN
@@ -5139,8 +5149,15 @@ PROCESS.INSERT:NULL
                SEARCH.WORD = CURRENT.WORD[LEN(SEARCH.PATH)+1,9999]
 *
                $IFDEF PLATFORM.LINUX
-                  STATEMENT = 'SH -c "ls -ap ' : SEARCH.PATH : ' | grep ^' : SEARCH.WORD  : '"'
+                  $IFDEF DATABASE.UV
+                     STATEMENT = 'SH -c "ls -ap ' : SEARCH.PATH : ' | grep ^' : SEARCH.WORD  : '"'
+                  $ENDIF
+                  $IFDEF DATABASE.QM
+*
+                     STATEMENT = '!ls -ap ' : SEARCH.PATH : ' | grep ^' : SEARCH.WORD
+                  $ENDIF
                   EXECUTE STATEMENT CAPTURING RESULTS
+*
                $ENDIF
 *
                $IFDEF PLATFORM.WINDOWS
