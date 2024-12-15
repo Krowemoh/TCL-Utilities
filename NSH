@@ -87,7 +87,7 @@
       SHOW.IP.FLAG = TRUE
    END
 *
-TIMER = FALSE
+   TIMER = FALSE
 *
 * SYSTEM FILE FOR UV ACCOUNTS
 *
@@ -1321,7 +1321,12 @@ TIMER = FALSE
                   SEARCH.WORD = WORD[LEN(SEARCH.PATH)+1,9999]
 *
                   $IFDEF PLATFORM.LINUX
-                     STATEMENT = 'SH -c "ls -ap ' : SEARCH.PATH : ' | grep ^' : SEARCH.WORD  : '"'
+                     $IFDEF DATABASE.UV
+                        STATEMENT = 'SH -c "ls -ap ' : SEARCH.PATH : ' | grep ^' : SEARCH.WORD  : '"'
+                     $ENDIF
+                     $IFDEF DATABASE.QM
+                        STATEMENT = '!ls -ap ' : SEARCH.PATH : ' | grep ^' : SEARCH.WORD
+                     $ENDIF
                      EXECUTE STATEMENT CAPTURING RESULTS
                   $ENDIF
 *
