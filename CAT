@@ -55,7 +55,7 @@
 *
     UNTIL ITEM.ID = '' DO
         READ ITEM FROM FILE,ITEM.ID ELSE ITEM = ''
-        CONVERT @AM TO CHAR(10) IN ITEM
+        ITEM = CHANGE(ITEM,@AM,CHAR(13):CHAR(10))
         PRINT ITEM
     REPEAT
 *
@@ -63,3 +63,4 @@
 *
     END
 *
+
