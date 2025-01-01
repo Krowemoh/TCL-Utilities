@@ -1,25 +1,29 @@
-    SUBROUTINE JSON.ADD(BUFFER,KEY,VALUE)
+   SUBROUTINE JSON.ADD(BUFFER,KEY,RAW.VALUE)
 *
-    GIT.FILENAME = 'JSON.ADD'
-    GIT.REPO = 'https://github.com/Krowemoh/TCL-Utilities.git'
+      GIT.FILENAME = 'JSON.ADD'
+      GIT.REPO = 'https://github.com/Krowemoh/TCL-Utilities.git'
 *
 * VERSION
 *
-    VERSION = '1'
+      VERSION = '1'
 *
-    @USER1 = 'JSON.ADD'
-    @USER2 = 'JSON.ADD'
+      @USER1 = 'JSON.ADD'
+      @USER2 = 'JSON.ADD'
 *
-    IF BUFFER = '' THEN
-        BUFFER = KEY : @VM : VALUE
-    END ELSE
-        BUFFER = BUFFER : @AM : KEY : @VM : VALUE
-    END
+      VALUE = RAW.VALUE
 *
-    RETURN
+      VALUE = CHANGE(VALUE,@SVM,'%%SVM%%')
+      VALUE = CHANGE(VALUE,@VM,'%%VM%%')
+*
+      IF BUFFER = '' THEN
+         BUFFER = KEY : @VM : VALUE
+      END ELSE
+         BUFFER = BUFFER : @AM : KEY : @VM : VALUE
+      END
+*
+   RETURN
 *
 * END OF PROGRAM
 *
-    END
+   END
 *
-
