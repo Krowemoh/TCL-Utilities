@@ -75,6 +75,8 @@
    BREAK.CHARACTERS = ': + - / # ^ ( )'
    CONVERT ' ' TO @AM IN BREAK.CHARACTERS
 *
+   POSTFIX = ''
+*
    LOCATE(TOKEN.LINE,PARSE.CACHE<1>,1;PARSE.POS) THEN
       RAISE3.VALUE = PARSE.CACHE<2,PARSE.POS>
       GOSUB RAISE3
@@ -717,8 +719,7 @@ EVALUATE.EXPRESSION:NULL
                         EXIT
 *
                      CASE R.CHAR = '<'
-*
-                        LOCATE(TOKEN.LINE,PARSE.CACHE<1>,1;PARSE.POS) THEN
+                        LOCATE(TOKEN.LINE:'-',PARSE.CACHE<1>,1;PARSE.POS) THEN
                            RAISE3.VALUE = PARSE.CACHE<3,PARSE.POS>
                            GOSUB RAISE3
                            R.TOKENS = RAISE3.VALUE
