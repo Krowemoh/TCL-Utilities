@@ -666,6 +666,8 @@ GET.POST.DATA:NULL
 *
    REQUEST.RAW.BODY = RAW.REQUEST[INDEX(RAW.REQUEST,BODY.DELIMITER,1)+BODY.DELIMITER.LEN,CONTENT.LENGTH]
 *
+   POST.CTR = 1
+*
    IF CONTENT.TYPE = 'application/x-www-form-urlencoded' THEN
       TOKEN = ''
 *
@@ -673,12 +675,13 @@ GET.POST.DATA:NULL
          LETTER = REQUEST.RAW.BODY[I,1]
 *
          IF LETTER = '=' THEN
-            REQUEST.FORM<1,-1> = TOKEN
+            REQUEST.FORM<1,POST.CTR> = TOKEN
             TOKEN = ''
 *
          END ELSE IF LETTER = '&' THEN
-            REQUEST.FORM<2,-1> = TOKEN
+            REQUEST.FORM<2,POST.CTR> = TOKEN
             TOKEN = ''
+            POST.CTR = POST.CTR + 1
 *
          END ELSE
             TOKEN = TOKEN : LETTER
@@ -686,7 +689,7 @@ GET.POST.DATA:NULL
       NEXT I
 *
       IF TOKEN # '' THEN
-         REQUEST.FORM<2,-1> = TOKEN
+         REQUEST.FORM<2,POST.CTR> = TOKEN
       END
 *
       NUMBER.OF.PARAMS = DCOUNT(REQUEST.FORM<1>,@VM)
@@ -699,8 +702,8 @@ GET.POST.DATA:NULL
          LOCATE(FORM.KEY,SIMPLIFIED.FORM<1>,1;FORM.POS) THEN
             SIMPLIFIED.FORM<2,FORM.POS,-1> = FORM.VALUE
          END ELSE
-            SIMPLIFIED.FORM<1,-1> = FORM.KEY
-            SIMPLIFIED.FORM<2,-1> = FORM.VALUE
+            SIMPLIFIED.FORM<1,I> = FORM.KEY
+            SIMPLIFIED.FORM<2,I> = FORM.VALUE
          END
       NEXT I
 *
