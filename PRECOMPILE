@@ -61,12 +61,15 @@
       LINE = TRIM(RAW.LINE)
 *
       BEGIN CASE
-         CASE LINE = '$END' AND NOT(END.FOUND)
+         CASE LINE = '%END' AND NOT(END.FOUND)
             END.FOUND = TRUE
-            FOOTER<-1> = '* $END'
+            FOOTER<-1> = '* %END'
 *
-         CASE LINE[1,1] = '$' AND NOT(END.FOUND)
-            INCLUDE.NAME = LINE[2,LEN(LINE)]
+         CASE TRIM(LINE[1,10]) = 'SUBROUTINE' AND NOT(END.FOUND)
+               HEADER = LINE : @AM : HEADER
+*
+         CASE LINE[1,8] = '%INCLUDE' AND NOT(END.FOUND)
+            INCLUDE.NAME = FIELD(LINE,' ',2)
 *
             OPEN '',INCLUDE.NAME TO INCLUDE.FILE ELSE
                HEADER<-1> = '* ' : LINE
@@ -92,7 +95,9 @@
             NAMESPACE = INCLUDE.NAME
             IF NAMESPACE[5] = '-FILE' THEN
                NAMESPACE = NAMESPACE[1,LEN(NAMESPACE)-5]
+               NAMESPACE = CHANGE(NAMESPACE,'-','.')
             END
+*
 *
             CLEARSELECT
             SELECT DICT.FILE
@@ -117,6 +122,12 @@
                   ATTR.LIST = INSERT(ATTR.LIST,2,ANYPOS;DICT.ID)
                END
             REPEAT
+*
+            NUMBER.OF.ATTRIBUTES = DCOUNT(ATTR.LIST<1>,@VM)
+*
+            HEADER<-1> = '*'
+            HEADER<-1> = '   DIM ' : NAMESPACE : '.ITEM(' : NUMBER.OF.ATTRIBUTES : ')'
+            HEADER<-1> = '   MAT ' : NAMESPACE : ".ITEM = ''"
 *
             HEADER<-1> = \*\
 *
@@ -149,9 +160,6 @@
 SETUP.HEADER:NULL
 *
    HEADER = \*\
-   HEADER<-1> = \   GIT.FILENAME = '\ : ITEM.ID : \'\
-   HEADER<-1> = \   GIT.REPO = 'https://github.com/krowemoh/TCL-Utilities.git'\
-   HEADER<-1> = \*\
    HEADER<-1> = \   EQU TRUE TO 1\
    HEADER<-1> = \   EQU FALSE TO 0\
    HEADER<-1> = \*\
