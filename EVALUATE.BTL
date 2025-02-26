@@ -674,6 +674,11 @@ EVALUATE.EXPRESSION:NULL
 *
                               RESOLVED.VALUE = OCONV(P1,P2)
 *
+                           CASE R.VAR.NAME = 'NUM'
+                              P1 = RAISE(EVALUATED.TOKENS<1>)
+*
+                              RESOLVED.VALUE = NUM(P1)
+*
                            CASE R.VAR.NAME = 'MOD'
                               P1 = RAISE(EVALUATED.TOKENS<1>)
                               P2 = RAISE(EVALUATED.TOKENS<2>)
