@@ -1546,7 +1546,12 @@ MAIN:NULL
             END
          NEXT LS.POS
 *
-         CURRENT.LINE = LS.POS - 1
+         IF LS.POS = NUMBER.OF.LINES THEN
+            CURRENT.LINE = LS.POS 
+         END ELSE
+            CURRENT.LINE = LS.POS - 1
+         END
+*
          LINE.LEN = LEN(LINES<CURRENT.LINE>)
 *
          X.POS = MARGIN.LEFT + LINE.LEN - 1
