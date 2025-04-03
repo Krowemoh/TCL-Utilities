@@ -1006,6 +1006,28 @@
       IF ESCAPE.SEQUENCE # '' THEN
          BEGIN CASE
             CASE ESCAPE.SEQUENCE = UP.ARROW
+               GOSUB GET.OVERFLOW.POSITIONS
+*
+               IF DISPLAY.CURSOR.Y # B THEN
+                  CURSOR.POSITION = CURSOR.POSITION - TERM.WIDTH
+*
+                  IF CURSOR.POSITION < LEN(RAW.SHELL.PROMPT) THEN
+                     CURSOR.POSITION = LEN(RAW.SHELL.PROMPT)
+                  END
+*
+                  GOSUB GET.OVERFLOW.POSITIONS
+*
+                  PRINT @(0,B) :
+                  PRINT SHELL.PROMPT :
+                  PRINT NSH.COLORS<INPUT.COLOR> : COMMAND :
+                  PRINT CLEAR.REST.OF.SCREEN :
+*
+                  PRINT @(DISPLAY.CURSOR.X, DISPLAY.CURSOR.Y) :
+*
+                  PRINT.SHELL.PROMPT = FALSE
+                  CONTINUE
+               END
+*
                POSSIBLE.COMMAND = ''
                SEARCH.FAILED = FALSE
 *
@@ -1051,6 +1073,28 @@
                CONTINUE
 *
             CASE ESCAPE.SEQUENCE = DOWN.ARROW
+               GOSUB GET.OVERFLOW.POSITIONS
+*
+               IF DISPLAY.CURSOR.Y # (BOTTOM - 1) THEN
+                  CURSOR.POSITION = CURSOR.POSITION + TERM.WIDTH
+*
+                  IF CURSOR.POSITION > LEN(RAW.SHELL.PROMPT) + LEN(COMMAND) THEN
+                     CURSOR.POSITION = LEN(RAW.SHELL.PROMPT) + LEN(COMMAND)
+                  END
+*
+                  GOSUB GET.OVERFLOW.POSITIONS
+*
+                  PRINT @(0,B) :
+                  PRINT SHELL.PROMPT :
+                  PRINT NSH.COLORS<INPUT.COLOR> : COMMAND :
+                  PRINT CLEAR.REST.OF.SCREEN :
+*
+                  PRINT @(DISPLAY.CURSOR.X, DISPLAY.CURSOR.Y) :
+*
+                  PRINT.SHELL.PROMPT = FALSE
+                  CONTINUE
+               END
+*
                SEARCH.FAILED = FALSE
 *
                IF HISTORY.STACK.POINTER >= 0 THEN
@@ -2626,4 +2670,3 @@ GET.OVERFLOW.POSITIONS:NULL
 *
    END
 *
-   
