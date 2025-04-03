@@ -813,12 +813,13 @@
                   END ELSE
                      COMMAND = COMMAND[1,CURSOR.IN.COMMAND-1] : COMMAND[CURSOR.IN.COMMAND+1,9999]
 *
-                     B = BOTTOM - INT((LEN(COMMAND)+LEN(RAW.SHELL.PROMPT))/TERM.WIDTH) - 1
+                     GOSUB GET.OVERFLOW.POSITIONS
+*
                      PRINT @(0,B) :
                      PRINT SHELL.PROMPT :
                      PRINT NSH.COLORS<INPUT.COLOR> : COMMAND :
                      PRINT CLEAR.REST.OF.SCREEN :
-                     PRINT @(CURSOR.POSITION,B) :
+                     PRINT @(DISPLAY.CURSOR.X, DISPLAY.CURSOR.Y) :
                   END
                END
 *
@@ -967,6 +968,7 @@
                      PRINT NSH.COLORS<SUGGESTION.COLOR> : POSSIBLE.COMMAND[LEN(COMMAND)+1,9999] :
                      PRINT CLEAR.REST.OF.SCREEN :
                      PRINT @(CURSOR.POSITION,B) :
+*
                   END ELSE
                      PRINT @(0,B) :
                      PRINT SHELL.PROMPT :
@@ -980,12 +982,15 @@
             END ELSE
                COMMAND = COMMAND[1,CURSOR.POSITION.IN.COMMAND] : CHR : COMMAND[CURSOR.POSITION.IN.COMMAND+1,9999]
                CURSOR.POSITION = CURSOR.POSITION + 1
-               B = BOTTOM - INT((LEN(COMMAND)+LEN(RAW.SHELL.PROMPT))/TERM.WIDTH) - 1
+*
+               GOSUB GET.OVERFLOW.POSITIONS
+*
                PRINT @(0,B) :
                PRINT SHELL.PROMPT :
                PRINT NSH.COLORS<INPUT.COLOR> : COMMAND :
                PRINT CLEAR.REST.OF.SCREEN :
-               PRINT @(CURSOR.POSITION,B) :
+*
+               PRINT @(DISPLAY.CURSOR.X, DISPLAY.CURSOR.Y) :
             END
          END
 *
@@ -1035,7 +1040,9 @@
 *
                CURSOR.POSITION = LEN(RAW.SHELL.PROMPT) + LEN(COMMAND)
 *
-               PRINT @(0,BOTTOM) :
+               GOSUB GET.OVERFLOW.POSITIONS
+*
+               PRINT @(0,B) :
                PRINT SHELL.PROMPT :
                PRINT COMMAND : CLEAR.REST.OF.SCREEN :
 *
@@ -1075,7 +1082,9 @@
                USER.INPUT = FALSE
                CURSOR.POSITION = LEN(RAW.SHELL.PROMPT) + LEN(COMMAND)
 *
-               PRINT @(0,BOTTOM) :
+               GOSUB GET.OVERFLOW.POSITIONS
+*
+               PRINT @(0,B) :
                PRINT SHELL.PROMPT :
                PRINT COMMAND : CLEAR.REST.OF.SCREEN :
 *
@@ -1090,11 +1099,14 @@
                   CURSOR.POSITION = CURSOR.POSITION - 1
                END
 *
-               PRINT @(0,BOTTOM) :
+               GOSUB GET.OVERFLOW.POSITIONS
+*
+               PRINT @(0,B) :
                PRINT SHELL.PROMPT :
                PRINT COMMAND : CLEAR.REST.OF.SCREEN :
 *
-               PRINT @(CURSOR.POSITION, TERM.HEIGHT) :
+               PRINT @(DISPLAY.CURSOR.X, DISPLAY.CURSOR.Y) :
+*
                $IFDEF DATABASE.UV
                   PRINT @(-20) :
                $ENDIF
@@ -1131,11 +1143,14 @@
                   END
                END
 *
-               PRINT @(0,BOTTOM) :
+               GOSUB GET.OVERFLOW.POSITIONS
+*
+               PRINT @(0,B) :
                PRINT SHELL.PROMPT :
                PRINT COMMAND : CLEAR.REST.OF.SCREEN :
 *
-               PRINT @(CURSOR.POSITION, TERM.HEIGHT) :
+               PRINT @(DISPLAY.CURSOR.X, DISPLAY.CURSOR.Y) :
+*
                $IFDEF DATABASE.UV
                   PRINT @(-20) :
                $ENDIF
@@ -2594,6 +2609,16 @@ SETUP.PUTTY:NULL
          TERM.WIDTH = FIELD(TERM.SIZE<1>,' ',2)
       $ENDIF
    $ENDIF
+*
+   RETURN
+*
+*********************  S U B R O U T I N E  *********************
+*
+GET.OVERFLOW.POSITIONS:NULL
+*
+   B = BOTTOM - INT((LEN(COMMAND)+LEN(RAW.SHELL.PROMPT))/TERM.WIDTH) - 1
+   DISPLAY.CURSOR.X = CURSOR.POSITION - (INT(CURSOR.POSITION / TERM.WIDTH) * TERM.WIDTH)
+   DISPLAY.CURSOR.Y = B + INT(( (CURSOR.POSITION) / TERM.WIDTH ))
 *
    RETURN
 *
