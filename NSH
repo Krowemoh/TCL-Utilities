@@ -644,8 +644,24 @@
                TAB.PRESSED = TRUE
                EXIT
 *
-            CASE ASCII.CODE = SEQ(KEY.EXCLAIMATION.MARK) OR ASCII.CODE = SEQ(KEY.DOUBLE.QUOTE)
+            CASE ASCII.CODE = SEQ(KEY.DOUBLE.QUOTE)
+               LINUX.COMMAND.MODE = NOT(LINUX.COMMAND.MODE)
+*
+               $IFDEF DATABASE.UV
+                  PRINT CHR :
+               $ENDIF
+*
+               $IFDEF DATABASE.QM
+                  PRINT CHR :
+               $ENDIF
+*
+               COMMAND = COMMAND : CHR
+               CURSOR.POSITION = LEN(RAW.SHELL.PROMPT) + LEN(COMMAND)
+               CONTINUE
+*
+            CASE ASCII.CODE = SEQ(KEY.EXCLAIMATION.MARK) 
                LINUX.COMMAND.MODE = TRUE
+*
                $IFDEF DATABASE.UV
                   PRINT CHR :
                $ENDIF
