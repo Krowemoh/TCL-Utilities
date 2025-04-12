@@ -67,7 +67,6 @@
       IF WINTEGRATE.FLAG THEN
          GOSUB SETUP.WINTEGRATE
       END
-*
    END
 *
    EXECUTE 'TERM ' : TERM.WIDTH : ',' : TERM.HEIGHT
@@ -80,6 +79,7 @@
 * INITIALIZE KEYS
 *
    EQU KEY.CTRL.A TO CHAR(1)
+   EQU KEY.CTRL.B TO CHAR(2)
    EQU KEY.CTRL.C TO CHAR(3)
    EQU KEY.CTRL.D TO CHAR(4)
    EQU KEY.CTRL.F TO CHAR(6)
@@ -1253,6 +1253,30 @@ MAIN:NULL
                RAW.LINE = CHANGE(RAW.LINE,' -->','',1)
             END ELSE
                RAW.LINE = '<!-- ' : RAW.LINE : ' -->'
+            END
+         END
+         
+         RAW.LINES<REAL.LINE.NUMBER> = RAW.LINE
+*
+         GOSUB UPDATE.LINE
+         GOSUB DISPLAY.LINES
+*
+         PRINT @(X.POS,Y.POS) :
+*
+      END ELSE IF ASCII.CODE = SEQ(KEY.CTRL.B) THEN
+         IF INSIDE.VIEW.BUFFER THEN CONTINUE
+*
+         REAL.LINE.NUMBER = LINE.NUMBERS<CURRENT.LINE>
+         RAW.LINE = RAW.LINES<REAL.LINE.NUMBER>
+*
+         UNDO.OP = 'CHANGE'
+         GOSUB PUSH.HISTORY
+*
+         IF FILETYPE = 'MARKDOWN' THEN
+            IF RAW.LINE[1,2] = '**' THEN
+               RAW.LINE = CHANGE(RAW.LINE,'**','')
+            END ELSE
+               RAW.LINE = '**' : RAW.LINE : '**'
             END
          END
          
