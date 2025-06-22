@@ -57,11 +57,14 @@
       LINE = TRIM(RAW.LINE)
 *
       BEGIN CASE
-         CASE LINE = '* $END' AND NOT(END.FOUND)
-            END.FOUND = TRUE
-            NEW.RECORD<-1> = '   $END'
+         CASE TRIM(LINE[1,10]) = 'SUBROUTINE' AND NOT(END.FOUND)
+            NEW.RECORD<-1> = LINE
 *
-         CASE LINE[1,3] = '* $' AND NOT(END.FOUND)
+         CASE LINE = '* %END' AND NOT(END.FOUND)
+            END.FOUND = TRUE
+            NEW.RECORD<-1> = '   %END'
+*
+         CASE LINE[1,3] = '* %' AND NOT(END.FOUND)
             NEW.RECORD<-1> = SPACE(3) : LINE[3,LEN(LINE)]
 *
          CASE TRUE
