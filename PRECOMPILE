@@ -98,7 +98,6 @@
                NAMESPACE = CHANGE(NAMESPACE,'-','.')
             END
 *
-*
             CLEARSELECT
             SELECT DICT.FILE
 *
