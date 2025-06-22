@@ -286,10 +286,10 @@ GET.HANDLER:NULL
          EXECUTE '!' : CURL.COMMAND CAPTURING RESULTS
       END
 *
-      IF RESULTS<1,1> # '*' AND TRIM(RESULTS<1>)[1,4] # 'SUBR' THEN
-         PRINT 'File needs to start with * or SUBR'
-         STOP
-      END
+*TEMP       IF RESULTS<1,1> # '*' AND TRIM(RESULTS<1>)[1,4] # 'SUBR' THEN
+*TEMP          PRINT 'File needs to start with * or SUBR'
+*TEMP          STOP
+*TEMP       END
 *
       RESPONSE = RESULTS
 *
