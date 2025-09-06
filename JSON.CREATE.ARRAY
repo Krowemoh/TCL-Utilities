@@ -29,7 +29,7 @@
          CASE VALUE = 0
             JSON<-1> = VALUE
 *
-         CASE VALUE[1,1] = '0'
+         CASE VALUE[1,1] = '0' AND VALUE[2,1] # '.'
             GOSUB QUOTE.VALUE
 *
          CASE VALUE[1,1] = '.'
@@ -74,6 +74,7 @@ QUOTE.VALUE:NULL
 *
    VALUE = CHANGE(VALUE,CHAR(0),'\u0000')
    VALUE = CHANGE(VALUE,CHAR(2),'\u0002')
+   VALUE = CHANGE(VALUE,CHAR(4),'\u0004')
 *
    JSON<-1> = '"' : VALUE : '"'
 *
