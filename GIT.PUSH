@@ -1,0 +1,165 @@
+*
+   $CATALOGUE LOCAL
+*
+   GIT.FILENAME = 'GIT.PUSH'
+   GIT.REPO = 'https://github.com/Krowemoh/TCL-Utilities.git'
+*
+* COMPILER DIRECTIVES
+*
+   $DEFINE DATABASE.QM
+   $DEFINE PLATFORM.LINUX
+*
+   EQU TRUE TO 1
+   EQU FALSE TO 0
+*
+   @USER1 = 'GIT-PUSH'
+   @USER2 = 'GIT-PUSH'
+*
+* SET VOC
+*
+   $IFDEF DATABASE.UV
+      VOC = 'VOC'
+   $ENDIF
+*
+   $IFDEF DATABASE.QM
+      VOC = 'VOC'
+   $ENDIF
+*
+   $IFDEF DATABASE.D3
+      VOC = 'MD'
+   $ENDIF
+*
+   OPEN '','GIT-PUSH-FILE' TO GIT.PUSH.FILE ELSE
+      OPEN '',VOC TO VOC.FILE THEN
+         EVA.ENTRY = ''
+*
+         $IFDEF DATABASE.UV
+            EVA.ENTRY<1> = 'F'
+            EVA.ENTRY<2> = '/tmp/.git-push/'
+            EVA.ENTRY<3> = '/tmp/.git-push/'
+            FILEPATH = '/tmp/.git-push/'
+         $ENDIF
+*
+         $IFDEF DATABASE.QM
+            EVA.ENTRY<1> = 'F'
+            EVA.ENTRY<2> = '/tmp/.git-push/'
+            EVA.ENTRY<3> = '/tmp/.git-push/'
+            FILEPATH = '/tmp/.git-push/'
+         $ENDIF
+*
+         $IFDEF DATABASE.D3
+            EVA.ENTRY<1> = 'Q'
+            EVA.ENTRY<3> = 'UNIX:/tmp/.git-push/'
+            FILEPATH = '/tmp/.git-push/'
+         $ENDIF
+*
+         WRITE EVA.ENTRY ON VOC.FILE,'GIT-PUSH-FILE'
+*
+         OPEN '','GIT-PUSH-FILE' TO GIT.PUSH.FILE ELSE
+            $IFDEF PLATFORM.LINUX
+               $IFDEF DATABASE.UV
+                  EXECUTE 'SH -c "mkdir -p /tmp/.git-push/"'
+               $ENDIF
+               $IFDEF DATABASE.QM
+                  EXECUTE 'SH -c "mkdir -p /tmp/.git-push/"'
+               $ENDIF
+               $IFDEF DATABASE.D3
+                  EXECUTE '!mkdir -p /tmp/.git-push/'
+               $ENDIF
+            $ENDIF
+            $IFDEF PLATFORM.WINDOWS
+               EXECUTE '! mkdir C:\.git-push'
+            $ENDIF
+            OPEN '','GIT-PUSH-FILE' TO GIT.PUSH.FILE ELSE
+               EVA.HISTORY.OPENED = FALSE
+            END
+         END
+      END ELSE
+         EVA.HISTORY.OPENED = FALSE
+      END
+   END
+*
+   COMMAND = SENTENCE()
+*
+   FILENAME = FIELD(COMMAND,' ',2)
+   OPEN '',FILENAME TO FILE ELSE
+      PRINT 'Unable to open file: ' : FILENAME : '.':
+      STOP
+   END
+*
+   RECORD.ID = FIELD(COMMAND,' ',3)
+   READ ITEM FROM FILE,RECORD.ID ELSE
+      PRINT 'Unable to read ' : RECORD.ID : '.'
+      STOP
+   END
+*
+   COMMIT.MESSAGE = COMMAND[INDEX(COMMAND,RECORD.ID,1)+LEN(RECORD.ID)+1,9999]
+   COMMIT.MESSAGE = CHANGE(COMMIT.MESSAGE,'"','')
+*
+   GIT.FILENAME = ''
+   FOR I = 1 TO DCOUNT(ITEM,@AM)
+      LINE = ITEM<I>
+      IF INDEX(LINE,'GIT.FILENAME',1) # 0 THEN
+         GIT.FILENAME = FIELD(LINE,"'",2)
+         EXIT
+      END
+   NEXT I
+*
+   GIT.REPO = ''
+   FOR I = 1 TO DCOUNT(ITEM,@AM)
+      LINE = ITEM<I>
+      IF INDEX(LINE,'GIT.REPO',1) # 0 THEN
+         GIT.REPO = FIELD(LINE,"'",2)
+         EXIT
+      END
+   NEXT I
+*
+   IF GIT.FILENAME = '' THEN
+      PRINT 'GIT.FILENAME not found in file.'
+      STOP
+   END
+*
+   IF GIT.REPO = '' THEN
+      PRINT 'GIT.REPO not found in file.'
+      STOP
+   END
+*
+   WRITE ITEM ON GIT.PUSH.FILE,GIT.FILENAME
+*
+   $IFDEF DATABASE.UV
+      FILEPATH = '/tmp/.git-push/' : GIT.FILENAME
+   $ENDIF
+*
+   $IFDEF DATABASE.QM
+      FILEPATH = '/tmp/.git-push/' : GIT.FILENAME
+   $ENDIF
+*
+   $IFDEF DATABASE.D3
+      FILEPATH = 'C:\.git-push\' : GIT.FILENAME
+   $ENDIF
+*
+   PUSH.COMMAND = 'git-push-basic'
+   PUSH.COMMAND = PUSH.COMMAND : ' ' : GIT.REPO
+   PUSH.COMMAND = PUSH.COMMAND : ' ' : FILEPATH
+   PUSH.COMMAND = PUSH.COMMAND : ' ' : GIT.FILENAME
+   PUSH.COMMAND = PUSH.COMMAND : ' "' : COMMIT.MESSAGE : '"'
+*
+   $IFDEF DATABASE.UV
+      PUSH.COMMAND = "SH -c '" : PUSH.COMMAND : "'"
+   $ENDIF
+*
+   $IFDEF DATABASE.QM
+      PUSH.COMMAND = '!' : PUSH.COMMAND
+      PRINT PUSH.COMMAND
+   $ENDIF
+*
+   $IFDEF DATABASE.D3
+      PUSH.COMMAND = '!' : PUSH.COMMAND
+   $ENDIF
+*
+   EXECUTE PUSH.COMMAND
+*
+* END OF PROGRAM
+*
+   END
+*
