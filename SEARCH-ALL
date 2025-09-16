@@ -78,9 +78,12 @@
 *
       SELECT FILE
 *
-      LOOP
-         READNEXT ITEM.ID ELSE ITEM.ID = ''
-      UNTIL ITEM.ID = '' DO
+      READLIST ITEM.ID.LIST ELSE ITEM.ID.LIST = ''
+      NUMBER.OF.ITEMS = DCOUNT(ITEM.ID.LIST,@AM)
+*
+      FOR J = 1 TO NUMBER.OF.ITEMS
+         ITEM.ID = ITEM.ID.LIST<J>
+*
          READ ITEM FROM FILE,ITEM.ID ELSE ITEM = ''
          NUMBER.OF.LINES = DCOUNT(ITEM,@AM)
 *
@@ -104,7 +107,7 @@
                END
             NEXT LINE.CTR
          END
-      REPEAT
+      NEXT J
 *
       IF SOMETHING.PRINTED THEN
          PRINT
@@ -115,3 +118,4 @@
 *
    END
 *
+   
