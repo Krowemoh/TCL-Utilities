@@ -66,8 +66,34 @@
             FOOTER<-1> = '* %END'
 *
          CASE TRIM(LINE[1,10]) = 'SUBROUTINE' AND NOT(END.FOUND)
-               HEADER = LINE : @AM : HEADER
+            HEADER = LINE : @AM : HEADER
 *
+         CASE LINE = '%INCLUDE SERAPHIM-HEADER'
+            HEADER<-1> = '* ' : LINE
+            HEADER<-1> = '*'
+            HEADER<-1> = 'DIM REQUEST(12)'
+            HEADER<-1> = '*'
+            HEADER<-1> = 'EQU REQUEST.TYPE.ATTRIBUTE TO 1'
+            HEADER<-1> = 'EQU REQUEST.VERSION.ATTRIBUTE TO 2'
+            HEADER<-1> = 'EQU REQUEST.URL.ATTRIBUTE TO 3'
+            HEADER<-1> = 'EQU REQUEST.SLUGS.ATTRIBUTE TO 4'
+            HEADER<-1> = 'EQU REQUEST.QUERY.ATTRIBUTE TO 5'
+            HEADER<-1> = 'EQU REQUEST.HEADERS.ATTRIBUTE TO 6'
+            HEADER<-1> = 'EQU REQUEST.COOKIES.ATTRIBUTE TO 7'
+            HEADER<-1> = 'EQU REQUEST.RAW.BODY.ATTRIBUTE TO 8'
+            HEADER<-1> = 'EQU REQUEST.FORM.ATTRIBUTE TO 9'
+            HEADER<-1> = 'EQU REQUEST.FILES.ATTRIBUTE TO 10'
+            HEADER<-1> = 'EQU REQUEST.JSON.ATTRIBUTE TO 11'
+            HEADER<-1> = 'EQU REQUEST.RAW.REQUEST.ATTRIBUTE TO 12'
+            HEADER<-1> = '*'
+            HEADER<-1> = 'DIM RESPONSE(4)'
+            HEADER<-1> = '*'
+            HEADER<-1> = 'EQU RESPONSE.STATUS.ATTRIBUTE TO 1'
+            HEADER<-1> = 'EQU RESPONSE.HEADERS.ATTRIBUTE TO 2'
+            HEADER<-1> = 'EQU RESPONSE.CONTENT.ATTRIBUTE TO 3'
+            HEADER<-1> = 'EQU RESPONSE.CONTENT.TYPE.ATTRIBUTE TO 4'
+            HEADER<-1> = '*'
+            
          CASE LINE[1,8] = '%INCLUDE' AND NOT(END.FOUND)
             INCLUDE.NAME = FIELD(LINE,' ',2)
 *
@@ -179,7 +205,7 @@ SETUP.HEADER:NULL
 SETUP.FOOTER:NULL
 *
    FOOTER = \   @USER1 = '\ : ITEM.ID : \'\
-   FOOTER<-1> = \   @USER2 = '\ : ITEM.ID : \'\
+   FOOTER<-1> = \   @USER2 = @USER2 : '\ : ITEM.ID : \'\
    FOOTER<-1> = \*\
 *
    RETURN
