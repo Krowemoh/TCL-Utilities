@@ -10,12 +10,6 @@ Helpful tools for Pick
 |NPM|Package manager to install the packages listed here|
 |NSH|Fish like shell for Pick|
 
-To get syntax highlighting in EVA and NSH using any terminal besides wIntegrate, make sure to set the TERMINAL_EMULATOR to putty:
-
-```
-export TERMINAL_EMULATOR=putty
-```
-
 ## Commands
 
 A set of utilities to make PICK easier to manage. Square brackets mean the word is optional. Curly braces are where you can substitute what you want in the command.
@@ -92,11 +86,21 @@ A set of utilities to make PICK easier to manage. Square brackets mean the word 
 
 ## Web
 
+The SERAPHIM web server is the core web server.
+
+|Program|Description|
+|----------|-----------|
+|SERAPHIM|Web Server|
+|METATRON|Project Supervisor|
+
+Web frameworks built on SERAPHIM and the HASHMAP implementations.
+
 |Program|Description|
 |----------|-----------|
 |BITE-THE-APPLE||
-|SERAPHIM||
-|METATRON||
+|SERAPHIM.DRIVER|Project Runner|
+|SERAPHIM.PARSE.ROUTES||
+|SERAPHIM.DEMO.APP||
 
 ### ADD-DICT
 
