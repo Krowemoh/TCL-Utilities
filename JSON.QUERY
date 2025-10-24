@@ -37,6 +37,21 @@
                 KEY = ''
             END
 *
+      END ELSE IF RAW.CHAR = '"' THEN
+         DONE = FALSE
+         LOOP
+            I = I + 1
+            RAW.CHAR = QUERY[I,1]
+*
+            IF I > QUERY.LEN THEN
+               DONE = TRUE
+            END ELSE IF RAW.CHAR = '"' THEN
+               DONE = TRUE
+            END
+         UNTIL DONE DO
+            KEY = KEY : RAW.CHAR
+         REPEAT
+*
         END ELSE IF RAW.CHAR = '[' THEN
             DONE = FALSE
 *
