@@ -1,0 +1,73 @@
+*
+   GIT.FILENAME = 'SOLR.LIST'
+   GIT.REPO = 'https://github.com/Krowemoh/TCL-Utilities.git'
+*
+* COMPILER DIRECTIVES
+*
+   $DEFINE DATABASE.QM
+   $DEFINE PLATFORM.LINUX
+*
+   $IFDEF DATABASE.QM
+      $CATALOGUE LOCAL
+   $ENDIF
+*
+*
+* VERSION
+*
+   VERSION = '1'
+*
+   @USER1 = 'SOLR.LIST'
+   @USER2 = 'SOLR.LIST'
+*
+   EQU TRUE TO 1
+   EQU FALSE TO 0
+*
+   CALL GET.ARGUMENTS(ARGUMENTS)
+*
+   ARGS.LEN = DCOUNT(ARGUMENTS,@AM)
+*
+   IF ARGS.LEN # 1 THEN
+      PRINT 'SOLR.LIST - List collections in Solr'
+      PRINT
+      PRINT '   SOLR.LIST'
+      PRINT
+      STOP
+   END
+*
+   CMD = 'curl --silent'
+   CMD = CMD : ' -X GET'
+   CMD = CMD : ' http://localhost:8983/api/collections'
+*
+   $IFDEF DATABASE.UV
+      EXECUTE \SH -c "\ : CMD : \"\ CAPTURING RESULTS
+   $ENDIF
+*
+   $IFDEF DATABASE.QM
+      EXECUTE '!' : CMD CAPTURING RESULTS
+   $ENDIF
+*
+   CALL JSON.PARSE(RESULTS,RESPONSE.JSON)
+   CALL JSON.QUERY(RESPONSE.JSON,'.responseHeader.status',STATUS)
+*
+   IF STATUS = '0' THEN
+      CALL JSON.QUERY(RESPONSE.JSON,'.collections[]',COLLECTION.LIST)
+*
+      NUMBER.OF.COLLECTIONS = DCOUNT(COLLECTION.LIST,@AM)
+*
+      PRINT 'Collections: '
+*
+      FOR I = 1 TO NUMBER.OF.COLLECTIONS
+         PRINT SPACE(4) : COLLECTION.LIST<I>
+      NEXT I
+*
+   END ELSE
+      PRINT 'Failed to get list of collections.'
+      PRINT RESULTS
+   END
+*
+   STOP
+*
+* END OF PROGRAM
+*
+   END
+*
