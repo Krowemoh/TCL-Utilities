@@ -102,6 +102,16 @@ Web frameworks built on SERAPHIM and the HASHMAP implementations.
 |SERAPHIM.PARSE.ROUTES||
 |SERAPHIM.DEMO.APP||
 
+## SOLR
+
+Some general wrappers for connecting to and using solr.
+
+|Program|Description|
+|----------|-----------|
+|SOLR.CREATE|Create a solr collection|
+|SOLR.DELETE|Delete a solr collection|
+|SOLR.LIST|List solr collections|
+
 ### ADD-DICT
 
 Add a A type and an S type PICK style dictionary to a file:
