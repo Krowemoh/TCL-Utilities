@@ -1,0 +1,73 @@
+*
+   GIT.FILENAME = 'SOLR.DELETE'
+   GIT.REPO = 'https://github.com/Krowemoh/TCL-Utilities.git'
+*
+* COMPILER DIRECTIVES
+*
+   $DEFINE DATABASE.QM
+   $DEFINE PLATFORM.LINUX
+*
+   $IFDEF DATABASE.QM
+      $CATALOGUE LOCAL
+   $ENDIF
+*
+*
+* VERSION
+*
+   VERSION = '1'
+*
+   @USER1 = 'SOLR.DELETE'
+   @USER2 = 'SOLR.DELETE'
+*
+   EQU TRUE TO 1
+   EQU FALSE TO 0
+*
+   CALL GET.ARGUMENTS(ARGUMENTS)
+*
+   ARGS.LEN = DCOUNT(ARGUMENTS,@AM)
+*
+   IF ARGS.LEN = 1 THEN
+      PRINT 'SOLR.DELETE - Delete a collection using the Solr API'
+      PRINT
+      PRINT '    Create:'
+      PRINT '        SOLR.DELETE {collection-name}'
+      PRINT
+      STOP
+   END
+*
+   IF ARGS.LEN # 2 THEN
+      PRINT 'Invalid number of arguments.'
+      STOP
+   END
+*
+   COLLECTION.NAME = ARGUMENTS<2>
+*
+   CMD = 'curl --silent'
+   CMD = CMD : ' -X DELETE'
+   CMD = CMD : ' http://localhost:8983/api/collections/' : COLLECTION.NAME
+*
+   $IFDEF DATABASE.UV
+      EXECUTE \SH -c "\ : CMD : \"\ CAPTURING RESULTS
+   $ENDIF
+*
+   $IFDEF DATABASE.QM
+      EXECUTE '!' : CMD CAPTURING RESULTS
+   $ENDIF
+*
+   CALL JSON.PARSE(RESULTS,RESPONSE.JSON)
+   CALL JSON.QUERY(RESPONSE.JSON,'.responseHeader.status',STATUS)
+*
+   IF STATUS = '0' THEN
+      PRINT 'Successfully deleted: ' : COLLECTION.NAME
+*
+   END ELSE
+      PRINT 'Failed to delete: ' : COLLECTION.NAME
+      PRINT RESULTS
+   END
+*
+   STOP
+*
+* END OF PROGRAM
+*
+   END
+*
