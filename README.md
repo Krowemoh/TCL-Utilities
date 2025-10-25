@@ -117,7 +117,7 @@ Subroutines to add things to solr collections.
 |Program|Description|
 |----------|-----------|
 |SOLR.ADD|Add or update documents to a collection.|
-|SOLR.DELETE|Delete a document from a collection|
+|SOLR.REMOVE|Delete a document from a collection|
 
 ### ADD-DICT
 
