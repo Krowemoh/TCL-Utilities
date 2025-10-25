@@ -112,6 +112,13 @@ Some general wrappers for connecting to and using solr.
 |SOLR.DELETE|Delete a solr collection|
 |SOLR.LIST|List solr collections|
 
+Subroutines to add things to solr collections.
+
+|Program|Description|
+|----------|-----------|
+|SOLR.ADD|Add or update documents to a collection.|
+|SOLR.DELETE|Delete a document from a collection|
+
 ### ADD-DICT
 
 Add a A type and an S type PICK style dictionary to a file:
