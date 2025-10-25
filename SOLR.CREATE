@@ -52,9 +52,37 @@
 *
    CMD = 'curl --silent'
    CMD = CMD : ' -X POST'
-   CMD = CMD : ' http://localhost:8983/api/collections'
    CMD = CMD : " -H 'Content-Type: application/json'"
+   CMD = CMD : ' http://localhost:8983/api/collections'
    CMD = CMD : " -d '" : JSON : "'"
+*
+   $IFDEF DATABASE.UV
+      EXECUTE \SH -c "\ : CMD : \"\ CAPTURING RESULTS
+   $ENDIF
+*
+   $IFDEF DATABASE.QM
+      EXECUTE '!' : CMD CAPTURING RESULTS
+   $ENDIF
+*
+   CALL JSON.PARSE(RESULTS,RESPONSE.JSON)
+   CALL JSON.QUERY(RESPONSE.JSON,'.responseHeader.status',STATUS)
+*
+   IF STATUS # '0' THEN
+      PRINT 'Failed to create: ' : COLLECTION.NAME
+      PRINT RESULTS
+      STOP
+   END
+*
+   RESULTS = ''
+   RESPONSE.JSON = ''
+   STATUS = ''
+*
+   CMD = \curl --silent\
+   CMD = CMD : \ -X POST\
+   CMD = CMD : \ -H 'Content-Type: application/json'\
+   CMD = CMD : \ http://localhost:8983/solr/\ :  COLLECTION.NAME : \/schema\
+   CMD = CMD : \ --data-binary '{"add-copy-field" : {"source":"*","dest":"_text_"}}'\
+   CMD = CMD : \ | jq -c .\
 *
    $IFDEF DATABASE.UV
       EXECUTE \SH -c "\ : CMD : \"\ CAPTURING RESULTS
@@ -71,7 +99,7 @@
       PRINT 'Successfully created: ' : COLLECTION.NAME
 *
    END ELSE
-      PRINT 'Failed to create: ' : COLLECTION.NAME
+      PRINT 'Failed to create catchall field on: ' : COLLECTION.NAME
       PRINT RESULTS
    END
 *
