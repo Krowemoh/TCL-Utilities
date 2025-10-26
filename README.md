@@ -66,6 +66,24 @@ A set of utilities to make PICK easier to manage. Square brackets mean the word 
 |JSON.PARSE||
 |JSON.QUERY||
 
+## SOLR
+
+Some general wrappers for connecting to and using solr.
+
+|Program|Description|
+|----------|-----------|
+|SOLR.CREATE|Create a solr collection|
+|SOLR.DELETE|Delete a solr collection|
+|SOLR.LIST|List solr collections|
+
+Subroutines to add things to solr collections.
+
+|Program|Description|
+|----------|-----------|
+|SOLR.ADD|Add or update documents to a collection.|
+|SOLR.REMOVE|Delete a document from a collection|
+|SOLR.QUERY|Search a collection|
+
 ## Data Structures
 
 |Subroutine|Description|
@@ -101,24 +119,6 @@ Web frameworks built on SERAPHIM and the HASHMAP implementations.
 |SERAPHIM.DRIVER|Project Runner|
 |SERAPHIM.PARSE.ROUTES||
 |SERAPHIM.DEMO.APP||
-
-## SOLR
-
-Some general wrappers for connecting to and using solr.
-
-|Program|Description|
-|----------|-----------|
-|SOLR.CREATE|Create a solr collection|
-|SOLR.DELETE|Delete a solr collection|
-|SOLR.LIST|List solr collections|
-
-Subroutines to add things to solr collections.
-
-|Program|Description|
-|----------|-----------|
-|SOLR.ADD|Add or update documents to a collection.|
-|SOLR.REMOVE|Delete a document from a collection|
-|SOLR.QUERY|Search a collection|
 
 ### ADD-DICT
 
