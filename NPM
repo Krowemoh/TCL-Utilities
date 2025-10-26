@@ -708,6 +708,30 @@ SETUP.PACKAGES:NULL
    PACKAGES<2,-1> = 'Archive files'
    PACKAGES<3,-1> = 'https://raw.githubusercontent.com/Krowemoh/TCL-Utilities/main/ARCHIVE'
 *
+   PACKAGES<1,-1> = 'SOLR.CREATE'
+   PACKAGES<2,-1> = 'Create a solr collection'
+   PACKAGES<3,-1> = 'https://raw.githubusercontent.com/Krowemoh/TCL-Utilities/main/SOLR.CREATE'
+*
+   PACKAGES<1,-1> = 'SOLR.DELETE'
+   PACKAGES<2,-1> = 'Delete a solr collection'
+   PACKAGES<3,-1> = 'https://raw.githubusercontent.com/Krowemoh/TCL-Utilities/main/SOLR.DELETE'
+*
+   PACKAGES<1,-1> = 'SOLR.LIST'
+   PACKAGES<2,-1> = 'List solr collections'
+   PACKAGES<3,-1> = 'https://raw.githubusercontent.com/Krowemoh/TCL-Utilities/main/SOLR.LIST'
+*
+   PACKAGES<1,-1> = 'SOLR.ADD'
+   PACKAGES<2,-1> = 'Add a document to a collection'
+   PACKAGES<3,-1> = 'https://raw.githubusercontent.com/Krowemoh/TCL-Utilities/main/SOLR.ADD'
+*
+   PACKAGES<1,-1> = 'SOLR.REMOVE'
+   PACKAGES<2,-1> = 'Remove a document from a collection'
+   PACKAGES<3,-1> = 'https://raw.githubusercontent.com/Krowemoh/TCL-Utilities/main/SOLR.REMOVE'
+*
+   PACKAGES<1,-1> = 'SOLR.QUERY'
+   PACKAGES<2,-1> = 'Search a solr collection'
+   PACKAGES<3,-1> = 'https://raw.githubusercontent.com/Krowemoh/TCL-Utilities/main/SOLR.QUERY'
+*
    RETURN
 *
 * END OF PROGRAM
