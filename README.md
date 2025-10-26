@@ -118,6 +118,7 @@ Subroutines to add things to solr collections.
 |----------|-----------|
 |SOLR.ADD|Add or update documents to a collection.|
 |SOLR.REMOVE|Delete a document from a collection|
+|SOLR.QUERY|Search a collection|
 
 ### ADD-DICT
 
@@ -493,6 +494,56 @@ Convert a json object to a multivalue string that can be queried.
     CALL JSON.PARSE(RAW.TEXT,JSON)
 *    
     CALL JSON.QUERY(JSON,'.firstName',FIRST.NAME)
+```
+## Solr Wrappers
+
+#### SOLR.CREATE
+
+Create a collection:
+
+```
+   SOLR.CREATE {COLLECTION-NAME}
+```
+#### SOLR.DELETE
+
+Delete a collection:
+
+```
+   SOLR.DELETE {COLLECTION-NAME}
+```
+
+#### SOLR.LIST
+
+List solr collections:
+
+```
+   SOLR.LIST
+```
+
+#### SOLR.ADD
+
+Add a document to a collection:
+
+```
+   SUBROUTINE SOLR.ADD(STATUS.MATRIX,COLLECTION.NAME,JSON.DATA)
+```
+
+You can update a document by sending new data with the same id.
+
+#### SOLR.REMOVE
+
+Remove a document from a collection:
+
+```
+   SUBROUTINE SOLR.REMOVE(STATUS.MATRIX,COLLECTION.NAME,ID.LIST)
+```
+
+#### SOLR.QUERY
+
+Search a solr collection:
+
+```
+   SUBROUTINE SOLR.QUERY(RAW.JSON,COLLECTION.NAME,QUERY,ORIGINAL.FIELD.LIST,ORIGINAL.HIGHLIGHT.LIST)
 ```
 
 ## Data Structures
