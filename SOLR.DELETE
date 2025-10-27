@@ -47,7 +47,9 @@
    CMD = CMD : ' http://localhost:8983/api/collections/' : COLLECTION.NAME
 *
    $IFDEF DATABASE.UV
+      CMD = CHANGE(CMD,'"','""')
       EXECUTE \SH -c "\ : CMD : \"\ CAPTURING RESULTS
+      RESULTS = RESULTS<1>
    $ENDIF
 *
    $IFDEF DATABASE.QM
