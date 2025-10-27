@@ -29,6 +29,7 @@
 *
    SOLR.QUERY = SOLR.QUERY : 'http://localhost:8983/solr/' : COLLECTION.NAME : '/select?'
    SOLR.QUERY = SOLR.QUERY : 'q=' : QUERY
+   SOLR.QUERY = SOLR.QUERY : 'rows=' : 100000
 *
    IF FIELD.LIST THEN
       FIELD.LIST = CHANGE(FIELD.LIST,@AM,'%20')
@@ -46,7 +47,9 @@
 *
    PRINT CMD
    $IFDEF DATABASE.UV
+      CMD = CHANGE(CMD,'"','""')
       EXECUTE \SH -c "\ : CMD : \"\ CAPTURING RESULTS
+      RESULTS = RESULTS<1>
    $ENDIF
 *
    $IFDEF DATABASE.QM
