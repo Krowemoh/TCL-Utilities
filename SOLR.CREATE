@@ -57,7 +57,9 @@
    CMD = CMD : " -d '" : JSON : "'"
 *
    $IFDEF DATABASE.UV
+      CMD = CHANGE(CMD,'"','""')
       EXECUTE \SH -c "\ : CMD : \"\ CAPTURING RESULTS
+      RESULTS = RESULTS<1>
    $ENDIF
 *
    $IFDEF DATABASE.QM
@@ -85,7 +87,9 @@
    CMD = CMD : \ | jq -c .\
 *
    $IFDEF DATABASE.UV
+      CMD = CHANGE(CMD,'"','""')
       EXECUTE \SH -c "\ : CMD : \"\ CAPTURING RESULTS
+      RESULTS = RESULTS<1>
    $ENDIF
 *
    $IFDEF DATABASE.QM
