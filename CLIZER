@@ -147,7 +147,7 @@
       PRINT 'Updated ' : ITEM.ID : ' in ' : FILENAME
 *
    END ELSE
-      CALL GET.NEXT.ID(ITEM.ID,FILE)
+      CALL GET.NEXT.ID('UNIVERSAL.SEQ',ITEM.ID,FILE)
 *
       WRITE ITEM.MATRIX ON FILE,ITEM.ID
       PRINT 'Created ' : ITEM.ID : ' in ' : FILENAME
