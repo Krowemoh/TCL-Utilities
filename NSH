@@ -653,7 +653,7 @@
                CURSOR.POSITION = LEN(RAW.SHELL.PROMPT) + LEN(COMMAND)
                CONTINUE
 *
-            CASE ASCII.CODE = SEQ(KEY.EXCLAIMATION.MARK) 
+            CASE ASCII.CODE = SEQ(KEY.EXCLAIMATION.MARK)
                LINUX.COMMAND.MODE = TRUE
 *
                $IFDEF DATABASE.UV
@@ -2094,347 +2094,366 @@
 *
 * EXECUTE CUSTOM COMMANDS
 *
-      IF VERB = 'LOGTO' THEN
-         $IFDEF DATABASE.UV
-            EXECUTE SERIES
-            ACCOUNT.NAME = @WHO
-         $ENDIF
-*
-         $IFDEF DATABASE.QM
-            EXECUTE SERIES
-            ACCOUNT.NAME = @WHO
-         $ENDIF
-*
-         $IFDEF DATABASE.D3
-            EXECUTE SERIES : ' (f'
-            ACCOUNT.NAME = @ACCOUNT
-         $ENDIF
-*
-      END ELSE IF VERB = 'SELECT'  OR VERB = 'SSELECT' THEN
+      LOCATE(VERB,SERIES.VERBS,1;ANY.POS) THEN
          LIST.NAME = USER.NAME : '.' : PORT.NUMBER : '.LIST'
          SERIES<-1> = 'SAVE-LIST ' : LIST.NAME
-         EXECUTE SERIES CAPTURING RESULTS
 *
-         PRINT RESULTS<DCOUNT(RESULTS,@AM)-1>
+         SERIES.SUCCESS = TRUE
+         NUMBER.OF.SERIES = DCOUNT(SERIES,@AM)
 *
-         SERIES = 'GET-LIST ' : LIST.NAME
-         EXECUTE SERIES CAPTURING RESULTS
-*
-      END ELSE IF VERB = 'SEARCH' THEN
-*
-         $IFDEF DATABASE.UV
-            SERIES.LENGTH = DCOUNT(SERIES,@AM)
-            IF DCOUNT(COMMAND,' ') >= 3 THEN
-               COMMAND = CHANGE(COMMAND,'"','')
-               SEARCH.FILE = FIELD(COMMAND,' ',2)
-               SEARCH.KEY = TRIM(COMMAND[INDEX(COMMAND,SEARCH.FILE,1)+LEN(SEARCH.FILE)+1,9999])
-*
-               SERIES<SERIES.LENGTH> = 'SEARCH ' : SEARCH.FILE
-               IF SERIES.LENGTH = 2 THEN
-                  DATA ''
-               END
-               DATA SEARCH.KEY
-               DATA ''
-*
-               ECHO OFF
+         FOR I = 1 TO NUMBER.OF.SERIES
+            IF I = 1 THEN
+               EXECUTE SERIES<I> CAPTURING RESULTS
+            END ELSE
+               EXECUTE SERIES<I> CAPTURING RESULTS PASSLIST
             END
 *
-            SERIES<-1> = 'SAVE-LIST ' : USER.NAME : '.' : PORT.NUMBER : '.LIST'
-            EXECUTE SERIES CAPTURING RESULTS
-            ECHO ON
-*
-            PRINT
-*
-            MESSAGE = RESULTS<DCOUNT(RESULTS, @AM)-1>
-            PRINT MESSAGE
-*
-            IF MESSAGE[1,1] # 0 THEN
-               SERIES = 'GET-LIST ' : USER.NAME : '.' : PORT.NUMBER : '.LIST'
-            END ELSE
+            IF INDEX(RESULTS,'error',1) # 0 THEN
+               CONVERT @AM TO CHAR(10) IN RESULTS
+               PRINT RESULTS
                SERIES = ''
-            END
-         $ENDIF
-*
-         $IFDEF DATABASE.QM
-            SERIES.LENGTH = DCOUNT(SERIES,@AM)
-            IF DCOUNT(COMMAND,' ') >= 3 THEN
-               COMMAND = CHANGE(COMMAND,'"','')
-               SEARCH.FILE = FIELD(COMMAND,' ',2)
-               SEARCH.KEY = TRIM(COMMAND[INDEX(COMMAND,SEARCH.FILE,1)+LEN(SEARCH.FILE)+1,9999])
-*
-               SERIES<SERIES.LENGTH> = 'SEARCH ' : SEARCH.FILE
-               IF SERIES.LENGTH = 2 THEN
-                  DATA ''
-               END
-               DATA SEARCH.KEY
-               DATA ''
-*
-               ECHO OFF
+               SERIES.SUCCESS = FALSE
             END
 *
-            SERIES<-1> = 'SAVE-LIST ' : USER.NAME : '.' : PORT.NUMBER : '.LIST'
+         NEXT I
+*
+         IF SERIES.SUCCESS THEN
+            PRINT RESULTS<DCOUNT(RESULTS,@AM)-1>
+            SERIES = 'GET-LIST ' : LIST.NAME
             EXECUTE SERIES CAPTURING RESULTS
-            ECHO ON
-*
-            PRINT
-*
-            MESSAGE = RESULTS<DCOUNT(RESULTS, @AM)-1>
-            PRINT MESSAGE
-*
-            IF MESSAGE[1,1] # 0 THEN
-               SERIES = 'GET-LIST ' : USER.NAME : '.' : PORT.NUMBER : '.LIST'
-            END ELSE
-               SERIES = ''
-            END
-         $ENDIF
-*
-         $IFDEF DATABASE.D3
-            SERIES.LENGTH = DCOUNT(SERIES,@AM)
-            SERIES<SERIES.LENGTH> = CHANGE(SERIES<SERIES.LENGTH>,'SEARCH','FIND')
-*
-            IF DCOUNT(COMMAND,' ') >= 3 THEN
-               COMMAND = CHANGE(COMMAND,'"','')
-               SEARCH.FILE = FIELD(COMMAND,' ',2)
-               SEARCH.KEY = TRIM(COMMAND[INDEX(COMMAND,SEARCH.FILE,1)+LEN(SEARCH.FILE)+1,9999])
-*
-               PRINT SEARCH.KEY
-               SERIES<SERIES.LENGTH> = 'FIND ' : SEARCH.FILE
-               DATA SEARCH.KEY
-               DATA ''
-               DATA USER.NAME : '.' : PORT.NUMBER : '.LIST'
-               ECHO OFF
-               EXECUTE SERIES CAPTURING RESULTS
-               ECHO ON
-*
-            END ELSE
-               EXECUTE SERIES
-            END
-*
-            SERIES = 'GET-LIST ' : USER.NAME : '.' : PORT.NUMBER : '.LIST'
-            EXECUTE SERIES
-         $ENDIF
-*
-*
-      END ELSE IF VERB = 'SAVE-LIST' THEN
-         EXECUTE SERIES CAPTURING RESULTS
-         PRINT
-         PRINT RESULTS<4>
-*
-      END ELSE IF VERB = 'FA' THEN
-         FA.FILE = FIELD(COMMAND,' ',2)
-         FA.SEARCH.STRING = FIELD(COMMAND,' ',3)
-*
-         IF FA.FILE # '' THEN
-            FA.COMMAND = 'LIST DICT ' : FA.FILE
-            IF FA.SEARCH.STRING THEN
-               FA.COMMAND = FA.COMMAND : ' WITH @ID = "[' : FA.SEARCH.STRING  : ']"'
-               FA.COMMAND = FA.COMMAND : ' AND WITH F1 = "A" BY F2'
-            END ELSE
-               FA.COMMAND = FA.COMMAND : ' WITH F1 = "A" BY F2'
-            END
-*
-            EXECUTE FA.COMMAND
-         END ELSE
-            PRINT 'No file specified.'
          END
-*
-      END ELSE IF VERB = 'DATECONV' THEN
-         LOOP
-            PRINT 'Date: ' :
-            INPUT DATE
-         UNTIL DATE = '' OR OCONV(DATE,"MCU") = 'Q' DO
-            IF DATE = 'TODAY' THEN
-               PRINT 'Date: ' : DATE()
-               PRINT OCONV(DATE(),'D')
-*
-            END ELSE IF LEN(DATE) = 5 THEN
-               PRINT OCONV(DATE,'D')
-*
-            END ELSE
-               PRINT OCONV(DATE,'DI')
-            END
-         REPEAT
-*
-      END ELSE IF VERB = 'TIMECONV' THEN
-         LOOP
-            PRINT 'Time: ' :
-            INPUT TIME
-         UNTIL TIME = '' OR OCONV(TIME,"MCU") = 'Q' DO
-            IF TIME = 'NOW' THEN
-               PRINT 'Time: ' : TIME()
-               PRINT OCONV(TIME(),'MTS')
-*
-            END ELSE IF LEN(TIME) = 10 THEN
-               PRINT OCONV(TIME+0,'MTS')
-*
-            END ELSE
-               PRINT ICONV(TIME,'MTS')
-            END
-         REPEAT
-*
-      END ELSE IF VERB = 'PRINT' THEN
-         PRINT.COMMAND = FIELD(COMMAND,' ',2)
-*
-         IF PRINT.COMMAND[1,5] = 'OCONV' OR PRINT.COMMAND[1,5] = 'ICONV' THEN
-            COMMAND = CHANGE(COMMAND,'"','')
-*
-            START.BRACKET = INDEX(COMMAND,'(',1)
-            END.BRACKET = INDEX(COMMAND,')',1)
-*
-            COMMAND = COMMAND[START.BRACKET+1, END.BRACKET-START.BRACKET-1]
-*
-            VALUE = FIELD(COMMAND,',',1)
-            CONV = FIELD(COMMAND,',',2)
-*
-            IF PRINT.COMMAND[1,5] = 'OCONV' THEN
-               PRINT OCONV(VALUE,CONV)
-            END ELSE IF PRINT.COMMAND[1,5] = 'ICONV' THEN
-               PRINT ICONV(VALUE,CONV)
-            END
-         END
-*
-      END ELSE IF VERB = '@PATH' THEN
-         PRINT @PATH
-*
-      END ELSE IF VERB = '@ACCOUNT' THEN
-         $IFDEF DATABASE.UV
-            PRINT @ACCOUNT
-         $ENDIF
-*
-         $IFDEF DATABASE.QM
-            PRINT @WHO
-         $ENDIF
-*
-         $IFDEF DATABASE.D3
-            PRINT @ACCOUNT
-         $ENDIF
-*
-      END ELSE IF VERB = 'TIMER' THEN
-         TIMER = NOT(TIMER)
-         PRINT 'Timer active: ' : TIMER
-*
-      END ELSE IF VERB = '@WHO' THEN
-         PRINT @WHO
-*
-      END ELSE IF VERB = '@LOGNAME' THEN
-         PRINT @LOGNAME
-*
-      END ELSE IF VERB = '@USERNO' THEN
-         PRINT @USERNO
-*
-      END ELSE IF VERB = '@TTY' THEN
-         PRINT @TTY
-*
-      END ELSE IF VERB = 'DATE()' THEN
-         PRINT DATE()
-*
-      END ELSE IF VERB = 'TIME()' THEN
-         PRINT TIME()
-*
-      END ELSE IF VERB = 'VERSION' THEN
-         PRINT 'NSH: Version ' : VERSION
-*
-      END ELSE IF VERB = 'NSH-PROFILE' THEN
-         SERIES = 'EVA NSH-HISTORY-FILE ' : USER.NAME : '.nsh_profile'
-         EXECUTE SERIES
-*
-      END ELSE IF VERB = 'NSH-HISTORY' THEN
-         SERIES = 'EVA NSH-HISTORY-FILE ' : USER.NAME : '.nsh_history --NO-LOCK'
-         EXECUTE SERIES
 *
       END ELSE
-         LOCATE(VERB,USER.COMMAND.WORDS,1;COMMAND.POS) THEN
-            SERIES = USER.COMMANDS<1,COMMAND.POS>
-            IF SERIES[1,1] = '!' THEN
-               USER.COMMAND = SERIES[2,9999]
-               USER.COMMAND = CHANGE(USER.COMMAND,"'","\'")
-               SERIES = \SH -c '\ :  USER.COMMAND : \'\
-            END
-         END
-*
-         IF REDIRECT.FLAG THEN
+         IF VERB = 'LOGTO' THEN
             $IFDEF DATABASE.UV
-               EXECUTE SERIES CAPTURING RESULTS
-*
-               CONVERT @AM TO CHAR(10) IN RESULTS
-*
-               FNAME = '/tmp/' : REDIRECT.TO
-*
-               OPENSEQ FNAME TO FLAT.FILE ELSE
-                  CREATE FLAT.FILE ELSE
-                     PRINT 'Unable to Open/Create: ' : FNAME : ' - Press RETURN' :
-                  END
-               END
-*
-               WRITESEQ RESULTS ON FLAT.FILE ELSE NULL
-*
-               WEOFSEQ FLAT.FILE
-               FLUSH FLAT.FILE ELSE NULL
-               CLOSESEQ FLAT.FILE
-               PRINT 'NSH: Output saved to: ' : FNAME
+               EXECUTE SERIES
+               ACCOUNT.NAME = @WHO
             $ENDIF
 *
             $IFDEF DATABASE.QM
-               PRINT 'NSH: Not available on D3.'
+               EXECUTE SERIES
+               ACCOUNT.NAME = @WHO
             $ENDIF
 *
             $IFDEF DATABASE.D3
-               PRINT 'NSH: Not available on D3.'
+               EXECUTE SERIES : ' (f'
+               ACCOUNT.NAME = @ACCOUNT
             $ENDIF
 *
-         END ELSE
-            IF VERB = 'TIME' THEN
-               SERIES = VERB
-            END
+         END ELSE IF VERB = 'SEARCH' THEN
 *
-            LAST.POSITION = DCOUNT(SERIES,@AM)
-            LAST.COMMAND = SERIES<LAST.POSITION>
+            $IFDEF DATABASE.UV
+               SERIES.LENGTH = DCOUNT(SERIES,@AM)
+               IF DCOUNT(COMMAND,' ') >= 3 THEN
+                  COMMAND = CHANGE(COMMAND,'"','')
+                  SEARCH.FILE = FIELD(COMMAND,' ',2)
+                  SEARCH.KEY = TRIM(COMMAND[INDEX(COMMAND,SEARCH.FILE,1)+LEN(SEARCH.FILE)+1,9999])
 *
-            IF COUNT(LAST.COMMAND,'>') = 1 THEN
-               EXPORT.AVAILABLE = TRUE
-               EXPORT.PATH = TRIM(FIELD(LAST.COMMAND,'>',2))
-*
-               SERIES<LAST.POSITION> = TRIM(FIELD(LAST.COMMAND,'>',1))
-               EXECUTE SERIES CAPTURING EXPORT.RESULTS
-*
-               CONVERT @AM TO CHAR(10) IN EXPORT.RESULTS
-*
-               EXPORT.RESULTS = CHANGE(EXPORT.RESULTS,HOME.POSITION,'')
-               EXPORT.RESULTS = CHANGE(EXPORT.RESULTS,ERASE.SCREEN,'')
-*
-               OPENSEQ EXPORT.PATH TO EXPORT.FILE ELSE
-                  CREATE EXPORT.FILE ELSE
-                     PRINT 'Failed to create file: ' : EXPORT.PATH
-                     EXPORT.AVAILABLE = FALSE
+                  SERIES<SERIES.LENGTH> = 'SEARCH ' : SEARCH.FILE
+                  IF SERIES.LENGTH = 2 THEN
+                     DATA ''
                   END
+                  DATA SEARCH.KEY
+                  DATA ''
+*
+                  ECHO OFF
                END
 *
-               IF EXPORT.AVAILABLE THEN
-                  WEOFSEQ EXPORT.FILE
+               SERIES<-1> = 'SAVE-LIST ' : USER.NAME : '.' : PORT.NUMBER : '.LIST'
+               EXECUTE SERIES CAPTURING RESULTS
+               ECHO ON
 *
-                  WRITEBLK EXPORT.RESULTS ON EXPORT.FILE ELSE
-                     PRINT 'Failed to write file: ' : EXPORT.FILE
+               PRINT
+*
+               MESSAGE = RESULTS<DCOUNT(RESULTS, @AM)-1>
+               PRINT MESSAGE
+*
+               IF MESSAGE[1,1] # 0 THEN
+                  SERIES = 'GET-LIST ' : USER.NAME : '.' : PORT.NUMBER : '.LIST'
+               END ELSE
+                  SERIES = ''
+               END
+            $ENDIF
+*
+            $IFDEF DATABASE.QM
+               SERIES.LENGTH = DCOUNT(SERIES,@AM)
+               IF DCOUNT(COMMAND,' ') >= 3 THEN
+                  COMMAND = CHANGE(COMMAND,'"','')
+                  SEARCH.FILE = FIELD(COMMAND,' ',2)
+                  SEARCH.KEY = TRIM(COMMAND[INDEX(COMMAND,SEARCH.FILE,1)+LEN(SEARCH.FILE)+1,9999])
+*
+                  SERIES<SERIES.LENGTH> = 'SEARCH ' : SEARCH.FILE
+                  IF SERIES.LENGTH = 2 THEN
+                     DATA ''
                   END
+                  DATA SEARCH.KEY
+                  DATA ''
 *
-                  FLUSH EXPORT.FILE ELSE NULL
-                  CLOSESEQ EXPORT.FILE
+                  ECHO OFF
                END
 *
-            END ELSE
-               IF TIMER THEN
-                  T1 = TIME()
-                  EXECUTE SERIES
-                  T2 = TIME()
-                  PRINT 'NSH::Took: ' : T2 - T1
+               SERIES<-1> = 'SAVE-LIST ' : USER.NAME : '.' : PORT.NUMBER : '.LIST'
+               EXECUTE SERIES CAPTURING RESULTS
+               ECHO ON
+*
+               PRINT
+*
+               MESSAGE = RESULTS<DCOUNT(RESULTS, @AM)-1>
+               PRINT MESSAGE
+*
+               IF MESSAGE[1,1] # 0 THEN
+                  SERIES = 'GET-LIST ' : USER.NAME : '.' : PORT.NUMBER : '.LIST'
+               END ELSE
+                  SERIES = ''
+               END
+            $ENDIF
+*
+            $IFDEF DATABASE.D3
+               SERIES.LENGTH = DCOUNT(SERIES,@AM)
+               SERIES<SERIES.LENGTH> = CHANGE(SERIES<SERIES.LENGTH>,'SEARCH','FIND')
+*
+               IF DCOUNT(COMMAND,' ') >= 3 THEN
+                  COMMAND = CHANGE(COMMAND,'"','')
+                  SEARCH.FILE = FIELD(COMMAND,' ',2)
+                  SEARCH.KEY = TRIM(COMMAND[INDEX(COMMAND,SEARCH.FILE,1)+LEN(SEARCH.FILE)+1,9999])
+*
+                  PRINT SEARCH.KEY
+                  SERIES<SERIES.LENGTH> = 'FIND ' : SEARCH.FILE
+                  DATA SEARCH.KEY
+                  DATA ''
+                  DATA USER.NAME : '.' : PORT.NUMBER : '.LIST'
+                  ECHO OFF
+                  EXECUTE SERIES CAPTURING RESULTS
+                  ECHO ON
+*
                END ELSE
                   EXECUTE SERIES
                END
 *
+               SERIES = 'GET-LIST ' : USER.NAME : '.' : PORT.NUMBER : '.LIST'
+               EXECUTE SERIES
+            $ENDIF
+*
+*
+         END ELSE IF VERB = 'SAVE-LIST' THEN
+            EXECUTE SERIES CAPTURING RESULTS
+            PRINT
+            PRINT RESULTS<4>
+*
+         END ELSE IF VERB = 'FA' THEN
+            FA.FILE = FIELD(COMMAND,' ',2)
+            FA.SEARCH.STRING = FIELD(COMMAND,' ',3)
+*
+            IF FA.FILE # '' THEN
+               FA.COMMAND = 'LIST DICT ' : FA.FILE
+               IF FA.SEARCH.STRING THEN
+                  FA.COMMAND = FA.COMMAND : ' WITH @ID = "[' : FA.SEARCH.STRING  : ']"'
+                  FA.COMMAND = FA.COMMAND : ' AND WITH F1 = "A" BY F2'
+               END ELSE
+                  FA.COMMAND = FA.COMMAND : ' WITH F1 = "A" BY F2'
+               END
+*
+               EXECUTE FA.COMMAND
+            END ELSE
+               PRINT 'No file specified.'
+            END
+*
+         END ELSE IF VERB = 'DATECONV' THEN
+            LOOP
+               PRINT 'Date: ' :
+               INPUT DATE
+            UNTIL DATE = '' OR OCONV(DATE,"MCU") = 'Q' DO
+               IF DATE = 'TODAY' THEN
+                  PRINT 'Date: ' : DATE()
+                  PRINT OCONV(DATE(),'D')
+*
+               END ELSE IF LEN(DATE) = 5 THEN
+                  PRINT OCONV(DATE,'D')
+*
+               END ELSE
+                  PRINT OCONV(DATE,'DI')
+               END
+            REPEAT
+*
+         END ELSE IF VERB = 'TIMECONV' THEN
+            LOOP
+               PRINT 'Time: ' :
+               INPUT TIME
+            UNTIL TIME = '' OR OCONV(TIME,"MCU") = 'Q' DO
+               IF TIME = 'NOW' THEN
+                  PRINT 'Time: ' : TIME()
+                  PRINT OCONV(TIME(),'MTS')
+*
+               END ELSE IF LEN(TIME) = 10 THEN
+                  PRINT OCONV(TIME+0,'MTS')
+*
+               END ELSE
+                  PRINT ICONV(TIME,'MTS')
+               END
+            REPEAT
+*
+         END ELSE IF VERB = 'PRINT' THEN
+            PRINT.COMMAND = FIELD(COMMAND,' ',2)
+*
+            IF PRINT.COMMAND[1,5] = 'OCONV' OR PRINT.COMMAND[1,5] = 'ICONV' THEN
+               COMMAND = CHANGE(COMMAND,'"','')
+*
+               START.BRACKET = INDEX(COMMAND,'(',1)
+               END.BRACKET = INDEX(COMMAND,')',1)
+*
+               COMMAND = COMMAND[START.BRACKET+1, END.BRACKET-START.BRACKET-1]
+*
+               VALUE = FIELD(COMMAND,',',1)
+               CONV = FIELD(COMMAND,',',2)
+*
+               IF PRINT.COMMAND[1,5] = 'OCONV' THEN
+                  PRINT OCONV(VALUE,CONV)
+               END ELSE IF PRINT.COMMAND[1,5] = 'ICONV' THEN
+                  PRINT ICONV(VALUE,CONV)
+               END
+            END
+*
+         END ELSE IF VERB = '@PATH' THEN
+            PRINT @PATH
+*
+         END ELSE IF VERB = '@ACCOUNT' THEN
+            $IFDEF DATABASE.UV
+               PRINT @ACCOUNT
+            $ENDIF
+*
+            $IFDEF DATABASE.QM
+               PRINT @WHO
+            $ENDIF
+*
+            $IFDEF DATABASE.D3
+               PRINT @ACCOUNT
+            $ENDIF
+*
+         END ELSE IF VERB = 'TIMER' THEN
+            TIMER = NOT(TIMER)
+            PRINT 'Timer active: ' : TIMER
+*
+         END ELSE IF VERB = '@WHO' THEN
+            PRINT @WHO
+*
+         END ELSE IF VERB = '@LOGNAME' THEN
+            PRINT @LOGNAME
+*
+         END ELSE IF VERB = '@USERNO' THEN
+            PRINT @USERNO
+*
+         END ELSE IF VERB = '@TTY' THEN
+            PRINT @TTY
+*
+         END ELSE IF VERB = 'DATE()' THEN
+            PRINT DATE()
+*
+         END ELSE IF VERB = 'TIME()' THEN
+            PRINT TIME()
+*
+         END ELSE IF VERB = 'VERSION' THEN
+            PRINT 'NSH: Version ' : VERSION
+*
+         END ELSE IF VERB = 'NSH-PROFILE' THEN
+            SERIES = 'EVA NSH-HISTORY-FILE ' : USER.NAME : '.nsh_profile'
+            EXECUTE SERIES
+*
+         END ELSE IF VERB = 'NSH-HISTORY' THEN
+            SERIES = 'EVA NSH-HISTORY-FILE ' : USER.NAME : '.nsh_history --NO-LOCK'
+            EXECUTE SERIES
+*
+         END ELSE
+            LOCATE(VERB,USER.COMMAND.WORDS,1;COMMAND.POS) THEN
+               SERIES = USER.COMMANDS<1,COMMAND.POS>
+               IF SERIES[1,1] = '!' THEN
+                  USER.COMMAND = SERIES[2,9999]
+                  USER.COMMAND = CHANGE(USER.COMMAND,"'","\'")
+                  SERIES = \SH -c '\ :  USER.COMMAND : \'\
+               END
+            END
+*
+            IF REDIRECT.FLAG THEN
+               $IFDEF DATABASE.UV
+                  EXECUTE SERIES CAPTURING RESULTS
+*
+                  CONVERT @AM TO CHAR(10) IN RESULTS
+*
+                  FNAME = '/tmp/' : REDIRECT.TO
+*
+                  OPENSEQ FNAME TO FLAT.FILE ELSE
+                     CREATE FLAT.FILE ELSE
+                        PRINT 'Unable to Open/Create: ' : FNAME : ' - Press RETURN' :
+                     END
+                  END
+*
+                  WRITESEQ RESULTS ON FLAT.FILE ELSE NULL
+*
+                  WEOFSEQ FLAT.FILE
+                  FLUSH FLAT.FILE ELSE NULL
+                  CLOSESEQ FLAT.FILE
+                  PRINT 'NSH: Output saved to: ' : FNAME
+               $ENDIF
+*
+               $IFDEF DATABASE.QM
+                  PRINT 'NSH: Not available on D3.'
+               $ENDIF
+*
+               $IFDEF DATABASE.D3
+                  PRINT 'NSH: Not available on D3.'
+               $ENDIF
+*
+            END ELSE
+               IF VERB = 'TIME' THEN
+                  SERIES = VERB
+               END
+*
+               LAST.POSITION = DCOUNT(SERIES,@AM)
+               LAST.COMMAND = SERIES<LAST.POSITION>
+*
+               IF COUNT(LAST.COMMAND,'>') = 1 THEN
+                  EXPORT.AVAILABLE = TRUE
+                  EXPORT.PATH = TRIM(FIELD(LAST.COMMAND,'>',2))
+*
+                  SERIES<LAST.POSITION> = TRIM(FIELD(LAST.COMMAND,'>',1))
+                  EXECUTE SERIES CAPTURING EXPORT.RESULTS
+*
+                  CONVERT @AM TO CHAR(10) IN EXPORT.RESULTS
+*
+                  EXPORT.RESULTS = CHANGE(EXPORT.RESULTS,HOME.POSITION,'')
+                  EXPORT.RESULTS = CHANGE(EXPORT.RESULTS,ERASE.SCREEN,'')
+*
+                  OPENSEQ EXPORT.PATH TO EXPORT.FILE ELSE
+                     CREATE EXPORT.FILE ELSE
+                        PRINT 'Failed to create file: ' : EXPORT.PATH
+                        EXPORT.AVAILABLE = FALSE
+                     END
+                  END
+*
+                  IF EXPORT.AVAILABLE THEN
+                     WEOFSEQ EXPORT.FILE
+*
+                     WRITEBLK EXPORT.RESULTS ON EXPORT.FILE ELSE
+                        PRINT 'Failed to write file: ' : EXPORT.FILE
+                     END
+*
+                     FLUSH EXPORT.FILE ELSE NULL
+                     CLOSESEQ EXPORT.FILE
+                  END
+*
+               END ELSE
+                  IF TIMER THEN
+                     T1 = TIME()
+                     EXECUTE SERIES
+                     T2 = TIME()
+                     PRINT 'NSH::Took: ' : T2 - T1
+                  END ELSE
+                     EXECUTE SERIES
+                  END
+*
+               END
             END
          END
-      END
 *
-      LOCATE(VERB,SERIES.VERBS,1;ANY.POS) ELSE
          SERIES = ''
       END
 *
@@ -2656,4 +2675,3 @@ GET.OVERFLOW.POSITIONS:NULL
 *
    END
 *
-
