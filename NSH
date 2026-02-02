@@ -504,7 +504,6 @@
    VALID.VERBS<-1> = 'VERSION'
    VALID.VERBS<-1> = 'NSH-PROFILE'
    VALID.VERBS<-1> = 'NSH-HISTORY'
-   VALID.VERBS<-1> = 'FA'
    VALID.VERBS<-1> = '@PATH'
    VALID.VERBS<-1> = '@ACCOUNT'
    VALID.VERBS<-1> = '@WHO'
@@ -2095,53 +2094,8 @@
 * EXECUTE CUSTOM COMMANDS
 *
       LOCATE(VERB,SERIES.VERBS,1;ANY.POS) THEN
-         LIST.NAME = USER.NAME : '.' : PORT.NUMBER : '.LIST'
-         SERIES<-1> = 'SAVE-LIST ' : LIST.NAME
 *
-         SERIES.SUCCESS = TRUE
-         NUMBER.OF.SERIES = DCOUNT(SERIES,@AM)
-*
-         FOR I = 1 TO NUMBER.OF.SERIES
-            IF I = 1 THEN
-               EXECUTE SERIES<I> CAPTURING RESULTS
-            END ELSE
-               EXECUTE SERIES<I> CAPTURING RESULTS PASSLIST
-            END
-*
-            IF INDEX(RESULTS,'error',1) # 0 THEN
-               CONVERT @AM TO CHAR(10) IN RESULTS
-               PRINT RESULTS
-               SERIES = ''
-               SERIES.SUCCESS = FALSE
-            END
-*
-         NEXT I
-*
-         IF SERIES.SUCCESS THEN
-            PRINT RESULTS<DCOUNT(RESULTS,@AM)-1>
-            SERIES = 'GET-LIST ' : LIST.NAME
-            EXECUTE SERIES CAPTURING RESULTS
-         END
-*
-      END ELSE
-         IF VERB = 'LOGTO' THEN
-            $IFDEF DATABASE.UV
-               EXECUTE SERIES
-               ACCOUNT.NAME = @WHO
-            $ENDIF
-*
-            $IFDEF DATABASE.QM
-               EXECUTE SERIES
-               ACCOUNT.NAME = @WHO
-            $ENDIF
-*
-            $IFDEF DATABASE.D3
-               EXECUTE SERIES : ' (f'
-               ACCOUNT.NAME = @ACCOUNT
-            $ENDIF
-*
-         END ELSE IF VERB = 'SEARCH' THEN
-*
+         IF VERB = 'SEARCH' THEN
             $IFDEF DATABASE.UV
                SERIES.LENGTH = DCOUNT(SERIES,@AM)
                IF DCOUNT(COMMAND,' ') >= 3 THEN
@@ -2234,6 +2188,53 @@
                EXECUTE SERIES
             $ENDIF
 *
+         END ELSE
+            LIST.NAME = USER.NAME : '.' : PORT.NUMBER : '.LIST'
+            SERIES<-1> = 'SAVE-LIST ' : LIST.NAME
+*
+            SERIES.SUCCESS = TRUE
+            NUMBER.OF.SERIES = DCOUNT(SERIES,@AM)
+*
+            FOR I = 1 TO NUMBER.OF.SERIES
+               IF I = 1 THEN
+                  EXECUTE SERIES<I> CAPTURING RESULTS
+               END ELSE
+                  EXECUTE SERIES<I> CAPTURING RESULTS PASSLIST
+               END
+*
+               IF INDEX(RESULTS,'error',1) # 0 THEN
+                  CONVERT @AM TO CHAR(10) IN RESULTS
+                  PRINT RESULTS
+                  SERIES = ''
+                  SERIES.SUCCESS = FALSE
+               END
+*
+            NEXT I
+*
+            IF SERIES.SUCCESS THEN
+               PRINT RESULTS<DCOUNT(RESULTS,@AM)-1>
+               SERIES = 'GET-LIST ' : LIST.NAME
+               EXECUTE SERIES CAPTURING RESULTS
+            END
+         END
+*
+      END ELSE
+         IF VERB = 'LOGTO' THEN
+            $IFDEF DATABASE.UV
+               EXECUTE SERIES
+               ACCOUNT.NAME = @WHO
+            $ENDIF
+*
+            $IFDEF DATABASE.QM
+               EXECUTE SERIES
+               ACCOUNT.NAME = @WHO
+            $ENDIF
+*
+            $IFDEF DATABASE.D3
+               EXECUTE SERIES : ' (f'
+               ACCOUNT.NAME = @ACCOUNT
+            $ENDIF
+*
 *
          END ELSE IF VERB = 'SAVE-LIST' THEN
             EXECUTE SERIES CAPTURING RESULTS
@@ -2248,9 +2249,9 @@
                FA.COMMAND = 'LIST DICT ' : FA.FILE
                IF FA.SEARCH.STRING THEN
                   FA.COMMAND = FA.COMMAND : ' WITH @ID = "[' : FA.SEARCH.STRING  : ']"'
-                  FA.COMMAND = FA.COMMAND : ' AND WITH F1 = "A" BY F2'
+                  FA.COMMAND = FA.COMMAND : ' AND WITH F1 = "A" BY A/AMC A/AMC @ID FMT 40L ID-SUPP'
                END ELSE
-                  FA.COMMAND = FA.COMMAND : ' WITH F1 = "A" BY F2'
+                  FA.COMMAND = FA.COMMAND : ' WITH F1 = "A" BY A/AMC A/AMC  @ID FMT 40L ID-SUPP'
                END
 *
                EXECUTE FA.COMMAND
