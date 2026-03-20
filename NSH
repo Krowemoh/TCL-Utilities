@@ -157,72 +157,28 @@
 *
 * FILE FOR SAVING COMMAND HISTORY
 *
+   EXECUTE 'SH -c "echo $HOME"' CAPTURING HOME.DIR
+   HOME.DIR = HOME.DIR<1>
+*
    NSH.HISTORY.OPENED = TRUE
-   OPEN '','NSH-HISTORY-FILE' TO NSH.HISTORY.FILE ELSE
-      OPEN '',VOC TO VOC.FILE THEN
-         NSH.ENTRY = ''
-         $IFDEF PLATFORM.LINUX
-            $IFDEF DATABASE.UV
-               NSH.ENTRY<1> = 'F'
-               NSH.ENTRY<2> = '/opt/nsh/'
-               NSH.ENTRY<3> = '/opt/nsh/'
-            $ENDIF
-*
-            $IFDEF DATABASE.QM
-               NSH.ENTRY<1> = 'F'
-               NSH.ENTRY<2> = '/opt/nsh/'
-               NSH.ENTRY<3> = '/opt/nsh/'
-            $ENDIF
-*
-            $IFDEF DATABASE.D3
-               NSH.ENTRY<1> = 'Q'
-               NSH.ENTRY<3> = 'UNIX:/opt/nsh/'
-            $ENDIF
-         $ENDIF
-         $IFDEF PLATFORM.WINDOWS
-            $IFDEF DATABASE.UV
-               NSH.ENTRY<1> = 'F'
-               NSH.ENTRY<2> = 'DOS:C:\.nsh\'
-               NSH.ENTRY<3> = 'DOS:C:\.nsh\'
-            $ENDIF
-*
-            $IFDEF DATABASE.QM
-               NSH.ENTRY<1> = 'F'
-               NSH.ENTRY<2> = 'DOS:C:\.nsh\'
-               NSH.ENTRY<3> = 'DOS:C:\.nsh\'
-            $ENDIF
-*
-            $IFDEF DATABASE.D3
-               NSH.ENTRY<1> = 'Q'
-               NSH.ENTRY<3> = 'DOS:C:\.nsh\'
-            $ENDIF
+   OPENPATH HOME.DIR : '/.config/nsh/' TO NSH.HISTORY.FILE ELSE
+      $IFDEF PLATFORM.LINUX
+         $IFDEF DATABASE.UV
+            EXECUTE 'SH -c "mkdir -p ' : HOME.DIR : '/.config/nsh/"'
          $ENDIF
 *
-         WRITE NSH.ENTRY ON VOC.FILE,'NSH-HISTORY-FILE'
+         $IFDEF DATABASE.QM
+            EXECUTE '!mkdir -p ' : HOME.DIR : '/.config/nsh/'
+         $ENDIF
 *
-         OPEN '','NSH-HISTORY-FILE' TO NSH.HISTORY.FILE ELSE
-            $IFDEF PLATFORM.LINUX
-               $IFDEF DATABASE.UV
-                  EXECUTE 'SH -c "mkdir -p /opt/nsh/"'
-               $ENDIF
-*
-               $IFDEF DATABASE.QM
-                  EXECUTE '!mkdir -p /opt/nsh/'
-               $ENDIF
-*
-               $IFDEF DATABASE.D3
-                  EXECUTE '!mkdir -p /opt/nsh/'
-               $ENDIF
-            $ENDIF
-            $IFDEF PLATFORM.WINDOWS
-               EXECUTE '! mkdir C:\.nsh'
-            $ENDIF
-            OPEN '','NSH-HISTORY-FILE' TO NSH.HISTORY.FILE ELSE
-               NSH.HISTORY.OPENED = FALSE
-            END
-         END
-      END ELSE
-         PRINT 'NSH: Unable to open file: VOC'
+         $IFDEF DATABASE.D3
+            EXECUTE '!mkdir -p ' : HOME.DIR : '/.config/nsh/'
+         $ENDIF
+      $ENDIF
+      $IFDEF PLATFORM.WINDOWS
+         EXECUTE '! mkdir C:\.nsh'
+      $ENDIF
+      OPENPATH HOME.DIR : '/.config/nsh' TO NSH.HISTORY.FILE ELSE
          NSH.HISTORY.OPENED = FALSE
       END
    END
@@ -636,21 +592,6 @@
             CASE ASCII.CODE = SEQ(KEY.TAB)
                TAB.PRESSED = TRUE
                EXIT
-*
-            CASE ASCII.CODE = SEQ(KEY.DOUBLE.QUOTE)
-               LINUX.COMMAND.MODE = NOT(LINUX.COMMAND.MODE)
-*
-               $IFDEF DATABASE.UV
-                  PRINT CHR :
-               $ENDIF
-*
-               $IFDEF DATABASE.QM
-                  PRINT CHR :
-               $ENDIF
-*
-               COMMAND = COMMAND : CHR
-               CURSOR.POSITION = LEN(RAW.SHELL.PROMPT) + LEN(COMMAND)
-               CONTINUE
 *
             CASE ASCII.CODE = SEQ(KEY.EXCLAIMATION.MARK)
                LINUX.COMMAND.MODE = TRUE
