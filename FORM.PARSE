@@ -1,0 +1,102 @@
+   SUBROUTINE FORM.PARSE(RAW.TEXT,REQUEST.FORM)
+*
+   GIT.FILENAME = 'FORM.PARSE'
+   GIT.REPO = 'https://github.com/Krowemoh/TCL-Utilities.git'
+*
+* VERSION
+*
+   VERSION = '1'
+*
+   @USER1 = 'FORM.PARSE'
+   @USER2 = 'FORM.PARSE'
+*
+   RAW.TEXT.LENGTH = LEN(RAW.TEXT)
+*
+   TOKEN = ''
+   REQUEST.FORM = ''
+   POST.CTR = 1
+*
+   FOR I = 1 TO RAW.TEXT.LENGTH
+      LETTER = RAW.TEXT[I,1]
+*
+      IF LETTER = '=' THEN
+         REQUEST.FORM<1,POST.CTR> = TOKEN
+         TOKEN = ''
+*
+      END ELSE IF LETTER = '&' THEN
+         VALUE = TOKEN
+         GOSUB DECODE.VALUE
+*
+         REQUEST.FORM<2,POST.CTR> = VALUE
+*
+         TOKEN = ''
+         POST.CTR = POST.CTR + 1
+*
+      END ELSE
+         TOKEN = TOKEN : LETTER
+      END
+   NEXT I
+*
+   IF TOKEN # '' THEN
+      REQUEST.FORM<2,POST.CTR> = TOKEN
+   END
+*
+   NUMBER.OF.PARAMS = DCOUNT(REQUEST.FORM<1>,@VM)
+   SIMPLIFIED.FORM = ''
+*
+   FOR I = 1 TO NUMBER.OF.PARAMS
+      FORM.KEY = REQUEST.FORM<1,I>
+      FORM.VALUE = REQUEST.FORM<2,I>
+*
+      LOCATE(FORM.KEY,SIMPLIFIED.FORM<1>,1;FORM.POS) THEN
+         SIMPLIFIED.FORM<2,FORM.POS,-1> = FORM.VALUE
+      END ELSE
+         SIMPLIFIED.FORM<1,I> = FORM.KEY
+         SIMPLIFIED.FORM<2,I> = FORM.VALUE
+      END
+   NEXT I
+*
+   REQUEST.FORM = SIMPLIFIED.FORM
+*
+   RETURN
+*
+*********************  S U B R O U T I N E  *********************
+*
+DECODE.VALUE:NULL
+*
+   VALUE = CHANGE(VALUE,'%26','&')
+   VALUE = CHANGE(VALUE,'%2A','*')
+   VALUE = CHANGE(VALUE,'%40','@')
+   VALUE = CHANGE(VALUE,'%5C','\')
+   VALUE = CHANGE(VALUE,'%5E','^')
+   VALUE = CHANGE(VALUE,'%2C',',')
+   VALUE = CHANGE(VALUE,'%24','$')
+   VALUE = CHANGE(VALUE,'%22','"')
+   VALUE = CHANGE(VALUE,'%3D','=')
+   VALUE = CHANGE(VALUE,'%21','!')
+   VALUE = CHANGE(VALUE,'%2D','-')
+   VALUE = CHANGE(VALUE,'%7B','{')
+   VALUE = CHANGE(VALUE,'%5B','[')
+   VALUE = CHANGE(VALUE,'%28','(')
+   VALUE = CHANGE(VALUE,'%23','#')
+   VALUE = CHANGE(VALUE,'%2E','.')
+   VALUE = CHANGE(VALUE,'%2B','+')
+   VALUE = CHANGE(VALUE,'%3F','?')
+   VALUE = CHANGE(VALUE,'%7D','}')
+   VALUE = CHANGE(VALUE,'%5D',']')
+   VALUE = CHANGE(VALUE,'%29',')')
+   VALUE = CHANGE(VALUE,'%27',"'")
+   VALUE = CHANGE(VALUE,'%2F','/')
+   VALUE = CHANGE(VALUE,'%5F','_')
+*
+   VALUE = CHANGE(VALUE,'+',' ')
+   VALUE = CHANGE(VALUE,'%2B','+')
+*
+   VALUE = CHANGE(VALUE,'%25','%')
+*
+   RETURN
+*
+* END OF PROGRAM.
+*
+   END
+*
