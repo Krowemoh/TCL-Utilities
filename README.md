@@ -66,6 +66,13 @@ A set of utilities to make PICK easier to manage. Square brackets mean the word 
 |JSON.PARSE||
 |JSON.QUERY||
 
+## FormData
+
+|Subroutine|Description|
+|----------|-----------|
+|FORM.PARSE||
+|FORM.QUERY||
+
 ## SOLR
 
 Some general wrappers for connecting to and using solr.
@@ -495,6 +502,48 @@ Convert a json object to a multivalue string that can be queried.
 *    
     CALL JSON.QUERY(JSON,'.firstName',FIRST.NAME)
 ```
+
+## FormData Subroutines
+
+### FormData Parsing
+
+#### FORM.PARSE
+
+Convert FormData from the web to a multivalue string that can be queried.
+
+```
+    CALL FORM.PARSE(RAW.TEXT,FORM)
+```
+
+#### FORM.QUERY
+
+```
+    CALL FORM.QUERY(FORM,'firstName',FIRST.NAME)
+```
+
+#### Example
+
+```
+*
+   FORM.DATA = 'name=Alice&lastName=Bob&lastName=Tim'
+*
+   CALL FORM.PARSE(FORM.DATA,FORM)
+*
+   PRINT 'Form Data: '
+   PRINT FORM.DATA
+*
+   PRINT
+   PRINT 'Form: '
+   PRINT FORM
+*
+   CALL FORM.QUERY(FORM,'lastName',VALUE)
+   PRINT
+   PRINT 'Value: ' : VALUE
+*
+   END
+*
+```
+
 ## Solr Wrappers
 
 #### SOLR.CREATE
