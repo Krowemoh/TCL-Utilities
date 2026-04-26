@@ -118,6 +118,18 @@
 *
             IF I > RAW.TEXT.LEN THEN
                DONE = TRUE
+*
+            END ELSE IF RAW.CHAR = '"' THEN
+               TEXT = TEXT : RAW.CHAR
+*
+               LOOP
+                  I = I + 1
+                  RAW.CHAR = RAW.TEXT[I,1]
+                  PREV.CHAR = RAW.TEXT[I-1,1]
+               UNTIL (RAW.CHAR = '"' AND PREV.CHAR # '\') OR I > RAW.TEXT.LEN DO
+                  TEXT = TEXT : RAW.CHAR
+               REPEAT
+*
             END ELSE IF RAW.CHAR = '[' THEN
                STACK = STACK + 1
 *
@@ -221,4 +233,5 @@ LOWER:NULL
 *
    END
 *
+   
    
