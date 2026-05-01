@@ -1,0 +1,132 @@
+   SUBROUTINE JSON.CREATE.OBJECT.TYPED(BUFFER,TYPE.LIST)
+*
+   GIT.FILENAME = 'JSON.CREATE.OBJECT.TYPED'
+   GIT.REPO = 'https://github.com/Krowemoh/TCL-Utilities.git'
+*
+   EQU TRUE TO 1
+   EQU FALSE TO 0
+*
+* VERSION
+*
+   VERSION = '1'
+*
+   @USER1 = 'JSON.CREATE.OBJECT.TYPED'
+   @USER2 = @USER2 : @VM : 'JSON.CREATE.OBJECT.TYPED'
+*
+   NUMBER.OF.KEYS = DCOUNT(BUFFER,@AM)
+*
+   KEYS = ''
+   JSON = ''
+*
+   FOR I = 1 TO NUMBER.OF.KEYS
+      KEY = BUFFER<I,1>
+      VALUE = BUFFER<I,2>
+*
+      FIRST.CHAR = VALUE[1,1]
+      LAST.CHAR = VALUE[LEN(VALUE),1]
+*
+      KEY.TYPE = ''
+      LOCATE(KEY,TYPE.LIST<1>,1;TYPE.POS) THEN
+         KEY.TYPE = TYPE.LIST<2,TYPE.POS>
+      END
+*
+      LOCATE(KEY,KEYS;KEY.POS) ELSE
+         KEYS<-1> = KEY
+         KEY.POS = -1
+      END
+*
+      BEGIN CASE
+         CASE KEY.TYPE = 'STRING'
+            GOSUB QUOTE.VALUE
+            JSON<KEY.POS> = KEY.VALUE
+*
+         CASE KEY.TYPE = 'NUMBER' OR KEY.TYPE = 'OBJECT' OR KEY.TYPE = 'ARRAY'
+            JSON<KEY.POS> = '"' : KEY : '": ' : VALUE
+*
+         CASE KEY.TYPE = 'BOOLEAN'
+            IF VALUE = FALSE THEN
+               VALUE = 'false'
+            END ELSE
+               VALUE = 'true'
+            END
+            JSON<KEY.POS> = '"' : KEY : '": ' : VALUE
+*
+         CASE KEY.TYPE = 'NULL'
+            IF VALUE = '' THEN
+               VALUE = 'null'
+            END
+            JSON<KEY.POS> = '"' : KEY : '": ' : VALUE
+*
+         CASE KEY.TYPE # ''
+            JSON<KEY.POS> = '"' : KEY : '": ' : VALUE
+*
+         CASE VALUE = ''
+            GOSUB QUOTE.VALUE
+            JSON<KEY.POS> = KEY.VALUE
+*
+         CASE VALUE = 0
+            JSON<KEY.POS> = '"' : KEY : '": ' : VALUE
+*
+         CASE VALUE[1,1] = '0' AND VALUE[2,1] # '.'
+            GOSUB QUOTE.VALUE
+            JSON<KEY.POS> = KEY.VALUE
+*
+         CASE VALUE[1,1] = '.'
+            GOSUB QUOTE.VALUE
+            JSON<KEY.POS> = KEY.VALUE
+*
+         CASE FIRST.CHAR = '[' AND LAST.CHAR = ']'
+            JSON<KEY.POS> = '"' : KEY : '": ' : VALUE
+*
+         CASE FIRST.CHAR = '{' AND LAST.CHAR = '}'
+            JSON<KEY.POS> = '"' : KEY : '": ' : VALUE
+*
+         CASE NUM(VALUE) AND INDEX(VALUE,'E',1) = 0
+            JSON<KEY.POS> = '"' : KEY : '": ' : VALUE
+*
+         CASE TRUE
+            GOSUB QUOTE.VALUE
+            JSON<KEY.POS> = KEY.VALUE
+*
+      END CASE
+   NEXT I
+*
+   CONVERT @AM TO ',' IN JSON
+*
+   JSON = '{ ' : JSON : ' }'
+*
+   BUFFER = JSON
+*
+   RETURN
+*
+*********************  S U B R O U T I N E  *********************
+*
+QUOTE.VALUE:NULL
+*
+   KEY = CHANGE(KEY,'\','\\')
+   VALUE = CHANGE(VALUE,'\','\\')
+*
+   KEY = CHANGE(KEY,'"','\"')
+   VALUE = CHANGE(VALUE,'"','\"')
+*
+   KEY.VALUE = '"' : KEY : '": "' : VALUE : '"'
+*
+   KEY.VALUE = CHANGE(KEY.VALUE,'/','\/')
+*
+   KEY.VALUE = CHANGE(KEY.VALUE,CHAR(8),'\b')
+   KEY.VALUE = CHANGE(KEY.VALUE,CHAR(9),'\t')
+   KEY.VALUE = CHANGE(KEY.VALUE,CHAR(10),'\n')
+   KEY.VALUE = CHANGE(KEY.VALUE,CHAR(12),'\f')
+   KEY.VALUE = CHANGE(KEY.VALUE,CHAR(13),'\r')
+*
+   FOR HEX.CTR = 1 TO 31
+      HEX.CODE = OCONV(CHAR(HEX.CTR),'MX')
+      KEY.VALUE = CHANGE(KEY.VALUE,CHAR(HEX.CTR),'\u00' : HEX.CODE)
+   NEXT HEX.CTR
+*
+   RETURN
+*
+* END OF PROGRAM
+*
+   END
+*
