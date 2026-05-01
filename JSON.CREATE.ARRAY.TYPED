@@ -1,0 +1,111 @@
+   SUBROUTINE JSON.CREATE.ARRAY.TYPED(BUFFER,VALUE.TYPE.LIST)
+*
+   GIT.FILENAME = 'JSON.CREATE.ARRAY.TYPED'
+   GIT.REPO = 'https://github.com/Krowemoh/TCL-Utilities.git'
+*
+   EQU TRUE TO 1
+   EQU FALSE TO 0
+*
+* VERSION
+*
+   VERSION = '1'
+*
+   @USER1 = 'JSON.CREATE.ARRAY.TYPED'
+   @USER2 = @USER2 : @VM : 'JSON.CREATE.ARRAY.TYPED'
+*
+   NUMBER.OF.KEYS = DCOUNT(BUFFER,@AM)
+   JSON = ''
+*
+   FOR I = 1 TO NUMBER.OF.KEYS
+      VALUE = BUFFER<I>
+      VALUE.TYPE = VALUE.TYPE.LIST
+*
+      FIRST.CHAR = VALUE[1,1]
+      LAST.CHAR = VALUE[LEN(VALUE),1]
+*
+      BEGIN CASE
+         CASE VALUE.TYPE = 'STRING'
+            GOSUB QUOTE.VALUE
+*
+         CASE VALUE.TYPE = 'NUMBER' OR VALUE.TYPE = 'OBJECT' OR VALUE.TYPE = 'ARRAY'
+            JSON<-1> = VALUE
+*
+         CASE VALUE.TYPE = 'BOOLEAN'
+            IF VALUE = FALSE THEN
+               VALUE = 'false'
+            END ELSE
+               VALUE = 'true'
+            END
+            JSON<-1> = VALUE
+*
+         CASE VALUE.TYPE = 'NULL'
+            IF VALUE = '' THEN
+               VALUE = 'null'
+            END
+            JSON<-1> = VALUE
+*
+         CASE VALUE.TYPE # ''
+            JSON<-1> = VALUE
+*
+         CASE VALUE = ''
+            GOSUB QUOTE.VALUE
+*
+         CASE VALUE = 0
+            JSON<-1> = VALUE
+*
+         CASE VALUE[1,1] = '0' AND VALUE[2,1] # '.'
+            GOSUB QUOTE.VALUE
+*
+         CASE VALUE[1,1] = '.'
+            GOSUB QUOTE.VALUE
+*
+         CASE FIRST.CHAR = '[' AND LAST.CHAR = ']'
+            JSON<-1> = VALUE
+*
+         CASE FIRST.CHAR = '{' AND LAST.CHAR = '}'
+            JSON<-1> = VALUE
+*
+         CASE NUM(VALUE) AND INDEX(VALUE,'E',1) = 0
+            JSON<-1> = VALUE
+*
+         CASE TRUE
+            GOSUB QUOTE.VALUE
+*
+      END CASE
+   NEXT I
+*
+   CONVERT @AM TO ',' IN JSON
+*
+   JSON = '[' : JSON : ']'
+*
+   BUFFER = JSON
+*
+   RETURN
+*
+*********************  S U B R O U T I N E  *********************
+*
+QUOTE.VALUE:NULL
+*
+   VALUE = CHANGE(VALUE,'\','\\')
+   VALUE = CHANGE(VALUE,'"','\"')
+   VALUE = CHANGE(VALUE,'/','\/')
+*
+   VALUE = CHANGE(VALUE,CHAR(8),'\b')
+   VALUE = CHANGE(VALUE,CHAR(9),'\t')
+   VALUE = CHANGE(VALUE,CHAR(10),'\n')
+   VALUE = CHANGE(VALUE,CHAR(12),'\f')
+   VALUE = CHANGE(VALUE,CHAR(13),'\r')
+*
+   FOR HEX.CTR = 0 TO 31
+      HEX.CODE = OCONV(CHAR(HEX.CTR),'MX')
+      VALUE = CHANGE(VALUE,CHAR(HEX.CTR),'\u00' : HEX.CODE)
+   NEXT HEX.CTR
+*
+   JSON<-1> = '"' : VALUE : '"'
+*
+   RETURN
+*
+* END OF PROGRAM
+*
+   END
+*
