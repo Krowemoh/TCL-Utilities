@@ -11,92 +11,13 @@
    VERSION = '1'
 *
    @USER1 = 'JSON.CREATE.OBJECT'
-   @USER2 = 'JSON.CREATE.OBJECT'
+   @USER2 = @USER2 : @VM : 'JSON.CREATE.OBJECT'
 *
-   NUMBER.OF.KEYS = DCOUNT(BUFFER,@AM)
-*
-   KEYS = ''
-   JSON = ''
-*
-   FOR I = 1 TO NUMBER.OF.KEYS
-      KEY = BUFFER<I,1>
-      VALUE = BUFFER<I,2>
-*
-      FIRST.CHAR = VALUE[1,1]
-      LAST.CHAR = VALUE[LEN(VALUE),1]
-*
-      LOCATE(KEY,KEYS;KEY.POS) ELSE
-         KEYS<-1> = KEY
-         KEY.POS = -1
-      END
-*
-      BEGIN CASE
-         CASE VALUE = ''
-            GOSUB QUOTE.VALUE
-            JSON<KEY.POS> = KEY.VALUE
-*
-         CASE VALUE = 0
-            JSON<KEY.POS> = '"' : KEY : '": ' : VALUE
-*
-         CASE VALUE[1,1] = '0' AND VALUE[2,1] # '.'
-            GOSUB QUOTE.VALUE
-            JSON<KEY.POS> = KEY.VALUE
-*
-         CASE VALUE[1,1] = '.'
-            GOSUB QUOTE.VALUE
-            JSON<KEY.POS> = KEY.VALUE
-*
-         CASE FIRST.CHAR = '[' AND LAST.CHAR = ']'
-            JSON<KEY.POS> = '"' : KEY : '": ' : VALUE
-*
-         CASE FIRST.CHAR = '{' AND LAST.CHAR = '}'
-            JSON<KEY.POS> = '"' : KEY : '": ' : VALUE
-*
-         CASE NUM(VALUE) AND INDEX(VALUE,'E',1) = 0
-            JSON<KEY.POS> = '"' : KEY : '": ' : VALUE
-*
-         CASE TRUE
-            GOSUB QUOTE.VALUE
-            JSON<KEY.POS> = KEY.VALUE
-*
-      END CASE
-   NEXT I
-*
-   CONVERT @AM TO ',' IN JSON
-*
-   JSON = '{ ' : JSON : ' }'
-*
-   BUFFER = JSON
+   CALL JSON.CREATE.OBJECT.TYPED(BUFFER,'')
 *
    RETURN
 *
-*********************  S U B R O U T I N E  *********************
-*
-QUOTE.VALUE:NULL
-*
-   KEY = CHANGE(KEY,'\','\\')
-   VALUE = CHANGE(VALUE,'\','\\')
-*
-   KEY = CHANGE(KEY,'"','\"')
-   VALUE = CHANGE(VALUE,'"','\"')
-*
-   KEY.VALUE = '"' : KEY : '": "' : VALUE : '"'
-*
-   KEY.VALUE = CHANGE(KEY.VALUE,'/','\/')
-*
-   KEY.VALUE = CHANGE(KEY.VALUE,CHAR(8),'\b')
-   KEY.VALUE = CHANGE(KEY.VALUE,CHAR(9),'\t')
-   KEY.VALUE = CHANGE(KEY.VALUE,CHAR(10),'\n')
-   KEY.VALUE = CHANGE(KEY.VALUE,CHAR(12),'\f')
-   KEY.VALUE = CHANGE(KEY.VALUE,CHAR(13),'\r')
-*
-   KEY.VALUE = CHANGE(KEY.VALUE,CHAR(0),'\u0000')
-   KEY.VALUE = CHANGE(KEY.VALUE,CHAR(2),'\u0002')
-   KEY.VALUE = CHANGE(KEY.VALUE,CHAR(4),'\u0004')
-*
-   RETURN
-*
-* END OF PROGRAM
+* END OF PROGRAM.
 *
    END
 *
