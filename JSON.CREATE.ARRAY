@@ -11,79 +11,13 @@
    VERSION = '1'
 *
    @USER1 = 'JSON.CREATE.ARRAY'
-   @USER2 = 'JSON.CREATE.ARRAY'
+   @USER2 = @USER2 : @VM : 'JSON.CREATE.ARRAY'
 *
-   NUMBER.OF.KEYS = DCOUNT(BUFFER,@AM)
-   JSON = ''
-*
-   FOR I = 1 TO NUMBER.OF.KEYS
-      VALUE = BUFFER<I>
-*
-      FIRST.CHAR = VALUE[1,1]
-      LAST.CHAR = VALUE[LEN(VALUE),1]
-*
-      BEGIN CASE
-         CASE VALUE = ''
-            GOSUB QUOTE.VALUE
-*
-         CASE VALUE = 0
-            JSON<-1> = VALUE
-*
-         CASE VALUE[1,1] = '0' AND VALUE[2,1] # '.'
-            GOSUB QUOTE.VALUE
-*
-         CASE VALUE[1,1] = '.'
-            GOSUB QUOTE.VALUE
-*
-         CASE FIRST.CHAR = '[' AND LAST.CHAR = ']'
-            JSON<-1> = VALUE
-*
-         CASE FIRST.CHAR = '{' AND LAST.CHAR = '}'
-            JSON<-1> = VALUE
-*
-         CASE NUM(VALUE) AND INDEX(VALUE,'E',1) = 0
-            JSON<-1> = VALUE
-*
-         CASE TRUE
-            GOSUB QUOTE.VALUE
-*
-      END CASE
-   NEXT I
-*
-   CONVERT @AM TO ',' IN JSON
-*
-   JSON = '[' : JSON : ']'
-*
-   BUFFER = JSON
+   CALL JSON.CREATE.ARRAY.TYPED(BUFFER,'')
 *
    RETURN
 *
-*********************  S U B R O U T I N E  *********************
-*
-QUOTE.VALUE:NULL
-*
-   VALUE = CHANGE(VALUE,'\','\\')
-   VALUE = CHANGE(VALUE,'"','\"')
-   VALUE = CHANGE(VALUE,'/','\/')
-*
-   VALUE = CHANGE(VALUE,CHAR(8),'\b')
-   VALUE = CHANGE(VALUE,CHAR(9),'\t')
-   VALUE = CHANGE(VALUE,CHAR(10),'\n')
-   VALUE = CHANGE(VALUE,CHAR(12),'\f')
-   VALUE = CHANGE(VALUE,CHAR(13),'\r')
-*
-   VALUE = CHANGE(VALUE,CHAR(0),'\u0000')
-   VALUE = CHANGE(VALUE,CHAR(2),'\u0002')
-   VALUE = CHANGE(VALUE,CHAR(4),'\u0004')
-*
-   JSON<-1> = '"' : VALUE : '"'
-*
-   RETURN
-*
-* END OF PROGRAM
+* END OF PROGRAM.
 *
    END
 *
-   
-   
-   
