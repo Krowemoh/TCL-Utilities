@@ -584,9 +584,17 @@ SETUP.PACKAGES:NULL
    PACKAGES<2,-1> = 'Create a JSON array from a multivalue list'
    PACKAGES<3,-1> = 'https://raw.githubusercontent.com/Krowemoh/TCL-Utilities/main/JSON.CREATE.ARRAY'
 *
+   PACKAGES<1,-1> = 'JSON.CREATE.ARRAY.TYPED'
+   PACKAGES<2,-1> = 'Create a JSON array from a multivalue list - Typed'
+   PACKAGES<3,-1> = 'https://raw.githubusercontent.com/Krowemoh/TCL-Utilities/main/JSON.CREATE.ARRAY.TYPED'
+*
    PACKAGES<1,-1> = 'JSON.CREATE.OBJECT'
-   PACKAGES<2,-1> = 'Create a JSON object froma multivalue list of key value pairs'
+   PACKAGES<2,-1> = 'Create a JSON object from a multivalue list of key value pairs'
    PACKAGES<3,-1> = 'https://raw.githubusercontent.com/Krowemoh/TCL-Utilities/main/JSON.CREATE.OBJECT'
+*
+   PACKAGES<1,-1> = 'JSON.CREATE.OBJECT.TYPED'
+   PACKAGES<2,-1> = 'Create a JSON object from a multivalue list of key value pairs - Typed'
+   PACKAGES<3,-1> = 'https://raw.githubusercontent.com/Krowemoh/TCL-Utilities/main/JSON.CREATE.OBJECT.TYPED'
 *
    PACKAGES<1,-1> = 'JSON.PARSE'
    PACKAGES<2,-1> = 'JSON parser'
@@ -738,4 +746,5 @@ SETUP.PACKAGES:NULL
 *
    END
 *
+
 
