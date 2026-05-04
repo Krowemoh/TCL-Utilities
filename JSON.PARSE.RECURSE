@@ -101,7 +101,7 @@
                CONTINUE
             END
 *
-         UNTIL (RAW.CHAR = '"' AND PREV.CHAR # '\') OR I > RAW.TEXT.LEN DO
+         UNTIL RAW.CHAR = '"' OR I > RAW.TEXT.LEN DO
             TEXT = TEXT : RAW.CHAR
          REPEAT
 *
@@ -126,7 +126,18 @@
                   I = I + 1
                   RAW.CHAR = RAW.TEXT[I,1]
                   PREV.CHAR = RAW.TEXT[I-1,1]
-               UNTIL (RAW.CHAR = '"' AND PREV.CHAR # '\') OR I > RAW.TEXT.LEN DO
+                  NEXT.CHAR = RAW.TEXT[I+1,1]
+*
+                  IF RAW.CHAR = '\' THEN
+                     IF NEXT.CHAR = '\' THEN
+                        TEXT = TEXT : '\\'
+                     END ELSE IF NEXT.CHAR = '"' THEN
+                        TEXT = TEXT : '\"'
+                     END
+                     I = I + 1
+                     CONTINUE
+                  END
+               UNTIL RAW.CHAR = '"' OR I > RAW.TEXT.LEN DO
                   TEXT = TEXT : RAW.CHAR
                REPEAT
 *
