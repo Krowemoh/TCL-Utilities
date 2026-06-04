@@ -31,6 +31,8 @@
       ORIGINAL.TERM = 'ansi'
    $ENDIF
 *
+   EXECUTE 'TERM xterm' CAPTURING RESULTS
+*
 * VERSION
 *
    VERSION = '11'
@@ -116,7 +118,7 @@
       NEWACC.NAME = 'NEWVOC'
    $ENDIF
 *
-   $IFDEF DATABASE.UV
+   $IFDEF DATABASE.D3
       NEWACC.NAME = 'NEWVOC'
    $ENDIF
 *
@@ -157,31 +159,54 @@
 *
 * FILE FOR SAVING COMMAND HISTORY
 *
-   EXECUTE 'SH -c "echo $HOME"' CAPTURING HOME.DIR
-   HOME.DIR = HOME.DIR<1>
+   $IFDEF PLATFORM.LINUX
+      EXECUTE 'SH -c "echo $HOME"' CAPTURING HOME.DIR
+      HOME.DIR = HOME.DIR<1>
 *
-   NSH.HISTORY.OPENED = TRUE
-   OPENPATH HOME.DIR : '/.config/nsh/' TO NSH.HISTORY.FILE ELSE
-      $IFDEF PLATFORM.LINUX
-         $IFDEF DATABASE.UV
+      NSH.HISTORY.OPENED = TRUE
+      $IFDEF DATABASE.UV
+         OPENPATH HOME.DIR : '/.config/nsh/' TO NSH.HISTORY.FILE ELSE
             EXECUTE 'SH -c "mkdir -p ' : HOME.DIR : '/.config/nsh/"'
-         $ENDIF
 *
-         $IFDEF DATABASE.QM
-            EXECUTE '!mkdir -p ' : HOME.DIR : '/.config/nsh/'
-         $ENDIF
+            OPENPATH HOME.DIR : '/.config/nsh' TO NSH.HISTORY.FILE ELSE
+               NSH.HISTORY.OPENED = FALSE
+            END
+         END
+      $ENDIF
 *
-         $IFDEF DATABASE.D3
+      $IFDEF DATABASE.QM
+         OPENPATH HOME.DIR : '/.config/nsh/' TO NSH.HISTORY.FILE ELSE
             EXECUTE '!mkdir -p ' : HOME.DIR : '/.config/nsh/'
-         $ENDIF
+*
+            OPENPATH HOME.DIR : '/.config/nsh' TO NSH.HISTORY.FILE ELSE
+               NSH.HISTORY.OPENED = FALSE
+            END
+         END
       $ENDIF
-      $IFDEF PLATFORM.WINDOWS
-         EXECUTE '! mkdir C:\.nsh'
+   $ENDIF
+*
+   $IFDEF PLATFORM.WINDOWS
+      $IFDEF DATABASE.UV
+         NSH.HISTORY.OPENED = TRUE
+         OPENPATH 'C:\.nsh' TO NSH.HISTORY.FILE ELSE
+            EXECUTE 'SH -c "mkdir C:\.nsh'
+            OPENPATH 'C:\.nsh' TO NSH.HISTORY.FILE ELSE
+               NSH.HISTORY.OPENED = FALSE
+            END
+         END
       $ENDIF
-      OPENPATH HOME.DIR : '/.config/nsh' TO NSH.HISTORY.FILE ELSE
-         NSH.HISTORY.OPENED = FALSE
-      END
-   END
+*
+      $IFDEF DATABASE.D3
+         NSH.HISTORY.OPENED = TRUE
+         OPEN 'NSH-HISTORY-FILE' TO NSH.HISTORY.FILE ELSE
+            EXECUTE 'CREATE-FILE NSH-HISTORY-FILE 1,11 11,1'
+*
+            OPEN 'NSH-HISTORY-FILE' TO NSH.HISTORY.FILE ELSE
+               NSH.HISTORY.OPENED = FALSE
+            END
+         END
+      $ENDIF
+   $ENDIF
 *
 * SHELL INITIALIZATION
 *
@@ -840,6 +865,7 @@
 *
          IF NOT(AT.BEGINNING) THEN
             CURSOR.POSITION.IN.COMMAND = CURSOR.POSITION - LEN(RAW.SHELL.PROMPT)
+            POSSIBLE.COMMAND = ''
 *
             IF CURSOR.POSITION.IN.COMMAND = LEN(COMMAND) THEN
                COMMAND = COMMAND : CHR
@@ -884,7 +910,7 @@
                   END
                END
 *
-               IF POSSIBLE.COMMAND THEN
+               IF POSSIBLE.COMMAND # '' THEN
                   B = BOTTOM - INT((LEN(POSSIBLE.COMMAND)+LEN(RAW.SHELL.PROMPT))/TERM.WIDTH) - 1
                END ELSE
                   B = BOTTOM - INT((LEN(COMMAND)+LEN(RAW.SHELL.PROMPT))/TERM.WIDTH) - 1
@@ -2337,7 +2363,7 @@
                $ENDIF
 *
                $IFDEF DATABASE.QM
-                  PRINT 'NSH: Not available on D3.'
+                  PRINT 'NSH: Not available on QM.'
                $ENDIF
 *
                $IFDEF DATABASE.D3
@@ -2353,35 +2379,45 @@
                LAST.COMMAND = SERIES<LAST.POSITION>
 *
                IF COUNT(LAST.COMMAND,'>') = 1 THEN
-                  EXPORT.AVAILABLE = TRUE
-                  EXPORT.PATH = TRIM(FIELD(LAST.COMMAND,'>',2))
+                  $IFDEF DATABASE.UV
+                     EXPORT.AVAILABLE = TRUE
+                     EXPORT.PATH = TRIM(FIELD(LAST.COMMAND,'>',2))
 *
-                  SERIES<LAST.POSITION> = TRIM(FIELD(LAST.COMMAND,'>',1))
-                  EXECUTE SERIES CAPTURING EXPORT.RESULTS
+                     SERIES<LAST.POSITION> = TRIM(FIELD(LAST.COMMAND,'>',1))
+                     EXECUTE SERIES CAPTURING EXPORT.RESULTS
 *
-                  CONVERT @AM TO CHAR(10) IN EXPORT.RESULTS
+                     CONVERT @AM TO CHAR(10) IN EXPORT.RESULTS
 *
-                  EXPORT.RESULTS = CHANGE(EXPORT.RESULTS,HOME.POSITION,'')
-                  EXPORT.RESULTS = CHANGE(EXPORT.RESULTS,ERASE.SCREEN,'')
+                     EXPORT.RESULTS = CHANGE(EXPORT.RESULTS,HOME.POSITION,'')
+                     EXPORT.RESULTS = CHANGE(EXPORT.RESULTS,ERASE.SCREEN,'')
 *
-                  OPENSEQ EXPORT.PATH TO EXPORT.FILE ELSE
-                     CREATE EXPORT.FILE ELSE
-                        PRINT 'Failed to create file: ' : EXPORT.PATH
-                        EXPORT.AVAILABLE = FALSE
-                     END
-                  END
-*
-                  IF EXPORT.AVAILABLE THEN
-                     WEOFSEQ EXPORT.FILE
-*
-                     WRITEBLK EXPORT.RESULTS ON EXPORT.FILE ELSE
-                        PRINT 'Failed to write file: ' : EXPORT.FILE
+                     OPENSEQ EXPORT.PATH TO EXPORT.FILE ELSE
+                        CREATE EXPORT.FILE ELSE
+                           PRINT 'Failed to create file: ' : EXPORT.PATH
+                           EXPORT.AVAILABLE = FALSE
+                        END
                      END
 *
-                     FLUSH EXPORT.FILE ELSE NULL
-                     CLOSESEQ EXPORT.FILE
-                  END
+                     IF EXPORT.AVAILABLE THEN
+                        WEOFSEQ EXPORT.FILE
 *
+                        WRITEBLK EXPORT.RESULTS ON EXPORT.FILE ELSE
+                           PRINT 'Failed to write file: ' : EXPORT.FILE
+                        END
+*
+                        FLUSH EXPORT.FILE ELSE NULL
+                        CLOSESEQ EXPORT.FILE
+                     END
+*
+                  $ENDIF
+*
+                  $IFDEF DATABASE.QM
+                     PRINT 'NSH: Not available on QM.'
+                  $ENDIF
+*
+                  $IFDEF DATABASE.D3
+                     PRINT 'NSH: Not available on D3.'
+                  $ENDIF
                END ELSE
                   IF TIMER THEN
                      T1 = TIME()
@@ -2391,7 +2427,6 @@
                   END ELSE
                      EXECUTE SERIES
                   END
-*
                END
             END
          END
